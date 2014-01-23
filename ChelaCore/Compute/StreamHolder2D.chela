@@ -1,0 +1,87 @@
+namespace Chela.Compute
+{
+    ///<summary>
+    ///This class is used to track a 2D stream.
+    ///</summary>
+    public sealed class StreamHolder2D<T>: StreamHolder<T>
+        where T:struct
+    {
+        private T[,] storage;
+        
+        ///<summary>
+        ///Default stream constructor. No storage is involved.
+        ///<summary>
+        public StreamHolder2D()
+        {
+        }
+
+        ///<summary>
+        ///Construct the stream using an storage.
+        ///<summary>
+        public StreamHolder2D(T[,] storage)
+        {
+            this.storage = storage;
+        }
+        
+        ///<summary>
+        ///The number of elements in the stream.
+        ///</summary>
+        public override int Length {
+            get {
+                return storage.Length;
+            }
+        }
+        
+        ///<summary>
+        ///The number of dimensions.
+        ///</summary>
+        public override int Dimensions {
+            get {
+                return 2;
+            }
+        }
+
+        ///<summary>
+        ///The stream storage.
+        ///</summary>
+        public T[,] Storage {
+            get {
+                return storage;
+            }
+            set {
+                storage = value;
+            }
+        }
+        
+        ///<summary>
+        ///Gets an element pointer.
+        ///</summary>
+        public override unsafe T *GetElementPtr(int index)
+        {
+            return null;
+        }
+        
+        ///<summary>
+        ///Simulates a linear stream.
+        ///</summary>
+        public override T this[int index] {
+            get {
+                return default(T);
+            }
+            set {
+            }
+        }
+        
+        ///<summary>
+        ///Simulates a linear stream.
+        ///</summary>
+        public object IStreamHolder.this[int index] {
+            get {
+                return null;
+            }
+            set {
+            }
+        }
+    }
+}
+

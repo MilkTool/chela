@@ -1,0 +1,117 @@
+using Chela.Lang;
+using Chela.Collections.Generic;
+using Chela.Reflection;
+
+namespace Chela.Compute
+{
+    public abstract class ComputeDriver
+    {
+        private static List<ComputeDriver> driverRegistry = null;
+        private static ComputeDriver currentDriver = null;
+        private static LocalCpuDriver localCpuDriver = null;
+    
+        ///<summary>
+        ///The current compute driver.
+        ///</summary>
+        public static ComputeDriver Current {
+            get {
+                if(currentDriver == null)
+                    RegisterLocalCpuDriver();
+                return currentDriver;
+            }
+            set {
+                currentDriver = value;
+            }
+        }
+        
+        ///<summary>
+        ///The cpu driver.
+        ///</summary>
+        public static LocalCpuDriver LocalCpuDriver {
+            get {
+                if(localCpuDriver == null)
+                    RegisterLocalCpuDriver();
+                return localCpuDriver;
+            }
+        }
+        
+        ///<summary>
+        ///Registers a compute driver.
+        ///</summary>
+        public static void RegisterDriver(ComputeDriver driver)
+        {
+            // Make sure the driver registry exists.
+            if(driverRegistry == null)
+                driverRegistry = new List<ComputeDriver> ();
+                
+            // Store it in the driver registry.
+            driverRegistry.Add(driver);
+            
+            // Use it as the current driver.
+            if(currentDriver == null)
+                currentDriver = driver;
+                
+            // Cache the CPU driver.
+            if(driver.IsLocalCPU)
+                localCpuDriver = (LocalCpuDriver)driver;
+        }
+        
+        ///<summary>
+        ///Registers the cpu driver.
+        ///</summary>
+        private static void RegisterLocalCpuDriver()
+        {
+            RegisterDriver(new LocalCpuDriver());
+        }
+        
+        ///<summary>
+        ///The driver name.
+        ///</summary>
+        public abstract string Name {
+            get;
+        }
+
+        ///<summary>
+        ///Is this a CPU driver.
+        ///</summary>
+        public abstract bool IsCPU {
+            get;
+        }
+        
+        ///<summary>
+        ///Is this a local CPU driver.
+        ///</summary>
+        public abstract bool IsLocalCPU {
+            get;
+        }
+        
+        ///<summary>
+        ///Is this a GPU driver.
+        ///</summary>
+        public abstract bool IsGPU {
+            get;
+        }
+        
+        ///<summary>
+        ///Prepares a kernel.
+        ///</summary>
+        public abstract ComputeBinding PrepareKernel(MethodInfo kernelMain, params object[] parameters);
+    }
+}
+
+using Chela.Compute;
+
+public __cdecl bool __chela_compute_iscpu__()
+{
+    return ComputeDriver.Current.IsLocalCPU;
+}
+
+public __cdecl unsafe ComputeBinding __chela_compute_bind__(void *kernelMethod, int numparameters, void **parameters)
+{
+    MethodInfo mi = reinterpret_cast<MethodInfo> (kernelMethod);
+    object[] parameters = new object[numparameters];
+    for(int i = 0; i < numparameters; ++i)
+        parameters[i] = reinterpret_cast<object> (parameters[i]);
+    return ComputeDriver.Current.PrepareKernel(mi, parameters);
+}
+

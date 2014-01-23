@@ -1,0 +1,62 @@
+///
+/// THIS FILE WAS GENERATED AUTOMATICALLY - DO NOT MODIFY
+///
+
+namespace Chela.OpenAL
+{
+    public partial class ALC
+    {
+        public static class Pointers
+        {
+            public typedef ALCboolean (*) __apicall (ALCcontext *context) MakeContextCurrent;
+            public static unsafe MakeContextCurrent alcMakeContextCurrent;
+            public typedef void (*) __apicall (ALCcontext *context) ProcessContext;
+            public static unsafe ProcessContext alcProcessContext;
+            public typedef void (*) __apicall (ALCcontext *context) SuspendContext;
+            public static unsafe SuspendContext alcSuspendContext;
+            public typedef void (*) __apicall (ALCcontext *context) DestroyContext;
+            public static unsafe DestroyContext alcDestroyContext;
+            public typedef ALCdevice* (*) __apicall (ALCcontext *context) GetContextsDevice;
+            public static unsafe GetContextsDevice alcGetContextsDevice;
+            public typedef ALCboolean (*) __apicall (ALCdevice *device) CloseDevice;
+            public static unsafe CloseDevice alcCloseDevice;
+            public typedef ALCenum (*) __apicall (ALCdevice *device) GetError;
+            public static unsafe GetError alcGetError;
+            public typedef ALCboolean (*) __apicall (ALCdevice *device, const ALCchar *extname) IsExtensionPresent;
+            public static unsafe IsExtensionPresent alcIsExtensionPresent;
+            public typedef ALCenum (*) __apicall (ALCdevice *device, const ALCchar *enumname) GetEnumValue;
+            public static unsafe GetEnumValue alcGetEnumValue;
+            public typedef void (*) __apicall (ALCdevice *device, ALCenum param, ALCsizei size, ALCint *data) GetIntegerv;
+            public static unsafe GetIntegerv alcGetIntegerv;
+            public typedef ALCdevice* (*) __apicall (const ALCchar *devicename, ALCuint frequency, ALCenum format, ALCsizei buffersize) CaptureOpenDevice;
+            public static unsafe CaptureOpenDevice alcCaptureOpenDevice;
+            public typedef ALCboolean (*) __apicall (ALCdevice *device) CaptureCloseDevice;
+            public static unsafe CaptureCloseDevice alcCaptureCloseDevice;
+            public typedef void (*) __apicall (ALCdevice *device) CaptureStart;
+            public static unsafe CaptureStart alcCaptureStart;
+            public typedef void (*) __apicall (ALCdevice *device) CaptureStop;
+            public static unsafe CaptureStop alcCaptureStop;
+            public typedef void (*) __apicall (ALCdevice *device, ALCvoid *buffer, ALCsizei samples) CaptureSamples;
+            public static unsafe CaptureSamples alcCaptureSamples;
+
+            public static unsafe void LoadEntryPoints()
+            {
+                alcMakeContextCurrent = (MakeContextCurrent)GetEntryPoint(c"alcMakeContextCurrent");
+                alcProcessContext = (ProcessContext)GetEntryPoint(c"alcProcessContext");
+                alcSuspendContext = (SuspendContext)GetEntryPoint(c"alcSuspendContext");
+                alcDestroyContext = (DestroyContext)GetEntryPoint(c"alcDestroyContext");
+                alcGetContextsDevice = (GetContextsDevice)GetEntryPoint(c"alcGetContextsDevice");
+                alcCloseDevice = (CloseDevice)GetEntryPoint(c"alcCloseDevice");
+                alcGetError = (GetError)GetEntryPoint(c"alcGetError");
+                alcIsExtensionPresent = (IsExtensionPresent)GetEntryPoint(c"alcIsExtensionPresent");
+                alcGetEnumValue = (GetEnumValue)GetEntryPoint(c"alcGetEnumValue");
+                alcGetIntegerv = (GetIntegerv)GetEntryPoint(c"alcGetIntegerv");
+                alcCaptureOpenDevice = (CaptureOpenDevice)GetEntryPoint(c"alcCaptureOpenDevice");
+                alcCaptureCloseDevice = (CaptureCloseDevice)GetEntryPoint(c"alcCaptureCloseDevice");
+                alcCaptureStart = (CaptureStart)GetEntryPoint(c"alcCaptureStart");
+                alcCaptureStop = (CaptureStop)GetEntryPoint(c"alcCaptureStop");
+                alcCaptureSamples = (CaptureSamples)GetEntryPoint(c"alcCaptureSamples");
+            }
+        }
+        }
+}

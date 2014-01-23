@@ -1,0 +1,107 @@
+using Chela.Collections;
+using Chela.Lang;
+
+namespace Chela.Xml
+{
+    /// <summary>
+    /// Manage namespaces collections and scope.
+    /// </summary>
+    public class XmlNamespaceManager: IEnumerable
+    {
+        private XmlNameTable nameTable;
+        
+        public XmlNamespaceManager(XmlNameTable nameTable)
+        {
+            this.nameTable = nameTable;
+            
+            // Add default namespaces.
+            AddNamespace("xmlns", "http://www.w3.org/2000/xmlns/");
+            AddNamespace("xml", "http://www.w3.org/XML/1998/namespace");
+            AddNamespace(string.Empty, string.Empty);
+        }
+        
+        /// <summary>
+        /// Adds the given namespace to the collection.
+        /// </summary>
+        public virtual void AddNamespace(string prefix, string uri)
+        {
+            // Use the strings in the name table.
+            prefix = nameTable.Add(prefix);
+            uri = nameTable.Add(uri);
+        }
+        
+        /// <summary>
+        /// Supports iteration over the namespace collection.
+        /// </summary>
+        public IEnumerator GetEnumerator()
+        {
+            return null;
+        }
+        
+        /// <summary>
+        /// Tells if a given namespace is here.
+        /// </summary>
+        public virtual bool HasNamespace(string prefix)
+        {
+            return false;
+        }
+        
+        /// <summary>
+        /// Gets the namespace URI associated with a prefix.
+        /// </summary>
+        public virtual string LookupNamespace(string prefix)
+        {
+            return string.Empty;
+        }
+        
+        /// <summary>
+        /// Gets the namespace URI associated with a prefix.
+        /// </summary>
+        public virtual string LookupPrefix(string prefix)
+        {
+            return string.Empty;
+        }
+        
+        /// <summary>
+        /// Pops a namespace scope off the stack.
+        /// </summary>
+        public virtual bool PopScope()
+        {
+            return false;
+        }
+
+        /// <summary>
+        /// Pushes a namespace scope to the stack.
+        /// </summary>
+        public virtual bool PushScope()
+        {
+            return false;
+        }
+
+        /// <summary>
+        /// Removes a namespace from the current scope.
+        /// </summary>
+        public virtual void RemoveNamespace(string prefix, string uri)
+        {
+        }
+        
+        /// <summary>
+        /// The namespace URI for the default namespace.
+        /// </summary>
+        public virtual string DefaultNamespace {
+            get {
+                return string.Empty;
+            }
+        }
+        
+        /// <summary>
+        /// The name table used by the current instance.
+        /// </summary>
+        public virtual XmlNameTable NameTable {
+            get {
+                return nameTable;
+            }
+        }
+    }
+}
+

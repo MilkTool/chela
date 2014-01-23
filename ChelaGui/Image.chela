@@ -1,0 +1,103 @@
+using Chela.Lang;
+
+namespace Chela.Gui
+{
+    ///<summary>
+    ///Generic image data.
+    ///</summary>
+    public sealed class Image: ICloneable
+    {
+        private PixelFormat format;
+        private int width;
+        private int height;
+        private int pixelSize;
+        private Palette palette;
+        private byte[] pixels;
+
+        ///<summary>
+        ///Generic image constructor
+        ///</summary>
+        public Image(PixelFormat format, int width, int height, Palette palette)
+        {
+            this.format = format;
+            this.width = width;
+            this.height = height;
+            this.pixelSize = ImageUtil.GetPixelSize(format);
+            this.palette = palette;
+            this.pixels = new byte[pixelSize*width*height];
+        }
+
+        ///<summary>
+        ///Generic image constructor
+        ///</summary>
+        public Image(PixelFormat format, int width, int height)
+            : this(format, width, height, null)
+        {
+        }
+    
+        ///<summary>
+        ///Makes a full copy of the image.
+        ///</summary>
+        public object Clone()
+        {
+            Image clone = (Image)MemberwiseClone();
+            return clone;
+        }
+        
+        ///<summary>
+        ///Decode the color in the requested slot.
+        ///</summary>
+        public Color GetColor(int index)
+        {
+            return ImageUtil.DecodePixel(pixels, index, format, palette);
+        }
+        
+        ///<summary>
+        ///Stores the color in the requested slot.
+        ///</summary>
+        public void SetColor(int index, Color color)
+        {
+            ImageUtil.EncodePixel(pixels, index, format, color, palette);
+        }
+        
+        ///<summary>
+        ///The image height;
+        ///</summary>
+        public int Height {
+            get {
+                return height;
+            }
+        }
+        
+        ///<summary>
+        ///The palette used by the image.
+        ///</summary>
+        public Palette Palette {
+            get {
+                return palette;
+            }
+            set {
+                palette = value;
+            }
+        }
+        
+        ///<summary>
+        ///The image pixels.
+        ///</summary>
+        public byte[] Pixels {
+            get {
+                return pixels;
+            }
+        }
+        
+        ///<summary>
+        ///The image width.
+        ///</summary>
+        public int Width {
+            get {
+                return width;
+            }
+        }
+    }
+}
+

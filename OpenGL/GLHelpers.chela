@@ -1,0 +1,50 @@
+using Chela.Lang;
+using Chela.Reflection;
+
+namespace Chela.Graphics.GL2
+{
+    unsafe extern __cdecl void *_Chela_OpenGL_GetProcedure(const sbyte *name);
+
+    ///<summary>
+    ///OpenGL 2.0 bindings.
+    ///</summary>
+    public partial class GL
+    {
+        public static void LoadAll()
+        {
+            // Load the entry points.
+            unsafe {
+                Delegates.LoadEntryPoints();
+            }
+        }
+
+        public unsafe static void *GetEntryPoint(string pointName)
+        {
+            sbyte *cstr = pointName.C_Str();
+            try
+                return GetEntryPoint(cstr);
+            finally
+                delete cstr;
+        }
+
+        public unsafe static void *GetEntryPoint(const sbyte *cpointName)
+        {
+            return _Chela_OpenGL_GetProcedure(cpointName);
+        }
+        
+        public static void LoadTransposeMatrix(ref mat4 matrix)
+        {
+            unsafe {
+                Delegates.glLoadTransposeMatrixfARB((float*)&matrix);
+            }
+        }
+        
+        public static void LoadTransposeMatrix(mat4 matrix)
+        {
+            unsafe {
+                Delegates.glLoadTransposeMatrixfARB((float*)&matrix);
+            }
+        }
+    }
+}
+

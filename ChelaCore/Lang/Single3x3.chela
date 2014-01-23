@@ -1,0 +1,18 @@
+namespace Chela.Lang
+{
+    public struct Single3x3
+    {
+        internal mat3 __value;
+
+        public override string ToString()
+        {
+            return "unimplemented";
+        }
+
+        public override int GetHashCode()
+        {
+            return 0;
+        }
+    }
+}
+

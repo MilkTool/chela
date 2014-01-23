@@ -1,0 +1,45 @@
+namespace Chela.Collections.Generic
+{
+    public interface ICollection<T>: IEnumerable<T>
+    {
+        ///<summary>
+        ///Adds an element to the collection.
+        ///</summary>
+        void Add(T element);
+        
+        ///<summary>
+        ///Clears the collection.
+        ///</summary>
+        void Clear();
+        
+        ///<summary>
+        ///Does the collection contain a element?.
+        ///</summary>
+        bool Contains(T element);
+        
+        ///<summary>
+        ///Copies the elements of the collection into an array.
+        ///</summary>
+        void CopyTo(T[] array, int arrayIndex);
+        
+        ///<summary>
+        ///Removes an item from the collection.
+        ///</summary>
+        bool Remove(T item);
+        
+        ///<summary>
+        ///The number of elements in the collection.
+        ///</summary>
+        int Count {
+            get;
+        }
+        
+        ///<summary>
+        ///Is this collection read-only?
+        ///</summary>
+        bool IsReadOnly {
+            get;
+        }
+        
+    }
+}

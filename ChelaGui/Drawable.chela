@@ -1,0 +1,27 @@
+namespace Chela.Gui
+{
+    public abstract class Drawable
+    {
+        ///<summary>
+        ///The drawable width.
+        ///</summary>
+        public abstract int Width {
+            get;
+        }
+
+        ///<summary>
+        ///The drawable height.
+        ///</summary>
+        public abstract int Height {
+            get;
+        }
+
+        ///<summary>
+        ///The drawable that owns the context.
+        ///</summary>
+        public abstract Display Display {
+            get;
+        }
+    }
+}
+

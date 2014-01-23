@@ -1,0 +1,96 @@
+namespace Chela.Lang
+{
+    public struct Char
+    {
+        internal char __value;
+
+        ///<summary>
+        ///Returns a string with a single character.
+        ///</summary>
+        public override string ToString()
+        {
+            return new string(new char[] {__value});
+        }
+
+        ///<summary>
+        ///Calcutates a hash code for this character.
+        ///</summary>
+        public override int GetHashCode()
+        {
+            return __value;
+        }
+
+        ///<summary>
+        ///Is this character equals to other?
+        ///</summary>
+        public override bool Equals(object o)
+        {
+            return o != null && ((Char)o).__value == __value;
+        }
+        
+        ///<summary>
+        ///Parses a string with a single character.
+        ///</summary>
+        public static char Parse(string s)
+        {
+            if(s == null)
+                throw new ArgumentNullException("s");
+            return s[0];
+        }
+        
+        public static bool IsDigit(char c)
+        {
+            return c >= '0' && c <= '9';
+        }
+        
+        public static bool IsLetter(char c)
+        {
+            return c >= 'a' && c <= 'z' ||
+                   c >= 'A' && c <= 'Z';
+        }
+        
+        public static bool IsLetterOrDigit(char c)
+        {
+            return IsLetter(c) || IsDigit(c);
+        }
+        
+        public static bool IsLower(char c)
+        {
+            return c >= 'a' && c <= 'z';
+        }
+
+        public static bool IsUpper(char c)
+        {
+            return c >= 'a' && c <= 'z';
+        }
+        
+        public static bool IsNumber(char c)
+        {
+            return IsDigit(c);
+        }
+        
+        public static bool IsSurrogate(char c)
+        {
+            return c >= 0xD800 && c <= 0xDFFFF;
+        }
+        
+        public static bool IsWhiteSpace(char c)
+        {
+            switch(c)
+            {
+            case 0x0009:
+            case 0x000a:
+            case 0x000b:
+            case 0x000c:
+            case 0x000d:
+            case 0x0085:
+            case 0x2028:
+            case 0x2029:
+                return true;
+            default:
+                return false;
+            }
+        }        
+    }
+}
+

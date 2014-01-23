@@ -1,0 +1,5 @@
+- This module is meant to be an API level ecma 335 compatibility layer, in the smallest profile possible.
+- This is going to require an CIL interpreter/jit which runs code transparently for compliancy.
+- Chela native is not going to be compatible with the cli due to different module
+  formats/design.
+  

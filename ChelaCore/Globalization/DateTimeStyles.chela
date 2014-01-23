@@ -1,0 +1,20 @@
+using Chela.Lang;
+
+namespace Chela.Globalization
+{
+    /// <summary>
+    /// Styles for date time parsing.
+    /// </summary>
+    [Flags]
+    public enum DateTimeStyles
+    {
+        AdjustToUniversal = 0x10,
+        AllowInnerWhite = 0x04,
+        AllowLeadingWhite = 0x01,
+        AllowTrailingWhite = 0x02,
+        AllowWhiteSpaces = AllowLeadingWhite | AllowTrailingWhite | AllowInnerWhite,
+        NoCurrentDateDefault = 0x08,
+        None = 0,
+    }
+}
+

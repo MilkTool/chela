@@ -1,0 +1,13 @@
+namespace Chela.Gui
+{
+    public enum PixelFormat
+    {
+        Grayscale=0,
+        Indexed,
+        RGB565,
+        RGB555,
+        RGB,
+        RGBA,
+    }
+}
+

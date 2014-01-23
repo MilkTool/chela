@@ -1,0 +1,141 @@
+using Chela.Lang;
+
+namespace Chela.Reflection
+{
+    ///<summary>
+    ///Reflection representation of a property.
+    ///</summary>
+    public abstract class PropertyInfo: MemberInfo
+    {
+        internal MethodInfo getMethod;
+        internal MethodInfo setMethod;
+        internal Type propertyType;
+        
+        ///<summary>
+        ///The property attributes.
+        ///</summary>
+        public PropertyAttributes Attributes {
+            get {
+                return (PropertyAttributes)attributes;
+            }
+        }
+        
+        ///<summary>
+        ///Does the property have a get accessor?
+        ///</summary>
+        public virtual bool CanRead {
+            get {
+                return getMethod != null;
+            }
+        }
+        
+        ///<summary>
+        ///Does the property have a set accessor?
+        ///</summary
+        public virtual bool CanWrite {
+            get {
+                return setMethod != null;
+            }
+        }
+        
+        ///<summary>
+        ///Does the property have a special name?
+        ///</summary>
+        public virtual bool IsSpecialName {
+            get {
+                return (Attributes & PropertyAttributes.RTSpecialName) != PropertyAttributes.None;
+            }
+        }
+        
+        ///<summary>
+        ///Returns the member type.
+        ///</summary>
+        public override MemberTypes MemberType {
+            get {
+                return MemberTypes.Property;
+            }
+        }
+                
+        ///<summary>
+        ///Returns the property type.
+        ///</summary>
+        public virtual Type PropertyType {
+            get {
+                return propertyType;
+            }
+        }
+        
+        ///<summary>
+        ///Returns the public (or not public if specified) get method.
+        ///</summary>
+        public virtual MethodInfo GetGetMethod(bool nonPublic)
+        {
+            // Return always null if the method is not present
+            if(getMethod == null)
+                return null;
+                
+            // Special checks for non-public methods.
+            if(!getMethod.IsPublic)
+            {
+                if(nonPublic)
+                {
+                    // TODO: Check reflection permissions.
+                    return getMethod;
+                }
+                else
+                {
+                    // The method is not public, and only public accessors
+                    // has been requested.
+                    return null;
+                }
+            }
+            
+            return getMethod;
+        }
+        
+        ///<summary>
+        ///Returns the public get method.
+        ///</summary>
+        public MethodInfo GetGetMethod()
+        {
+            return GetGetMethod(false);
+        }
+        
+        ///<summary>
+        ///Returns the public (or not public if specified) set method.
+        ///</summary>
+        public virtual MethodInfo GetSetMethod(bool nonPublic)
+        {
+            // Return always null if the method is not present
+            if(setMethod == null)
+                return null;
+                
+            // Special checks for non-public methods.
+            if(!setMethod.IsPublic)
+            {
+                if(nonPublic)
+                {
+                    // TODO: Check reflection permissions.
+                    return setMethod;
+                }
+                else
+                {
+                    // The method is not public, and only public accessors
+                    // has been requested.
+                    return null;
+                }
+            }
+            
+            return setMethod;
+        }
+
+        ///<summary>
+        ///Returns the public set method.
+        ///</summary>
+        public MethodInfo GetSetMethod()
+        {
+            return GetSetMethod(false);
+        }
+    }
+}
+

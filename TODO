@@ -1,0 +1,10 @@
+· reflection.
+· params support.
+· closures.
+· more debug information.
+· add kernel constraint enforcement.
+· add parameters custom attributes.
+· create a rule based coercion and type casting systems.
+· add implicit and explicit casting operators.
+· implicit vslot generation.
+· multiples indexers.

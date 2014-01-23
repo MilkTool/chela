@@ -1,0 +1,10 @@
+namespace Chela.Globalization
+{
+    /// <summary>
+    /// Reserved for future uses.
+    /// </summary>
+    public class CultureInfo
+    {
+    }
+}
+

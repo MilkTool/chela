@@ -1,0 +1,22 @@
+using Chela.Lang;
+
+namespace Chela.IO
+{
+    public class IOException: SystemException
+    {
+        public IOException()
+        {
+        }
+        
+        public IOException(string message)
+            : base(message)
+        {
+        }
+        
+        public IOException(string message, Exception innerException)
+            : base(message, innerException)
+        {
+        }
+    }
+}
+

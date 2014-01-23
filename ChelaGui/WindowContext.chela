@@ -1,0 +1,129 @@
+namespace Chela.Gui
+{
+    /// <summary>
+    /// This class represents a low level window.
+    /// </summary>
+    public abstract class WindowContext: Drawable
+    {
+        /// <summary>
+        /// Associated window.
+        /// </summary>
+        internal Window associatedWindow;
+
+        /// <summary>
+        /// The context associated window.
+        /// </summary>
+        public Window AssociatedWindow {
+            get {
+
+                return associatedWindow;
+            }
+        }
+
+        /// <summary>
+        /// The display associated with this context.
+        /// </summary>
+        public abstract Display CurrentDisplay {
+            get;
+        }
+
+        /// <summary>
+        /// Window context event received.
+        /// </summary>
+        public event GuiEventHandler EventReceived;
+
+        /// <summary>
+        /// Process a event.
+        /// </summary>
+        public virtual void ProcessEvent(GuiEvent ev)
+        {
+            // Dispatch the event.
+            if(EventReceived != null)
+                EventReceived(this, ev);
+
+            // Send to the associated window.
+            if(associatedWindow != null)
+                associatedWindow.ProcessEvent(ev);
+        }
+        
+        /// <summary>
+        /// Shows the low level window.
+        /// </summary>
+        public abstract void Show();
+
+        /// <summary>
+        /// Hides the low level window.
+        /// </summary>
+        public abstract void Hide();
+
+        /// <summary>
+        /// Captures the mouse in the window.
+        /// </summary>
+        public abstract void CaptureMouse();
+        
+        /// <summary>
+        /// Release the mouse capture in the window.
+        /// </summary>
+        public abstract void ReleaseMouse();        
+
+        /// <summary>
+        /// Tells if the window has the focus.
+        /// </summary>
+        public abstract bool HasFocus {
+            get;
+        }
+        
+        /// <summary>
+        /// Sets the focus in this window.
+        /// </summary>
+        public abstract void SetFocus();
+    
+        /// <summary>
+        /// Tells if the mouse and keyboard input is enabled.
+        /// </summary>
+        public abstract bool IsInputEnabled {
+            get;
+        }
+        
+        /// <summary>
+        /// Enables the mouse and keyboard input.
+        /// </summary>
+        public abstract void EnableInput();
+        
+        /// <summary>
+        /// Disables the mouse and keyboard input.
+        /// </summary>
+        public abstract void DisableInput();
+        
+        /// <summary>
+        /// Triggers a window refresh
+        /// </summary>
+        public virtual void Refresh()
+        {
+            // Just send a window refresh.
+            ExposeEvent expose = new ExposeEvent(this, GuiEventType.Expose);
+            ProcessEvent(expose);
+        }
+
+        /// <summary>
+        /// Sets a window property.
+        /// </summary>
+        public virtual void SetProperty(string property, object value)
+        {
+        }
+
+        /// <summary>
+        /// Gets a window property.
+        /// </summary>
+        public virtual object GetProperty(string property)
+        {
+            return null;
+        }
+
+        /// <summary>
+        /// Creates a graphic context
+        /// </summary>
+        public abstract GraphicContext CreateGraphicContext(bool painting);
+    }
+}
+

@@ -1,0 +1,19 @@
+namespace Chela.Lang
+{
+    ///<summary>
+    ///Standard event argument.
+    ///</summary>    
+    public class EventArgs
+    {
+        public EventArgs()
+        {
+        }
+
+        public static EventArgs Empty {
+            get {
+                return new EventArgs(); // TODO: use a read-only variable
+            }
+        }
+    }
+}
+

@@ -1,0 +1,25 @@
+using Chela.Lang;
+
+namespace Chela.Runtime.Core
+{
+    /// <summary>
+    /// Intrinsic value/function attribute. 
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Field)]
+    public class ChelaIntrinsicAttribute: Attribute
+    {
+        private string name;
+
+        public ChelaIntrinsicAttribute(string name)
+        {
+            this.name = name;
+        }
+
+        public string Name {
+            get {
+                return name;
+            }
+        }
+    }
+}
+

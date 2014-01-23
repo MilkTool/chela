@@ -1,0 +1,15 @@
+namespace Chela.Lang
+{
+    ///<summary>
+    ///This interface is implemented by objects that can be tested by
+    ///equality.
+    ///</summary>
+    public interface IEquatable<T>
+    {
+        ///<summary>
+        ///Returns true if I'm equal to value.
+        ///</summary>
+        bool Equals(T value);
+    }
+}
+

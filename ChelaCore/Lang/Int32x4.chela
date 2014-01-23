@@ -1,0 +1,36 @@
+namespace Chela.Lang
+{
+    public struct Int32x4
+    {
+        internal ivec4 __value;
+
+        public override string ToString()
+        {
+            return "(" + __value.x + ", " + __value.y + ", " + __value.z + ", " + __value.w + ")";
+        }
+
+        public override int GetHashCode()
+        {
+            return __value.x.GetHashCode() ^ __value.y.GetHashCode() ^
+                   __value.z.GetHashCode() ^ __value.w.GetHashCode();
+        }
+        
+        ///<summary>
+        ///Computes the dot product between two vectors.
+        ///</summary>
+        public int Dot(ivec4 other)
+        {
+            ivec4 mul = __value*other;
+            return mul.x + mul.y + mul.z + mul.w;
+        }
+        
+        ///<summary>
+        ///Computes the square of the euclidian length.
+        ///</summary>
+        public int Length2()
+        {
+            return __value.Dot(__value);
+        }
+    }
+}
+

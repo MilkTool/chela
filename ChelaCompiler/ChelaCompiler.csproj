@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="3.5" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.21022</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{7F1FF95C-EF56-4080-913D-67F5716C773A}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Chela</RootNamespace>
+    <AssemblyName>chlc</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG CSHARP</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+    <CustomCommands>
+      <CustomCommands>
+        <Command type="BeforeBuild" command="/bin/sh -c &quot;jay -vc '${ProjectDir}/Parser.y' &lt; '${ProjectDir}/Skeleton.cs.jay' &gt; '${ProjectDir}/Parser.cs'&quot;" workingdir="" pauseExternalConsole="true" />
+      </CustomCommands>
+    </CustomCommands>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>none</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <DefineConstants>CSHARP</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+    <CustomCommands>
+      <CustomCommands>
+        <Command type="BeforeBuild" command="/bin/sh -c &quot;jay -c Parser.y &lt; Skeleton.cs.jay &gt; Parser.cs&quot;" workingdir="${ProjectDir}" />
+      </CustomCommands>
+    </CustomCommands>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="Parser.cs" />
+    <Compile Include="Lexer.cs" />
+    <Compile Include="TokenValue.cs" />
+    <Compile Include="TokenPosition.cs" />
+    <Compile Include="CompilerException.cs" />
+    <Compile Include="ChelaCompiler.cs" />
+    <Compile Include="AST\AstNode.cs" />
+    <Compile Include="AST\AstVisitor.cs" />
+    <Compile Include="Module\ScopeMember.cs" />
+    <Compile Include="Module\Scope.cs" />
+    <Compile Include="Module\Namespace.cs" />
+    <Compile Include="Module\IChelaType.cs" />
+    <Compile Include="Module\IntegerType.cs" />
+    <Compile Include="Module\FloatType.cs" />
+    <Compile Include="Module\StringType.cs" />
+    <Compile Include="Module\VoidType.cs" />
+    <Compile Include="Module\MemberFlags.cs" />
+    <Compile Include="Module\ChelaType.cs" />
+    <Compile Include="Module\Structure.cs" />
+    <Compile Include="Module\Class.cs" />
+    <Compile Include="Module\FunctionType.cs" />
+    <Compile Include="Module\MetaType.cs" />
+    <Compile Include="Module\PointerType.cs" />
+    <Compile Include="Module\ReferenceType.cs" />
+    <Compile Include="Module\ChelaModule.cs" />
+    <Compile Include="AST\ScopeNode.cs" />
+    <Compile Include="AST\ModuleNode.cs" />
+    <Compile Include="AST\NamespaceDefinition.cs" />
+    <Compile Include="AST\StructDefinition.cs" />
+    <Compile Include="AST\ClassDefinition.cs" />
+    <Compile Include="AST\Expression.cs" />
+    <Compile Include="AST\FunctionArgument.cs" />
+    <Compile Include="AST\FunctionPrototype.cs" />
+    <Compile Include="AST\FunctionDefinition.cs" />
+    <Compile Include="AST\Statement.cs" />
+    <Compile Include="AST\NullStatement.cs" />
+    <Compile Include="AST\MakePointer.cs" />
+    <Compile Include="AST\TypeNode.cs" />
+    <Compile Include="AST\TypeKind.cs" />
+    <Compile Include="Module\Dumper.cs" />
+    <Compile Include="Semantic\ModuleTypeDeclaration.cs" />
+    <Compile Include="AST\FieldDefinition.cs" />
+    <Compile Include="Module\Function.cs" />
+    <Compile Include="Semantic\ObjectDeclarator.cs" />
+    <Compile Include="AST\VariableReference.cs" />
+    <Compile Include="Semantic\ModuleObjectDeclarator.cs" />
+    <Compile Include="Module\Method.cs" />
+    <Compile Include="Module\Variable.cs" />
+    <Compile Include="Module\FieldVariable.cs" />
+    <Compile Include="AST\FieldDeclaration.cs" />
+    <Compile Include="Semantic\FunctionGenerator.cs" />
+    <Compile Include="Module\LexicalScope.cs" />
+    <Compile Include="AST\BlockNode.cs" />
+    <Compile Include="Module\OpCode.cs" />
+    <Compile Include="Module\Instruction.cs" />
+    <Compile Include="Module\BasicBlock.cs" />
+    <Compile Include="Module\BlockBuilder.cs" />
+    <Compile Include="AST\ReturnStatement.cs" />
+    <Compile Include="AST\IntegerConstant.cs" />
+    <Compile Include="AST\FloatConstant.cs" />
+    <Compile Include="AST\ConstantExpression.cs" />
+    <Compile Include="AST\DoubleConstant.cs" />
+    <Compile Include="Semantic\FunctionSemantic.cs" />
+    <Compile Include="AST\UnaryOperation.cs" />
+    <Compile Include="AST\BinaryOperation.cs" />
+    <Compile Include="AST\LocalVariablesDeclaration.cs" />
+    <Compile Include="AST\VariableDeclaration.cs" />
+    <Compile Include="Module\LocalVariable.cs" />
+    <Compile Include="AST\AssignmentExpression.cs" />
+    <Compile Include="AST\ExpressionStatement.cs" />
+    <Compile Include="AST\IfStatement.cs" />
+    <Compile Include="AST\CallExpression.cs" />
+    <Compile Include="AST\CastOperation.cs" />
+    <Compile Include="AST\MemberAccess.cs" />
+    <Compile Include="AST\IndirectAccess.cs" />
+    <Compile Include="AST\SubscriptAccess.cs" />
+    <Compile Include="Module\NamespaceType.cs" />
+    <Compile Include="AST\NullConstant.cs" />
+    <Compile Include="AST\BoolConstant.cs" />
+    <Compile Include="Module\ArraySlot.cs" />
+    <Compile Include="AST\StringConstant.cs" />
+    <Compile Include="AST\BreakStatement.cs" />
+    <Compile Include="AST\ContinueStatement.cs" />
+    <Compile Include="AST\WhileStatement.cs" />
+    <Compile Include="AST\DoWhileStatement.cs" />
+    <Compile Include="AST\ForStatement.cs" />
+    <Compile Include="Module\InstructionDescription.cs" />
+    <Compile Include="Module\ModuleWriter.cs" />
+    <Compile Include="Module\MemberHeader.cs" />
+    <Compile Include="Module\StructureHeader.cs" />
+    <Compile Include="Module\PrimitiveType.cs" />
+    <Compile Include="Module\PrimitiveTypeId.cs" />
+    <Compile Include="Module\FunctionHeader.cs" />
+    <Compile Include="AST\UIntegerConstant.cs" />
+    <Compile Include="AST\NewExpression.cs" />
+    <Compile Include="AST\DeleteStatement.cs" />
+    <Compile Include="Module\FunctionGroup.cs" />
+    <Compile Include="Module\FunctionGroupName.cs" />
+    <Compile Include="Module\ModuleException.cs" />
+    <Compile Include="Module\FunctionGroupType.cs" />
+    <Compile Include="Module\FunctionGroupSelector.cs" />
+    <Compile Include="Module\OpaqueType.cs" />
+    <Compile Include="Module\ModuleReader.cs" />
+    <Compile Include="AST\TernaryOperation.cs" />
+    <Compile Include="AST\InterfaceDefinition.cs" />
+    <Compile Include="Module\PropertyVariable.cs" />
+    <Compile Include="AST\PropertyDefinition.cs" />
+    <Compile Include="Module\Interface.cs" />
+    <Compile Include="AST\GetAccessorDefinition.cs" />
+    <Compile Include="AST\SetAccessorDefinition.cs" />
+    <Compile Include="AST\PropertyAccessor.cs" />
+    <Compile Include="Module\PseudoScope.cs" />
+    <Compile Include="AST\UsingStatement.cs" />
+    <Compile Include="AST\AliasDeclaration.cs" />
+    <Compile Include="AST\FileNode.cs" />
+    <Compile Include="AST\ThrowStatement.cs" />
+    <Compile Include="AST\BinaryAssignOperation.cs" />
+    <Compile Include="AST\PrefixOperation.cs" />
+    <Compile Include="AST\PostfixOperation.cs" />
+    <Compile Include="Semantic\ModuleInheritance.cs" />
+    <Compile Include="AST\ShortConstant.cs" />
+    <Compile Include="AST\UShortConstant.cs" />
+    <Compile Include="AST\ByteConstant.cs" />
+    <Compile Include="AST\SByteConstant.cs" />
+    <Compile Include="AST\TryStatement.cs" />
+    <Compile Include="AST\CatchStatement.cs" />
+    <Compile Include="AST\FinallyStatement.cs" />
+    <Compile Include="Module\ExceptionContext.cs" />
+    <Compile Include="AST\EnumDefinition.cs" />
+    <Compile Include="AST\EnumConstantDefinition.cs" />
+    <Compile Include="AST\MakeConstant.cs" />
+    <Compile Include="Module\ConstantType.cs" />
+    <Compile Include="Module\ConstantValue.cs" />
+    <Compile Include="Semantic\ConstantGrouping.cs" />
+    <Compile Include="Semantic\ConstantData.cs" />
+    <Compile Include="Semantic\ConstantExpansion.cs" />
+    <Compile Include="Semantic\ConstantDependencies.cs" />
+    <Compile Include="AST\AddressOfOperation.cs" />
+    <Compile Include="AST\MakeFunctionPointer.cs" />
+    <Compile Include="AST\ULongConstant.cs" />
+    <Compile Include="AST\LongConstant.cs" />
+    <Compile Include="AST\CStringConstant.cs" />
+    <Compile Include="AST\DereferenceOperation.cs" />
+    <Compile Include="Module\PointedSlot.cs" />
+    <Compile Include="AST\SwitchStatement.cs" />
+    <Compile Include="AST\CaseLabel.cs" />
+    <Compile Include="Module\ArrayType.cs" />
+    <Compile Include="AST\MakeArray.cs" />
+    <Compile Include="AST\NewArrayExpression.cs" />
+    <Compile Include="AST\NewRawArrayExpression.cs" />
+    <Compile Include="AST\TypedefDefinition.cs" />
+    <Compile Include="AST\SizeOfExpression.cs" />
+    <Compile Include="AST\ConstructorInitializer.cs" />
+    <Compile Include="AST\CharacterConstant.cs" />
+    <Compile Include="AST\TypeOfExpression.cs" />
+    <Compile Include="Module\ArgumentVariable.cs" />
+    <Compile Include="AST\DeleteRawArrayStatement.cs" />
+    <Compile Include="AST\DelegateDefinition.cs" />
+    <Compile Include="Module\EventVariable.cs" />
+    <Compile Include="Module\TypeNameMember.cs" />
+    <Compile Include="Semantic\TypedefExpansion.cs" />
+    <Compile Include="AST\EventDefinition.cs" />
+    <Compile Include="AST\EventAccessorDefinition.cs" />
+    <Compile Include="AST\AttributeInstance.cs" />
+    <Compile Include="AST\AttributeArgument.cs" />
+    <Compile Include="Module\VectorType.cs" />
+    <Compile Include="Module\SwizzleVariable.cs" />
+    <Compile Include="AST\ObjectReferenceExpression.cs" />
+    <Compile Include="Module\AttributeConstant.cs" />
+    <Compile Include="Module\DebugEmitter.cs" />
+    <Compile Include="AST\AsExpression.cs" />
+    <Compile Include="AST\IsExpression.cs" />
+    <Compile Include="Module\ModuleType.cs" />
+    <Compile Include="Module\ElfFormat.cs" />
+    <Compile Include="AST\NewRawExpression.cs" />
+    <Compile Include="Module\IncompleteType.cs" />
+    <Compile Include="AST\BaseExpression.cs" />
+    <Compile Include="Semantic\PseudoScopeExpansion.cs" />
+    <Compile Include="AST\UsingObjectStatement.cs" />
+    <Compile Include="AST\MakeReference.cs" />
+    <Compile Include="Module\ReferencedSlot.cs" />
+    <Compile Include="AST\GenericSignature.cs" />
+    <Compile Include="AST\GenericConstraint.cs" />
+    <Compile Include="AST\GenericParameter.cs" />
+    <Compile Include="Module\PlaceHolderType.cs" />
+    <Compile Include="Module\GenericInstance.cs" />
+    <Compile Include="Module\MatrixType.cs" />
+    <Compile Include="Module\GenericPrototype.cs" />
+    <Compile Include="AST\GenericInstanceExpr.cs" />
+    <Compile Include="Module\FunctionInstance.cs" />
+    <Compile Include="Module\StructureInstance.cs" />
+    <Compile Include="AST\UnsafeBlockNode.cs" />
+    <Compile Include="AST\FixedStatement.cs" />
+    <Compile Include="AST\FixedVariableDecl.cs" />
+    <Compile Include="Main.cs" />
+    <Compile Include="CommandLineParser.cs" />
+    <Compile Include="Module\PropertyInstance.cs" />
+    <Compile Include="Module\FieldInstance.cs" />
+    <Compile Include="Module\FunctionGroupInstance.cs" />
+    <Compile Include="Semantic\ExplicitInterfaceBinding.cs" />
+    <Compile Include="AST\DefaultExpression.cs" />
+    <Compile Include="Module\TypeGroup.cs" />
+    <Compile Include="Module\TypeGroupName.cs" />
+    <Compile Include="AST\RefExpression.cs" />
+    <Compile Include="Module\TemporalReferencedSlot.cs" />
+    <Compile Include="Benchmark.cs" />
+    <Compile Include="AST\LockStatement.cs" />
+    <Compile Include="AST\ForEachStatement.cs" />
+    <Compile Include="Module\ArgumentData.cs" />
+    <Compile Include="Module\LocalType.cs" />
+    <Compile Include="Semantic\ModuleReadBases.cs" />
+    <Compile Include="Module\ReferenceFlow.cs" />
+    <Compile Include="Module\KernelEntryPoint.cs" />
+    <Compile Include="AST\ReinterpretCast.cs" />
+    <Compile Include="AST\ArrayExpression.cs" />
+    <Compile Include="AST\GotoCaseStatement.cs" />
+    <Compile Include="BugException.cs" />
+    <Compile Include="Module\FunctionAmbiguity.cs" />
+    <Compile Include="Module\AmbiguousStructure.cs" />
+    <Compile Include="Module\ResourceData.cs" />
+    <Compile Include="Module\PEFormat.cs" />
+    <Compile Include="SimpleSet.cs" />
+    <Compile Include="ReferenceEqualityComparer.cs" />
+    <Compile Include="Module\DirectPropertySlot.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="AST\" />
+    <Folder Include="Module\" />
+    <Folder Include="Semantic\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <None Include="Parser.y" />
+    <None Include="Skeleton.cs.jay" />
+  </ItemGroup>
+</Project>

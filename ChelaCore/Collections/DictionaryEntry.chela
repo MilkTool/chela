@@ -1,0 +1,45 @@
+namespace Chela.Collections
+{
+    ///<summary>
+    ///A dictionary entry.
+    ///</summary>
+    public struct DictionaryEntry
+    {
+        private object key;
+        private object value;
+        
+        ///<summary>
+        ///Simple entry constructor.
+        ///</summary>
+        public DictionaryEntry(object key, object value)
+        {
+            this.key = key;
+            this.value = value;
+        }
+        
+        ///<summary>
+        ///The key of the dictionary entry.
+        ///</summary>
+        public object Key {
+            get {
+                return this.key;
+            }
+            set {
+                this.key = value;
+            }            
+        }
+
+        ///<summary>
+        ///The value of the dictionary entry.
+        ///</summary>        
+        public object Value {
+            get {
+                return this.value;
+            }
+            set {
+                this.value = value;
+            }
+        }
+    }
+}
+

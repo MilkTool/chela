@@ -1,0 +1,897 @@
+using Chela.Collections;
+using Chela.Collections.Generic;
+using Chela.Text; // For StringBuilder.
+
+namespace Chela.Lang
+{
+    /// <summary>
+    /// String representation class.
+    /// </summary>
+    public sealed class String: IEnumerable<char>, ICloneable, IComparable,
+        IComparable<string>, IConvertible, IEquatable<string>
+    {
+        // The layout of those elements has to be the same as in the compiler.
+        private ushort size;
+        private unsafe const char *data;
+        public static readonly string Empty = "";
+
+        /// <summary>
+        /// Constructs an empty string.
+        /// </summary>
+        public String()
+        {
+            // Empty string
+            size = 0u;
+            unsafe {
+                data = null;
+            }
+        }
+
+        /// <summary>
+        /// Constructs a string with the specified characters.
+        /// </summary>
+        public String (char[] characters)
+        {
+            // The buffer cannot be null.
+            if(characters == null)
+                throw new ArgumentNullException("characters");
+            
+            unsafe {
+                // Create the low-level storage.
+                size = (ushort)characters.Length;
+                char *dest = heapalloc char [size+1]; // Use a c-array
+                data = dest;
+
+                // Copy the string content.
+                for(int i = 0; i < size; ++i)
+                    dest[i] = characters[i];
+
+                // Add the null terminator.
+                dest[size] = 0;
+            }
+        }
+
+        /// <summary>
+        /// Constructs a string with the specified characters.
+        /// </summary>
+        public String (char[] characters, int startIndex, int length)
+        {
+            // The buffer cannot be null.
+            if(characters == null)
+                throw new ArgumentNullException("characters");
+                
+            // Make sure the index and length are in range.
+            if(startIndex + length > characters.Length)
+                throw new ArgumentOutOfRangeException("startIndex + length");
+            else if(startIndex < 0)
+                throw new ArgumentOutOfRangeException("startIndex");
+            else if(length < 0)
+                throw new ArgumentOutOfRangeException("startIndex");
+
+            unsafe {                
+                // Create the low-level storage.
+                size = (ushort)length;
+                char *dest = heapalloc char [size+1]; // Use a c-array
+                data = dest;
+
+                // Copy the string content.
+                int dst = 0, src = startIndex;
+                while(dst < size)
+                    dest[dst++] = characters[src++];
+
+                // Add the null terminator.
+                dest[size] = 0;
+            }
+        }
+
+        /// <summary>
+        /// Constructs a string with the specified characters.
+        /// </summary>
+        public unsafe String (char* characters, int startIndex, int length)
+        {
+            // The buffer cannot be null.
+            if(characters == null)
+                throw new ArgumentNullException("characters");
+                
+            unsafe {                
+                // Create the low-level storage.
+                size = (ushort)length;
+                char *dest = heapalloc char [size+1]; // Use a c-array
+                data = dest;
+
+                // Copy the string content.
+                int dst = 0, src = startIndex;
+                while(dst < size)
+                    dest[dst++] = characters[src++];
+
+                // Add the null terminator.
+                dest[size] = 0;
+            }
+        }
+        
+        /// <summary>
+        /// Constructs a string with the specified characters.
+        /// </summary>
+        public unsafe String(const sbyte *cstr)
+        {
+            // Compute the string len.
+            int len = 0;
+            if(cstr != null)
+                while(cstr[len] != 0)
+                    ++len;
+
+            // Create the low-level storage.
+            size = (ushort)len;
+            char *dest = heapalloc char [size+1];
+            data = dest;
+
+            // Copy the string content.
+            for(int i = 0; i < size; ++i)
+                dest[i] = (char)cstr[i];
+
+            // Add the null terminator.
+            dest[size] = 0;
+        }
+        
+        ~String()
+        {
+            unsafe {
+                delete [] data;
+            }
+        }
+        
+        /// <summary>
+        /// Returns a copy of the string.
+        /// </summary>
+        public object Clone()
+        {
+            // Because strings are inmutable, just return myself.
+            return this;
+        }
+        
+        /// <summary>
+        /// Compares two strings.
+        /// </summary>
+        public static int Compare(string strA, string strB)
+        {
+            return Compare(strA, strB, false);
+        }
+
+        /// <summary>
+        /// Compares two strings.
+        /// </summary>
+        public static int Compare(string strA, string strB, bool ignoreCase)
+        {
+            if(ignoreCase)
+                throw new NotImplementedException();
+
+            // Don't use null string while comparing.
+            if(strA == null)
+                strA = Empty;
+            if(strB == null)
+                strB = Empty;
+
+            // Perform character by character comparison.
+            int minLength = Math.Min(strA.Length, strB.Length);
+            for(int i = 0; i < minLength; ++i)
+            {
+                int res = strA[i] - strB[i];
+                if(res != 0)
+                    return res;
+            }
+
+            // Now, compare the strings lengths.
+            return strA.Length - strB.Length;                
+        }
+        
+        /// <summary>
+        /// Compares this string with another one.
+        /// </summary>
+        public int CompareTo(object value)
+        {
+            string s = value as string;
+            if(value != null && s == null)
+                throw new ArgumentException("value is not a string.");
+            return Compare(this, s);
+        }
+
+        /// <summary>
+        /// Compares this string with another one.
+        /// </summary>
+        public int CompareTo(string value)
+        {
+            return Compare(this, value);
+        }
+        
+        /// <summary>
+        /// Checks for equality with another string.
+        /// </summary>
+        public override bool Equals(object other)
+        {
+            return Equals(other as string);
+        }
+
+        /// <summary>
+        /// Checks for equality with another string.
+        /// </summary>
+        public bool Equals(string other)
+        {
+            return Equals(this, other);
+        }
+        
+        public static bool Equals(string a, string b)
+        {
+            // Check null strings.
+            object oa = a;
+            object ob = b;
+            if(oa == null && ob == null)
+                return true;
+            else if(oa == null)
+                return false;
+            else if(ob == null)
+                return false;
+            
+            // The size must be the same
+            if(a.size != b.size)
+                return false;
+
+            // Compare each one of the characters
+            unsafe {
+                for(int i = 0; i < a.size; ++i)
+                {
+                    if(a.data[i] != b.data[i])
+                        return false;
+                }
+            }
+
+            // Not differences found.
+            return true;
+        }
+
+        /// <summary>
+        /// Compares for inequality two strings.
+        /// </summary>
+        public static bool operator!=(string a, string b)
+        {
+            return !Equals(a, b);
+        }
+
+        /// <summary>
+        /// Compares for equality two strings.
+        /// </summary>
+        public static bool operator==(string a, string b)
+        {
+            return Equals(a, b);
+        }
+        
+        /// <summary>
+        /// Gets a characters iterator.
+        /// </summary>
+        public IEnumerator IEnumerable.GetEnumerator()
+        {
+            return null;//GetEnumerator();
+        }
+
+        /// <summary>
+        /// Gets a characters iterator.
+        /// </summary>
+        public IEnumerator<char> GetEnumerator()
+        {
+            unsafe {
+                for(int i = 0; i < size; ++i)
+                    yield return data[i];
+            }
+        }
+        
+        /// <summary>
+        /// Computes the hash code of the string.
+        /// </summary>
+        public override int GetHashCode() // object parent is not implemented, yet.
+        {
+            unsafe {
+                // Perform bernstein hash.
+                int hash = 0;
+                for(int i = 0; i < size; ++i)
+                    hash = 33*hash + data[i];
+                return hash;
+            }
+        }
+        
+        /// <summary>
+        /// Returns the converible object type code.
+        /// </summary>
+        public TypeCode GetTypeCode()
+        {
+            return TypeCode.String;
+        }
+        
+        public bool IConvertible.ToBoolean(IFormatProvider provider)
+        {
+            throw new NotImplementedException();
+        }
+        
+        public byte IConvertible.ToByte(IFormatProvider provider)
+        {
+            throw new NotImplementedException();
+        }
+        
+        public char IConvertible.ToChar(IFormatProvider provider)
+        {
+            throw new NotImplementedException();
+        }
+        
+        public DateTime IConvertible.ToDateTime(IFormatProvider provider)
+        {
+            throw new NotImplementedException();
+        }
+        
+        public Decimal IConvertible.ToDecimal(IFormatProvider provider)
+        {
+            throw new NotImplementedException();
+        }
+        
+        public double IConvertible.ToDouble(IFormatProvider provider)
+        {
+            throw new NotImplementedException();
+        }
+        
+        public short IConvertible.ToInt16(IFormatProvider provider)
+        {
+            throw new NotImplementedException();
+        }
+        
+        public int IConvertible.ToInt32(IFormatProvider provider)
+        {
+            throw new NotImplementedException();
+        }
+        
+        public long IConvertible.ToInt64(IFormatProvider provider)
+        {
+            throw new NotImplementedException();
+        }
+        
+        public sbyte IConvertible.ToSByte(IFormatProvider provider)
+        {
+            throw new NotImplementedException();
+        }
+        
+        public float IConvertible.ToSingle(IFormatProvider provider)
+        {
+            throw new NotImplementedException();
+        }
+        
+        public string IConvertible.ToString(IFormatProvider provider)
+        {
+            throw new NotImplementedException();
+        }
+        
+        public ushort IConvertible.ToUInt16(IFormatProvider provider)
+        {
+            throw new NotImplementedException();
+        }
+        
+        public uint IConvertible.ToUInt32(IFormatProvider provider)
+        {
+            throw new NotImplementedException();
+        }
+        
+        public ulong IConvertible.ToUInt64(IFormatProvider provider)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Returns the same instance of the string.
+        /// </summary>
+        public override string ToString()
+        {
+            return this;
+        }
+        
+        /// <summary>
+        /// Returns a char array containing the characters of this string.
+        /// </summary>
+        public char[] ToCharArray()
+        {
+            unsafe {
+                char[] array = new char[size];
+                for(int i = 0; i < size; ++i)
+                    array[i] = data[i];
+                return array;
+            }
+        }
+
+        /// <summary>
+        /// Returns the character at the specified index.
+        /// </summary>
+        public char this[int index] {
+            get {
+                unsafe {
+                    if (index < 0 || index >= size)
+                        throw new IndexOutOfRangeException();
+                    return data[index];
+                }
+            }
+        }
+
+        /// <summary>
+        /// Creates a really unsafely encoded C-string.
+        /// </summary>
+        public unsafe sbyte *C_Str()
+        {
+            sbyte *ret = heapalloc sbyte [size+1];
+            for(int i = 0; i < size; ++i)
+                ret[i] = (sbyte)data[i];
+            ret[size] = (sbyte)0;
+            return ret;
+        }
+
+        /// <summary>
+        /// Checks if a string is null or empty.
+        /// </summary>
+        public static bool IsNullOrEmpty(string s)
+        {
+            object os = s;
+            return os == null || s.size == 0;
+        }
+
+        public static string operator+(string a, string b)
+        {
+            // Avoid concatening when one is empty.
+            if(a == null || a.size == 0)
+                return b;
+
+            if(b == null || b.size == 0)
+                return a;
+
+            // Create the return string.
+            string ret = new string();
+            ret.size = (ushort)(a.size + b.size);
+
+            unsafe {
+                // Allocate the character buffer.
+                char *data = heapalloc char [ret.size+1];
+                ret.data = data;
+
+                // Store the first string.
+                int dest = 0;
+                for(int i = 0; i < a.size; ++i)
+                    data[dest++] = a.data[i];
+
+                // Store the second string.
+                for(int i = 0; i < b.size; ++i)
+                    data[dest++] = b.data[i];
+
+                // Append the null terminator.
+                data[dest] = 0;
+            }
+
+            // Return the new string.
+            return ret;
+        }
+
+        public static string operator+(string a, object b)
+        {
+            if(b == null)
+                return a;
+            return a + b.ToString();
+        }
+
+        public static string operator+(object a, string b)
+        {
+            if(a == null)
+                return b;
+            return a.ToString() + b;
+        }
+
+        enum FormatState
+        {
+            PassThrough,
+            RightCurly,
+            ArgStartFirst,
+            ArgStart,
+            ArgContent,
+            ArgEnd,
+            WidthStart,
+            WidthContent,
+            WidthEnd,
+            FormatSpecifier,
+            FormatEnd,
+        }
+
+        /// <summary>
+        /// Performs string formatting.
+        /// </summary>
+        public static string Format(IFormatProvider provider, string format, params object[] args)
+        {
+            // Format and args cannot be null.
+            if(format == null)
+                throw new ArgumentNullException("format");
+            if(args == null)
+                throw new ArgumentNullException("args");
+                
+            // If format is empty, just return it.
+            if(format.Length == 0)
+                return format;
+                
+            // Create a string builder for the result.
+            StringBuilder result = new StringBuilder();
+            int formatLength = format.Length;
+            int argIndex = 0;
+            int fieldWidth = 0;
+            char formatId = (char)0;
+            bool leftJustify = false;
+            bool cookFormat = false;
+            FormatState state = FormatState.PassThrough; // Default formatting state.
+            for(int i = 0; i < formatLength; ++i)
+            {
+                // Read the character.
+                char look = format[i];
+                
+                // Act according to the current state.
+                switch(state)
+                {
+                case FormatState.PassThrough:
+                    if(look == '{') // Begin a format.
+                        state = FormatState.ArgStart;
+                    else if(look == '}')
+                        state = FormatState.RightCurly;
+                    else
+                        result.Append(look);
+                    break;
+                case FormatState.RightCurly: // Match '}}'
+                    if(look == '}')
+                    {
+                        result.Append('}');
+                        state = FormatState.PassThrough;
+                    }
+                    else
+                        throw new FormatException("unmatched '}'");
+                    break;
+                case FormatState.ArgStartFirst:
+                    if(look == '{')
+                    {
+                        // Matched a '{'.
+                        result.Append('{');
+                        state = FormatState.PassThrough;
+                        break;
+                    }
+                    else
+                    {
+                        state = FormatState.ArgStart;
+                        goto case FormatState.ArgStart;
+                    }
+                case FormatState.ArgStart:
+                    // Don't allow negative argument index.
+                    if(look == '-')
+                        throw new FormatException("cannot use negative argument index.");
+                    else if(Char.IsDigit(look))
+                    {
+                        state = FormatState.ArgContent;
+                        argIndex = look - '0';
+                    }
+                    else if(Char.IsWhiteSpace(look))
+                    {
+                        // Do nothing.
+                    }
+                    else
+                    {
+                        throw new FormatException("unexpected character in format.");
+                    }
+                    break;
+                case FormatState.ArgContent:
+                    if(Char.IsDigit(look))
+                    {
+                        // Append the digit.
+                        argIndex = argIndex*10 + look - '0';
+                    }
+                    else if(look == '}')
+                    {
+                        state = FormatState.PassThrough;
+                        cookFormat = true;
+                    }
+                    else if(look == ',')
+                    {
+                        // Now parse the format width.
+                        state = FormatState.WidthStart;
+                    }
+                    else if(look == ':')
+                    {
+                        // Parse the format id.
+                        state = FormatState.FormatSpecifier;
+                    }
+                    else if(Char.IsWhiteSpace(look))
+                    {
+                        state = FormatState.ArgEnd;
+                    }
+                    else
+                    {
+                        throw new FormatException("unexpected character in format.");
+                    }
+                    break;
+                case FormatState.ArgEnd:
+                    if(Char.IsWhiteSpace(look))
+                    {
+                        // Ignore spaces.
+                    }
+                    else if(look == '}')
+                    {
+                        state = FormatState.PassThrough;
+                        cookFormat = true;
+                    }
+                    else if(look == ',')
+                    {
+                        state = FormatState.WidthStart;
+                    }
+                    else if(look == ':')
+                    {
+                        state = FormatState.FormatSpecifier;
+                    }
+                    else
+                    {
+                        throw new FormatException("unexpected character in format.");
+                    }
+                    break;
+                case FormatState.WidthStart:
+                    if(Char.IsWhiteSpace(look))
+                    {
+                        // Ignore spaces
+                    }
+                    else if(look == '+' || look == '-')
+                    {
+                        state = FormatState.WidthContent;
+                        if(look == '-')
+                            leftJustify = true;
+                    }
+                    else if(Char.IsDigit(look))
+                    {
+                        state = FormatState.WidthContent;
+                        fieldWidth = look - '0';
+                    }
+                    else
+                    {
+                        throw new FormatException("unexpected character in format.");
+                    }
+                    break;
+                case FormatState.WidthContent:
+                    if(Char.IsDigit(look))
+                    {
+                        fieldWidth = fieldWidth*10 + look - '0';
+                    }
+                    else if(look == '}')
+                    {
+                        state = FormatState.PassThrough;
+                        cookFormat = true;
+                    }
+                    else if(look == ':')
+                    {
+                        state = FormatState.FormatSpecifier;
+                    }
+                    else if(Char.IsWhiteSpace(look))
+                    {
+                        state = FormatState.WidthEnd;
+                    }
+                    else
+                    {
+                        throw new FormatException("unexpected character in format.");
+                    }
+                    break;
+                case FormatState.WidthEnd:
+                    if(Char.IsWhiteSpace(look))
+                    {
+                        // Ignore spaces.
+                    }
+                    else if(look == '}')
+                    {
+                        state = FormatState.PassThrough;
+                        cookFormat = true;
+                    }
+                    else if(look == ':')
+                    {
+                        state = FormatState.FormatSpecifier;
+                    }
+                    else
+                    {
+                        throw new FormatException("unexpected character in format.");
+                    }
+                    break;
+                case FormatState.FormatSpecifier:
+                    if(Char.IsWhiteSpace(look))
+                    {
+                        // Ignore spaces.
+                    }
+                    else if(look != '}')
+                    {
+                        formatId = look;
+                        state = FormatState.FormatEnd;
+                    }
+                    else
+                    {
+                        state = FormatState.PassThrough;
+                        cookFormat = true;
+                    }
+                    break;
+                case FormatState.FormatEnd:
+                    if(Char.IsWhiteSpace(look))
+                    {
+                        // Ignore spaces.
+                    }
+                    else if(look == '}')
+                    {
+                        // End parsing of the formatting string.
+                        state = FormatState.PassThrough;
+                        cookFormat = true;
+                    }
+                    else
+                        throw new FormatException();
+                    break;
+                }
+                
+                // Cook the format.
+                if(cookFormat)
+                {
+                    // Get the object to format.
+                    object obj = args[argIndex];
+                    
+                    // Format the object.
+                    string formattedObject = null;
+                    if(obj != null)
+                    {
+                        if(formatId != 0)
+                        {
+                            IFormattable formattable = obj as IFormattable;
+                            if(formattable != null)
+                                formattedObject = formattable.ToString(formatId.ToString(), provider);
+                            else
+                                formattedObject = obj.ToString();
+                        }
+                        else
+                            formattedObject = obj.ToString();
+                    }
+                    
+                    // Use the empty string when the formatted object is null.
+                    if(formattedObject == null)
+                        formattedObject = string.Empty;
+                    
+                    // Calculate the spaces to add.
+                    int spaces = fieldWidth - formattedObject.Length;
+                    
+                    // Left justify.
+                    if(leftJustify && spaces > 0)
+                    {
+                        for(int j = 0; i < spaces; ++j)
+                            result.Append(' ');
+                    }
+                    
+                    // Add the formatted text.
+                    result.Append(formattedObject);
+
+                    // Right justify.
+                    if(!leftJustify && spaces > 0)
+                    {
+                        for(int j = 0; i < spaces; ++j)
+                            result.Append(' ');
+                    }
+                    
+                    // Restore to the default format.
+                    argIndex = 0;
+                    fieldWidth = 0;
+                    formatId = 0;
+                    cookFormat = false;
+                    leftJustify = false;
+                }
+            }
+            
+            // The ending state must be pass-through.
+            if(state != FormatState.PassThrough)
+                throw new FormatException("incomplete format string.");
+                
+            return result.ToString();
+        }
+
+        /// <summary>
+        /// Performs string formatting.
+        /// </summary>
+        public static string Format(string format, params object[] args)
+        {
+            return Format(null, format, args);
+        }
+
+        /// <summary>
+        /// Performs string formatting.
+        /// </summary>
+        public static string Format(string format, object arg0)
+        {
+            object[] args = new object[] {arg0};
+            return Format(format, args);
+        }
+
+        /// <summary>
+        /// Performs string formatting.
+        /// </summary>
+        public static string Format(string format, object arg0, object arg1)
+        {
+            object[] args = new object[] {arg0, arg1};
+            return Format(format, args);
+        }
+
+        /// <summary>
+        /// Performs string formatting.
+        /// </summary>
+        public static string Format(string format, object arg0, object arg1, object arg2)
+        {
+            object[] args = new object[] {arg0, arg1, arg2};
+            return Format(format, args);
+        }
+
+        /// <summary>
+        /// The length of this string.
+        /// </summary>
+        public int Length {
+            get {
+                return this.size;
+            }
+        }
+
+        /// <summary>
+        /// Gets low-level access to the character encoded internally with utf-16
+        /// </summary>
+        public unsafe const char *RawData {
+            get {
+                return this.data;
+            }
+        }
+        
+        /// <summary>
+        /// Retrieves a substring of this.
+        /// </summary>
+        public string Substring(int startIndex, int length)
+        {
+            if(startIndex + length > size)
+                throw new ArgumentOutOfRangeException("substring exceeds size.");
+            if(startIndex < 0 || length < 0)
+                throw new ArgumentOutOfRangeException("startIndex or length");
+                
+            // Check the empty substring.
+            if(length == 0)
+                return string.Empty;
+            // Check the whole string.
+            if(startIndex == 0 && length == size)
+                return this;
+                
+            // Create the substring.
+            unsafe {
+                return new String((char*)data, startIndex, length);
+            }
+        }
+    }
+    
+    internal unsafe int strcmp(string a, const sbyte *b)
+    {
+        // Normalize the input.
+        if(a == null)
+            a = string.Empty;
+        if(b == null)
+            b = c"";
+            
+        // Perform the comparison.
+        int i = 0;
+        int c, res;
+        for(; i < a.Length; ++i)
+        {
+            // Check the end of b.
+            c = *b++;
+            if(c == 0)
+                return a.Length;
+                
+            // Compare the character.
+            res = a[i] - c;
+            if(res != 0)
+                return res;
+        }
+        
+        // Got the end of a.
+        c = *b;
+        return c == 0 ? 0 : -1;    
+    }
+};

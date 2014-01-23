@@ -1,0 +1,324 @@
+using Chela.Lang;
+
+//----------------------------------------------------------------------------
+// Chela ABI structures.
+namespace Chela.Lang
+{
+    internal enum TypeKind
+    {
+        Class = 0,
+        Structure,
+        Interface,
+        Array,
+        Pointer,
+        Reference,
+        Placeholder,
+        Instance,
+        StreamValue,
+    };
+    
+    internal unsafe struct StandardObject
+    {
+        public StandardVTable *vtable;
+        public uint count;
+    };
+
+    internal unsafe struct StandardVTable
+    {
+        public TypeInformation *type;
+        public int offset; // vtable offset, used by interfaces.
+        public void (*)(StandardObject*) finalize;
+    };
+
+    internal unsafe struct InterfaceImplementation
+    {
+        public TypeInformation *iface;
+        public StandardVTable *vtable;
+        public int vtableOffset;
+    }
+
+    // Must be keep in sync with Chela.Reflection.MemberInfo
+    internal unsafe struct MemberInformation
+    {
+        // Object elements.
+        public StandardVTable *Member_vtable;
+        public uint Member_count;
+
+        // Member information.
+        public MemberInformation *parent;
+        public MemberInformation *declaringType;
+        public int attributes;
+        public int numCustomAttributes;
+        public StandardObject **customAttributes;
+        public const sbyte *name;
+    }
+
+    // Must be keep in sync with Chela.Lang.Type
+    internal unsafe struct TypeInformation
+    {
+        // Object elements.
+        public StandardVTable *Type_vtable;
+        public uint Type_count;
+
+        // Member information.
+        public MemberInformation *parent;
+        public TypeInformation *declaringType;
+        public int attributes;
+        public int numCustomAttributes;
+        public StandardObject **customAttributes;
+        public const sbyte *name;
+
+        // Type kind.
+        public ushort kind;
+        
+        // Storage data.
+        public ushort size; // Complete size, in bytes.
+        public ushort align;
+        public ushort sizeOffset;
+        public ushort dataOffset;
+        public ushort dimensions; // Used by arrays
+        
+        // Data description
+        public ushort numreferences;
+        public ushort numimplementations;
+        public ushort nummembers;
+        public ushort numgenericArguments;
+        public ushort numsubtypes;
+
+        // Class structure.
+        public TypeInformation *baseType;
+        public StandardVTable *vtable;
+        public InterfaceImplementation *implementations;
+        public void (*)(void*) setupVTables;
+        
+        // Reference counting.
+        public size_t *references; // Internal references offsets.
+        
+        // Type reflection data.
+        public void *assembly;
+        public void *fullName;
+        public void *namespaceName;
+        
+        // Members.
+        public MemberInformation *members;
+        
+        // Generic instance parameters.
+        public TypeInformation **genericArguments;
+        
+        // Composite type.
+        public TypeInformation **subtypes;
+    }
+
+    internal unsafe bool IsObjectDerivedFrom(TypeInformation *derived, TypeInformation *bse)
+    {
+        // Check only for direct bases.
+        while(derived != null)
+        {
+            if(derived == bse)
+                return true;
+
+            derived = derived->baseType;
+        }
+
+        return false;
+    }
+
+    internal unsafe bool IsInterfaceDerivedFrom(TypeInformation *derived, TypeInformation *bse)
+    {
+        return IsObjectDerivedFrom(derived, bse);
+    }
+
+    internal unsafe bool IsObjectBasedIn(StandardObject *obj, TypeInformation *check)
+    {
+        TypeInformation *objType = obj->vtable->type;
+        return objType == check || IsObjectDerivedFrom(objType, check);
+    }
+    
+    internal unsafe bool IsReferenceCounted(TypeInformation *type)
+    {
+        if(type == null)
+            return false;
+            
+        int kind = type->kind;
+        return kind == TypeKind.Class || kind == TypeKind.Interface ||
+               kind == TypeKind.Array;
+    }
+    
+    internal unsafe bool IsReferenceContainer(TypeInformation *type)
+    {
+        if(type == null)
+            return false;
+                
+        // The type contains sub references.
+        if(type->numreferences > 0)
+            return true;
+         
+        // Use the array element type.       
+        if(type->kind == (int)TypeKind.Array)
+        {
+            TypeInformation *elementType = type->subtypes[0];
+            return elementType->numreferences > 0 ||
+                   IsReferenceCounted(elementType);
+        }
+        
+        return false;    
+    }
+}
+
+//----------------------------------------------------------------------------
+// Chela casting procedures.
+
+public __cdecl unsafe void *__chela_object_downcast__(void *obj, void *target)
+{
+    // Handle the simple case, when the object null.
+    if(obj == null)
+        return null;
+
+    // Cast the object and the type info.
+    StandardObject *rawObject = (StandardObject*)obj;
+    TypeInformation *targetType = (TypeInformation*)target;
+
+    // Get the object actual type.
+    TypeInformation *objectType = rawObject->vtable->type;
+
+    // Make sure its an object of the target type.
+    TypeInformation *currentType = objectType;
+    bool found = false;
+    while(currentType != null)
+    {
+        if(currentType == targetType)
+        {
+            // Found the object.
+            found = true;
+            break; // Stop searching.
+        }
+
+        // Check at the upper hierarchy.
+        currentType = currentType->baseType;
+    }
+
+    if(found)
+    {
+        // Adjust the object pointer.
+        byte* objData = (byte*)obj;
+        objData = objData - rawObject->vtable->offset; // Move to the actual object.
+        return (void*)objData;
+    }
+    else
+    {
+        // Return nothing.
+        return null;
+    }
+}
+
+public __cdecl unsafe void *__chela_iface_downcast__(void *obj, void *target)
+{
+    // This is the same as an object down cast (interface->object).
+    return __chela_object_downcast__(obj, target);
+}
+
+public __cdecl unsafe void *__chela_iface_crosscast__(void *obj, void *target)
+{
+    if(obj == null)
+        return null;
+
+    // Cast the object and the type info.
+    StandardObject *rawObject = (StandardObject*)obj;
+    TypeInformation *targetType = (TypeInformation*)target;
+
+    // If the target type is an object, perform simple downcast.
+    TypeKind kind = (TypeKind)targetType->kind;
+    if(kind == TypeKind.Class)
+        return __chela_iface_downcast__(obj, target);
+
+    // Get the object actual type.
+    TypeInformation *objectType = rawObject->vtable->type;
+
+    // Find a suitable implementation.
+    TypeInformation *currentType = objectType;
+    while(currentType != null)
+    {
+        // Check all of the implementations.
+        uint numimplementations = currentType->numimplementations;
+        for(uint i = 0u; i < numimplementations; ++i)
+        {
+            // Check the implementation.
+            InterfaceImplementation *impl = &currentType->implementations[i];
+            if(IsInterfaceDerivedFrom(impl->iface, targetType))
+            {
+                // Found a matching implementation.
+                byte* objData = (byte*)obj;
+
+                // Move to the interface vtable.
+                objData = objData + impl->vtableOffset - rawObject->vtable->offset;
+                return (void*)objData;
+            }
+
+        }
+        
+        // Check in the base type.
+        currentType = currentType->baseType;
+    }
+    return null;
+}
+
+public __cdecl unsafe void __chela_check_cast__(void *original, void *result, void *target)
+{
+    if(original == null || result != null)
+        return;
+
+    throw new Chela.Lang.InvalidCastException();
+}
+
+public __cdecl unsafe bool __chela_is_reference__(void *reference, void *check)
+{
+    if(reference == null)
+        return false;
+
+    // Cast the object and the type info.
+    StandardObject *rawObject = (StandardObject*)reference;
+    TypeInformation *targetType = (TypeInformation*)check;
+
+    // Get the object actual type.
+    TypeInformation *objectType = rawObject->vtable->type;
+
+    // Check the type compatibility.
+    if(targetType->kind == (int)TypeKind.Interface)
+    {
+        // Check all of the implemented interfaces.
+        TypeInformation *derived = objectType;
+        while(derived != null)
+        {
+            // Check all of the implementations.
+            uint numimplementations = derived->numimplementations;
+            for(uint i = 0u; i < numimplementations; ++i)
+            {
+                // Check the implementation.
+                InterfaceImplementation *impl = &derived->implementations[i];
+                if(IsInterfaceDerivedFrom(impl->iface, targetType))
+                    return true; // Found the interface.
+
+            }
+
+            // Check the next base.
+            derived = derived->baseType;
+        }
+    }
+    else
+    {
+        // The target is not an interface, so it must be a base.
+        TypeInformation *derived = objectType;
+        while(derived != null)
+        {
+            if(derived == targetType)
+                return true;
+
+            // Check the next base.
+            derived = derived->baseType;
+        }
+    }
+
+    // Return false by default.
+    return false;
+}
+

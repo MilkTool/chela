@@ -1,0 +1,27 @@
+namespace Chela.Gui
+{
+    public abstract class FontManager
+    {
+        ///<summary>
+        ///The display that contains this font manager.
+        ///</summary>
+        public abstract Display CurrentDisplay {
+            get;
+        }
+
+        ///<summary>
+        ///The default font.
+        ///</summary>
+        public abstract Font DefaultFont {
+            get;
+        }
+
+        ///<summary>
+        ///A monospaced font.
+        ///</summary>
+        public abstract Font MonoSpace {
+            get;
+        }
+    }
+}
+

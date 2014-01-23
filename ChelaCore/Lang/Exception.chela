@@ -1,0 +1,55 @@
+namespace Chela.Lang
+{
+    public class Exception
+    {
+        private string message;
+        private Exception innerException;
+
+        public Exception()
+            : this("", null)
+        {
+        }
+
+        public Exception(string message)
+            : this(message, null)
+        {
+        }
+
+        public Exception(string message, Exception innerException)
+        {
+            this.message = message;
+            this.innerException = innerException;
+        }
+
+        public virtual string Message {
+            get {
+                return this.message;
+            }
+        }
+
+        public Exception InnerException {
+            get {
+                return this.innerException;
+            }
+        }
+
+        public virtual Exception GetBaseException()
+        {
+            if(innerException != null)
+                return innerException.GetBaseException();
+            return null;
+        }
+
+        public override string ToString()
+        {
+            string ret = "Error";
+            if(message != null)
+                ret = ret + ": " + message;
+
+            if(innerException != null)
+                ret = ret + "\nInner exception: " + innerException.ToString();
+            return ret;
+        }
+    }
+};
+

@@ -1,0 +1,596 @@
+using Chela.Lang;
+
+namespace Chela.Globalization
+{
+    ///<summary>
+    ///Number formatting information.
+    ///</summary>
+    public sealed class NumberFormatInfo: ICloneable, IFormatProvider
+    {
+        private bool readOnly;
+        
+        public NumberFormatInfo()
+        {
+        }
+        
+        private void OnWrite()
+        {
+            if(readOnly)
+                throw new InvalidOperationException("the current instance is read-only.");
+        }
+        
+        /// <summary>
+        /// Creates a copy of the current instance.
+        /// </summary>
+        /// <remarks>
+        /// Copy created is writable.
+        /// </remarks>
+        public object Clone()
+        {
+            NumberFormatInfo copy = (NumberFormatInfo)MemberwiseClone();
+            copy.readOnly = false;
+            return copy;
+        }
+        
+        public object GetFormat(Type formatType)
+        {
+            if(formatType == typeof(NumberFormatInfo))
+                return this;
+            return null;
+        }
+        
+        /// <summary>
+        /// Creates a read-only copy of the specified number format info.
+        /// </summary>
+        public static NumberFormatInfo ReadOnly(NumberFormatInfo nfi)
+        {
+            // The format info cannot be null.
+            if(nfi == null)
+                throw new ArgumentNullException("nfi");
+                
+            // Clone the format info and set the read-only flag..
+            NumberFormatInfo ret = (NumberFormatInfo)nfi.Clone();
+            ret.readOnly = true;
+            return ret;
+        }
+
+        // Currency decimal digits.
+        private int currencyDecimalDigits = 2;
+        
+        ///<summary>
+        ///An int containing the number of decimal places in the currency.
+        ///</summary>
+        public int CurrencyDecimalDigits {
+            set {
+                OnWrite();
+                if(value < 0 || value > 99)
+                    throw new ArgumentOutOfRangeException("value");
+                currencyDecimalDigits = value;
+            }
+            get {
+                return currencyDecimalDigits;
+            }
+        }
+        
+        // Currency decimal separator.
+        private string currencyDecimalSeparator = ".";
+        
+        ///<summary>
+        ///A string containing the decimal separator in the currency.
+        ///</summary>
+        public string CurrencyDecimalSeparator {
+            set {
+                OnWrite();
+                if(value == null)
+                    throw new ArgumentNullException("value");
+                currencyDecimalSeparator = value;
+            }
+            get {
+                return currencyDecimalSeparator;
+            }
+        }
+        
+        // Currency group separator.
+        private string currencyGroupSeparator = ",";
+        
+        ///<summary>
+        ///A string containing the group separator in the currency.
+        ///</summary>
+        public string CurrencyGroupSeparator {
+            set {
+                OnWrite();
+                if(value == null)
+                    throw new ArgumentNullException("value");
+                currencyGroupSeparator = value;
+            }
+            get {
+                return currencyGroupSeparator;
+            }
+        }
+
+        // Currency group sizes.
+        private int[] currencyGroupSizes = new int[] {3};
+        
+        ///<summary>
+        ///An int array containing the currency group sizes.
+        ///</summary>
+        public int[] CurrencyGroupSizes {
+            set {
+                OnWrite();
+                
+                // Value cannot be null.
+                if(value == null)
+                    throw new ArgumentNullException("value");
+                
+                // Check that each element is between 1-9 or 0
+                // for the last element.
+                for(int i = 0; i < value.Length; ++i)
+                {
+                    int g = value[i];
+                    if(g == 0 && i + 1 < value.Length)
+                        throw new ArgumentException("Only the last group member can be 0.");
+                    else if(g < 0 || g > 9)
+                        throw new ArgumentOutOfRangeException("value",
+                            "One of the groups is not between 0-9."); 
+                }
+                currencyGroupSizes = value;
+            }
+            get {
+                return currencyGroupSizes;
+            }
+        }
+                
+        // Currency negative pattern.
+        private int currencyNegativePattern = 0;
+        
+        ///<summary>
+        ///An int between 0-15 containing the currency negative pattern.
+        ///</summary>
+        public int CurrencyNegativePattern {
+            set {
+                OnWrite();
+                if(value < 0 || value > 15)
+                    throw new ArgumentOutOfRangeException("value", 
+                        "Negative pattern must be between 0-15 inclusive.");
+                currencyNegativePattern = value;
+            }
+            get {
+                return currencyNegativePattern;
+            }
+        }
+        
+        // Currency positive pattern.
+        private int currencyPositivePattern = 0;
+        
+        ///<summary>
+        ///An int between 0-3 containing currency positive pattern.
+        ///</summary>
+        public int CurrencyPositivePattern {
+            set {
+                OnWrite();
+                if(value < 0 || value > 3)
+                    throw new ArgumentOutOfRangeException("value",
+                        "Negative pattern must be between 0-3 inclusive.");
+                currencyPositivePattern = value;
+            }
+            get {
+                return currencyPositivePattern;
+            }
+        }
+        
+        // Currency symbol.
+        private string currencySymbol = "$";
+        
+        ///<summary>
+        ///The currency symbol.
+        ///</summary>
+        public string CurrencySymbol {
+            set {
+                OnWrite();
+                if(value == null)
+                    throw new ArgumentNullException("value");
+                currencySymbol = value;
+            }
+            get {
+                return currencySymbol;
+            }
+        }
+        
+        ///<summary>
+        ///Retrieves the current culture number information.
+        ///</summary>
+        public static NumberFormatInfo CurrentInfo {
+            get {
+                return InvariantInfo;
+            }
+        }
+        
+        // Culture invariant info
+        private static NumberFormatInfo invariantInfo = null;
+        
+        ///<summary>
+        ///Retrieves a read-only culture invariant number info.
+        ///</summary>
+        public static NumberFormatInfo InvariantInfo {
+            get {
+                if(invariantInfo == null)
+                {
+                    lock(typeof(NumberFormatInfo))
+                    {
+                        if(invariantInfo == null)
+                        {
+                            invariantInfo = new NumberFormatInfo();
+                            invariantInfo.readOnly = true;
+                        }
+                    }
+                }
+                return invariantInfo;
+            }
+        }
+        
+        ///<summary>
+        ///Is this instance read-only.
+        ///</summary>
+        public bool IsReadOnly {
+            get {
+                return readOnly;
+            }
+        }
+        
+        // The NaN symbol.
+        private string nanSymbol = "nan";
+        
+        ///<summary>
+        ///The currency symbol.
+        ///</summary>
+        public string NaNSymbol {
+            set {
+                OnWrite();
+                if(value == null)
+                    throw new ArgumentNullException("value");
+                nanSymbol = value;
+            }
+            get {
+                return nanSymbol;
+            }
+        }
+        
+        // The negative infinity symbol.
+        private string negativeInfinitySymbol = "-Infinity";
+        
+        ///<summary>
+        ///The negative infinity symbol.
+        ///</summary>
+        public string NegativeInfinitySymbol {
+            set {
+                OnWrite();
+                if(value == null)
+                    throw new ArgumentNullException("value");
+                negativeInfinitySymbol = value;
+            }
+            get {
+                return negativeInfinitySymbol;
+            }
+        }
+        
+        // The negative sign.
+        private string negativeSign = "-";
+        
+        ///<summary>
+        ///The negative sign.
+        ///</summary>
+        public string NegativeSign {
+            set {
+                OnWrite();
+                if(value == null)
+                    throw new ArgumentNullException("value");
+                negativeSign = value;
+            }
+            get {
+                return negativeSign;
+            }
+        }
+        
+        // The number of decimal digits.
+        private int numberDecimalDigits = 2;
+        
+        ///<summary>
+        ///The number of decimal digits.
+        ///</summary>
+        public int NumberDecimalDigits {
+            set {
+                OnWrite();
+                if(value < 0 || value > 99)
+                    throw new ArgumentOutOfRangeException("value");
+                numberDecimalDigits = value;
+            }
+            get {
+                return numberDecimalDigits;
+            }
+        }
+        
+        // The number decimal separator
+        private string numberDecimalSeparator = ".";
+        
+        ///<summary>
+        ///The number decimal separator.
+        ///</summary>
+        public string NumberDecimalSeparator {
+            set {
+                OnWrite();
+                if(value == null)
+                    throw new ArgumentNullException("value");
+                numberDecimalSeparator = value;
+            }
+            get {
+                return numberDecimalSeparator;
+            }
+        }
+        
+        // The number group separator
+        private string numberGroupSeparator = ",";
+        
+        ///<summary>
+        ///The number decimal separator.
+        ///</summary>
+        public string NumberGroupSeparator {
+            set {
+                OnWrite();
+                if(value == null)
+                    throw new ArgumentNullException("value");
+                numberGroupSeparator = value;
+            }
+            get {
+                return numberGroupSeparator;
+            }
+        }
+        
+        // Number group sizes.
+        private int[] numberGroupSizes = new int[] {3};
+        
+        ///<summary>
+        ///An int array containing the number group sizes.
+        ///</summary>
+        public int[] NumberGroupSizes {
+            set {
+                OnWrite();
+                
+                // Value cannot be null.
+                if(value == null)
+                    throw new ArgumentNullException("value");
+                
+                // Check that each element is between 1-9 or 0
+                // for the last element.
+                for(int i = 0; i < value.Length; ++i)
+                {
+                    int g = value[i];
+                    if(g == 0 && i + 1 < value.Length)
+                        throw new ArgumentException("Only the last group member can be 0.");
+                    else if(g < 0 || g > 9)
+                        throw new ArgumentOutOfRangeException("value",
+                            "One of the groups is not between 0-9."); 
+                }
+                numberGroupSizes = value;
+            }
+            get {
+                return numberGroupSizes;
+            }
+        }
+        
+        // Number negative pattern.
+        private int numberNegativePattern = 1;
+        
+        ///<summary>
+        ///An int between 0-4 containing the currency negative pattern.
+        ///</summary>
+        public int NumberNegativePattern {
+            set {
+                OnWrite();
+                if(value < 0 || value > 15)
+                    throw new ArgumentOutOfRangeException("value", 
+                        "Number negative pattern must be between 0-4 inclusive.");
+                numberNegativePattern = value;
+            }
+            get {
+                return numberNegativePattern;
+            }
+        }
+        
+        // The percent decimal digits.
+        private int percentDecimalDigits = 2;
+        
+        ///<summary>
+        ///The number of decimal digits.
+        ///</summary>
+        public int PercentDecimalDigits {
+            set {
+                OnWrite();
+                if(value < 0 || value > 99)
+                    throw new ArgumentOutOfRangeException("value");
+                percentDecimalDigits = value;
+            }
+            get {
+                return percentDecimalDigits;
+            }
+        }
+        
+        // The percent decimal separator
+        private string percentDecimalSeparator = ".";
+        
+        ///<summary>
+        ///The number decimal separator.
+        ///</summary>
+        public string PercentDecimalSeparator {
+            set {
+                OnWrite();
+                if(value == null)
+                    throw new ArgumentNullException("value");
+                percentDecimalSeparator = value;
+            }
+            get {
+                return percentDecimalSeparator;
+            }
+        }
+        
+        // The percent group separator
+        private string percentGroupSeparator = ",";
+        
+        ///<summary>
+        ///The percent decimal separator.
+        ///</summary>
+        public string PercentGroupSeparator {
+            set {
+                OnWrite();
+                if(value == null)
+                    throw new ArgumentNullException("value");
+                PercentGroupSeparator = value;
+            }
+            get {
+                return PercentGroupSeparator;
+            }
+        }
+        
+        // Percent group sizes.
+        private int[] percentGroupSizes = new int[] {3};
+        
+        ///<summary>
+        ///An int array containing the percent group sizes.
+        ///</summary>
+        public int[] PercentGroupSizes {
+            set {
+                OnWrite();
+                
+                // Value cannot be null.
+                if(value == null)
+                    throw new ArgumentNullException("value");
+                
+                // Check that each element is between 1-9 or 0
+                // for the last element.
+                for(int i = 0; i < value.Length; ++i)
+                {
+                    int g = value[i];
+                    if(g == 0 && i + 1 < value.Length)
+                        throw new ArgumentException("Only the last group member can be 0.");
+                    else if(g < 0 || g > 9)
+                        throw new ArgumentOutOfRangeException("value",
+                            "One of the groups is not between 0-9."); 
+                }
+                percentGroupSizes = value;
+            }
+            get {
+                return percentGroupSizes;
+            }
+        }
+        
+        // Percent negative pattern.
+        private int percentNegativePattern = 0;
+        
+        ///<summary>
+        ///An int between 0-2 containing the currency negative pattern.
+        ///</summary>
+        public int PercentNegativePattern {
+            set {
+                OnWrite();
+                if(value < 0 || value > 2)
+                    throw new ArgumentOutOfRangeException("value", 
+                        "Percent negative pattern must be between 0-2 inclusive.");
+                numberNegativePattern = value;
+            }
+            get {
+                return numberNegativePattern;
+            }
+        }
+        
+        // Percent positive pattern.
+        private int percentPositivePattern = 0;
+        
+        ///<summary>
+        ///An int between 0-2 containing the currency negative pattern.
+        ///</summary>
+        public int PercentPositivePattern {
+            set {
+                OnWrite();
+                if(value < 0 || value > 2)
+                    throw new ArgumentOutOfRangeException("value", 
+                        "Percent positive pattern must be between 0-2 inclusive.");
+                percentPositivePattern = value;
+            }
+            get {
+                return percentPositivePattern;
+            }
+        }
+        
+        // Percent symbol.
+        private string percentSymbol = "%";
+        
+        ///<summary>
+        ///The percent symbol.
+        ///</summary>
+        public string PercentSymbol {
+            set {
+                OnWrite();
+                if(value == null)
+                    throw new ArgumentNullException("value");
+                percentSymbol = value;
+            }
+            get {
+                return percentSymbol;
+            }
+        }
+
+        // Per mille symbol.
+        private string perMilleSymbol = "";
+        
+        ///<summary>
+        ///The per mille symbol.
+        ///</summary>
+        public string PerMilleSymbol {
+            set {
+                OnWrite();
+                if(value == null)
+                    throw new ArgumentNullException("value");
+                perMilleSymbol = value;
+            }
+            get {
+                return perMilleSymbol;
+            }
+        }
+        
+        // The positive infinity symbol.
+        private string positiveInfinitySymbol = "-Infinity";
+        
+        ///<summary>
+        ///The negative infinity symbol.
+        ///</summary>
+        public string PositiveInfinitySymbol {
+            set {
+                OnWrite();
+                if(value == null)
+                    throw new ArgumentNullException("value");
+                positiveInfinitySymbol = value;
+            }
+            get {
+                return positiveInfinitySymbol;
+            }
+        }
+        
+        // The positive symbol.
+        private string positiveSign = "";
+        
+        ///<summary>
+        ///The positive symbol.
+        ///</summary>
+        public string PositiveSign {
+            set {
+                OnWrite();
+                if(value == null)
+                    throw new ArgumentNullException("value");
+                positiveSign = value;
+            }
+            get {
+                return positiveSign;
+            }
+        }
+    }
+}
+

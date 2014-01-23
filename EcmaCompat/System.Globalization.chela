@@ -1,0 +1,10 @@
+namespace System.Globalization
+{
+    typedef Chela.Globalization.CultureInfo CultureInfo;
+    typedef Chela.Globalization.DateTimeFormatInfo DateTimeFormatInfo;
+    typedef Chela.Globalization.DateTimeStyles DateTimeStyles;
+    typedef Chela.Globalization.NumberFormatInfo NumberFormatInfo;
+    typedef Chela.Globalization.NumberStyles NumberStyles;
+    typedef Chela.Globalization.UnicodeCategory UnicodeCategory;
+}
+

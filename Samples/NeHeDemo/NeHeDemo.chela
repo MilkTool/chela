@@ -1,0 +1,32 @@
+using Chela.Lang;
+using Chela.Compute;
+
+using NeHeDemo;
+
+namespace NeHeDemo
+{
+    internal Lesson[] lessons = new Lesson[] {
+        new Lesson1(),
+        new Lesson2(),
+        new Lesson3(),
+        new Lesson4(),
+        new Lesson5(),
+        new Lesson6(),
+        new Lesson7(),
+    };
+        
+    public int Main(string[] args)
+    {
+        // Pick a lesson.
+        // TODO: ask by the command line.
+        int id = 1;
+        if(args.Length != 0)
+            id = int.Parse(args[0]);
+        Console.WriteLine("Loading lesson " + id + "...");
+        Lesson lesson = lessons[id-1];
+        
+        // Run the selected lesson;
+        return lesson.Main(args);
+    }
+}
+

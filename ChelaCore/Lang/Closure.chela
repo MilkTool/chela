@@ -1,0 +1,10 @@
+namespace Chela.Lang
+{
+    ///<summary>
+    ///The base class for all of the closures.
+    ///</summary>
+    public class Closure
+    {
+    };
+}
+

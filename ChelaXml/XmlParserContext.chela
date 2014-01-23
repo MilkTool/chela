@@ -1,0 +1,209 @@
+using Chela.Lang;
+using Chela.Text;
+
+namespace Chela.Xml
+{
+    /// <summary>
+    /// The context of a xml reader.
+    /// </summary>
+    public class XmlParserContext
+    {
+       private XmlNameTable nameTable;
+       private XmlNamespaceManager nsManager;
+       private string docTypeName;
+       private string publicId;
+       private string systemId;
+       private string internalSubset;
+       private string baseURI;
+       private string xmlLang;
+       private XmlSpace xmlSpace;
+       private Encoding encoding;
+            
+        /// <summary>
+        /// Constructs the parser context.
+        /// </summary>
+        public XmlParserContext(XmlNameTable nt, XmlNamespaceManager nsMgr, 
+            string xmlLang, XmlSpace xmlSpace)
+            : this(nt, nsMgr, null, null, null, null, string.Empty, xmlLang,
+                    xmlSpace, null)
+        {
+        }
+        
+        /// <summary>
+        /// Constructs the parser context.
+        /// </summary>
+        public XmlParserContext(XmlNameTable nt, XmlNamespaceManager nsMgr, 
+            string xmlLang, XmlSpace xmlSpace, Encoding enc)
+            : this(nt, nsMgr, null, null, null, null, string.Empty, xmlLang,
+                    xmlSpace, enc)
+        {
+        }
+
+        /// <summary>
+        /// Constructs the parser context.
+        /// </summary>
+        public XmlParserContext(XmlNameTable nt, XmlNamespaceManager nsMgr,
+            string docTypeName, string pubId, string sysId, string internalSubset,
+            string baseURI, string xmlLang, XmlSpace xmlSpace)
+            : this(nt, nsMgr, docTypeName, pubId, sysId, internalSubset,
+                   baseURI, xmlLang, xmlSpace, null)
+        {
+        }
+
+        /// <summary>
+        /// Constructs the parser context.
+        /// </summary>
+        public XmlParserContext(XmlNameTable nt, XmlNamespaceManager nsMgr,
+            string docTypeName, string pubId, string sysId, string internalSubset,
+            string baseURI, string xmlLang, XmlSpace xmlSpace, Encoding enc)
+        {
+            if(nt == null && nsMgr != null)
+                nt = nsMgr.NameTable;
+            if(baseURI == null)
+                baseURI = string.Empty;
+            if(internalSubset == null)
+                internalSubset = string.Empty;
+            if(pubId == null)
+                pubId = string.Empty;
+            if(sysId == null)
+                sysId = string.Empty;
+            if(xmlLang == null)
+                xmlLang = string.Empty;
+            if(nt != null && nsMgr != null && nt != nsMgr.NameTable)
+                throw new XmlException("nt is different from the one passed to nsMgr.");
+                
+            // Set the properties.
+            this.nameTable = nt;
+            this.nsManager = nsMgr;
+            this.docTypeName = docTypeName;
+            this.publicId = pubId;
+            this.systemId = sysId;
+            this.internalSubset = internalSubset;
+            this.baseURI = baseURI;
+            this.xmlLang = xmlLang;
+            this.xmlSpace = xmlSpace;
+            this.encoding = enc;
+        }
+        
+        /// <summary>
+        /// The base URI.
+        /// </summary>
+        public string BaseURI {
+            get {
+                return baseURI;
+            }
+            set {
+                baseURI = value != null ? value : string.Empty;
+            }
+        }
+        
+        /// <summary>
+        /// The document type name.
+        /// </summary>
+        public string DocTypeName {
+            get {
+                return docTypeName;
+            }
+            set {
+                docTypeName = value != null ? value : string.Empty;
+            }
+        }
+        
+        /// <summary>
+        /// The encoding.
+        /// </summary>
+        public Encoding Encoding {
+            get {
+                return encoding;
+            }
+            set {
+                encoding = value;
+            }
+        }
+        
+        /// <summary>
+        /// The internal subset in a document declaration.
+        /// </summary>
+        public string InternalSubset {
+            get {
+                return internalSubset;
+            }
+            set {
+                internalSubset = value;
+            }
+        }
+        
+        /// <summary>
+        /// The namespace manager.
+        /// </summary>
+        public XmlNamespaceManager NamespaceManager {
+            get {
+                return nsManager;
+            }
+            set {
+                nsManager = value;
+            }
+        }
+        
+        /// <summary>
+        /// The name table.
+        /// </summary>
+        public XmlNameTable NameTable {
+            get {
+                return nameTable;
+            }
+            set {
+                nameTable = value;
+            }
+        }
+        
+        /// <summary>
+        /// The public indentifier in a document type.
+        /// </summary>
+        public string PublicId {
+            get {
+                return publicId;
+            }
+            set {
+                publicId = value != null ? value : string.Empty;
+            }
+        }
+        
+        /// <summary>
+        /// The system identifier in a document type.
+        /// </summary>
+        public string SystemId {
+            get {
+                return systemId;
+            }
+            set {
+                systemId = value != null ? value : string.Empty;
+            }
+        }
+        
+        /// <summary>
+        /// The current xml:lang scope.
+        /// </summary>
+        public string XmlLang {
+            get {
+                return xmlLang;
+            }
+            set {
+                xmlLang = value != null ? value : string.Empty;
+            }
+        }
+        
+        /// <summary>
+        /// The current xml:space scope.
+        /// </summary>
+        public XmlSpace XmlSpace {
+            get {
+                return xmlSpace;
+            }
+            set {
+                xmlSpace = value;
+            }
+        }
+    }
+}
+

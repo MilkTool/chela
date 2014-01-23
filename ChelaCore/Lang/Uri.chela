@@ -1,0 +1,28 @@
+namespace Chela.Lang
+{
+    /// <summary>
+    /// An uniform resource identifier.
+    /// </summary>
+    public class Uri
+    {
+        public Uri(string uriString)
+            : this(uriString, false)
+        {
+        }
+        
+        public Uri(string uriString, bool dontEscape)
+        {
+        }
+        
+        public Uri(Uri baseUri, string relativeUri)
+            : this(baseUri, relativeUri, false)
+        {
+        }
+
+        public Uri(Uri baseUri, string relativeUri, bool dontEscape)
+        {
+        }
+        
+    }
+}
+

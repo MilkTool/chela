@@ -1,0 +1,48 @@
+using Chela.Lang;
+
+namespace Chela.Compute
+{
+    ///<summary>
+    ///This class is used to track a 1D stream.
+    ///</summary>
+    public abstract class StreamHolder<T>: IStreamHolder
+        where T: struct
+    {
+        ///<summary>
+        ///The number of elements in the stream.
+        ///</summary>
+        public abstract int Length {
+            get;
+        }
+        
+        ///<summary>
+        ///The number of dimensions.
+        ///</summary>
+        public abstract int Dimensions {
+            get;
+        }
+        
+        ///<summary>
+        ///The element type.
+        ///</summary>
+        public Type ElementType{
+            get {
+                return typeof(T);
+            }
+        }
+        
+        ///<summary>
+        ///Simulates a linear stream.
+        ///</summary>
+        public abstract T this[int index] {
+            get;
+            set;
+        }
+        
+        ///<summary>
+        ///Gets an element pointer.
+        ///</summary>
+        public unsafe abstract T *GetElementPtr(int index);
+    }
+}
+

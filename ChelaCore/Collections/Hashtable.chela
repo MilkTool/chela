@@ -1,0 +1,482 @@
+using Chela.Lang;
+
+namespace Chela.Collections
+{
+	public class Hashtable: IDictionary, ICloneable
+	{
+		private const int OptimalCapacity = 80;
+		private const int ReduceCapacity = 60;	
+		
+		///<summary>
+		///The base class for a hashtable iterator.
+		///</summary>
+		private abstract class Iterator: IEnumerator
+		{
+			protected Hashtable table;
+			protected int index;
+			
+			public Iterator(Hashtable table)
+			{
+				this.table = table;
+				this.index = -1;
+				Reset();
+			}
+			
+			public bool MoveNext()
+			{
+				// Check empty table.
+				if(table.entries == null || index >= table.entries.Length) 
+				    return false;
+				
+				// Increase the index until hitting an element.
+				do
+				{
+					++index;
+				} while(index < table.entries.Length &&
+				  		table.entries[index].Key == null);
+				
+				// Check for end of table.
+				if(index >= table.entries.Length)
+					return false;
+
+				// Success.
+				return true;
+			}
+			
+			public void Reset()
+			{
+				this.index = -1;
+			}
+	    }
+
+        ///<summary>
+        ///A hashtable values iterator.
+        ///</summary>
+		private class ValueIterator: Iterator, IDictionaryEnumerator
+		{
+			public ValueIterator(Hashtable table)
+			    : base(table)
+			{
+			}
+			
+			public object Current {
+				get	{
+				    if(index < 0 || table.entries == null)
+				        return null;
+					return table.entries[this.index].Value;
+				}
+			}
+			
+			public DictionaryEntry Entry {
+			    get {
+			        if(index < 0 || table.entries == null)
+			            throw new InvalidOperationException();
+                    return table.entries[index];			            
+			    }
+			}
+			
+			public object Key {
+			    get {
+			        if(index < 0 || table.entries == null)
+			            throw new InvalidOperationException();
+                    return table.entries[index].Key;
+			    }
+			}
+			
+			public object Value {
+			    get {
+			        if(index < 0 || table.entries == null)
+			            throw new InvalidOperationException();
+                    return table.entries[index].Key;
+			    }
+			}
+		}
+		
+		///<summary>
+		///A hashtable keys iterator.
+		///</summary>
+		private class KeyIterator: Iterator
+		{
+			public KeyIterator(Hashtable table)
+			    : base(table)
+			{
+			}
+			
+			public object Current {
+				get	{
+				    if(index < 0 || table.entries == null)
+				        return null;
+					return table.entries[this.index].Key;
+				}
+			}
+		}
+		
+		///<summary>
+		///</summary>
+		private class KeyCollection: ICollection
+		{
+    		private Hashtable table;
+    		
+		    public KeyCollection(Hashtable table)
+		    {
+		        this.table = table;
+		    }
+		    
+            public IEnumerator GetEnumerator()
+            {
+                return new KeyIterator(table);
+            }
+            
+            public void CopyTo(Array array, int index)
+            {
+                throw new NotImplementedException();
+            }
+            
+            public int Count {
+                get {
+                    return table.size;
+                }
+            }
+            
+            public bool IsSynchronized {
+                get {
+                    return false;
+                }
+            }
+            
+            public object SyncRoot {
+                get {
+                    return table;
+                }
+            }
+		}
+		
+		private int size;
+		private DictionaryEntry[] entries;		
+		
+		public Hashtable ()
+		{
+			entries = null;
+			size = 0;
+		}
+		
+		public Hashtable(Hashtable other)
+		{
+		    // Copy the size.
+		    size = other.size;
+		    
+		    // Copy the entries.
+		    entries = new DictionaryEntry[other.entries.Length];
+		    for(int i = 0; i < entries.Length; ++i)
+		        entries[i] = other.entries[i];
+		}
+		
+		// ICloneable
+		public object Clone()
+		{
+		    return new Hashtable(this);
+		}
+		
+		// ICollection implementation.
+		public void CopyTo(Array array, int index)
+		{
+		    throw new NotImplementedException();
+		}
+		
+		public int Count {
+		    get {
+    			return size;
+    		}
+		}
+		
+		public bool IsSynchronized {
+		    get {
+		        return false;
+		    }
+		}
+		
+		public object SyncRoot {
+		    get {
+		        return this;
+		    }
+		}
+
+        // IDictionary implementation.
+		public void Add(object key, object value)
+		{
+		    // Key cannot be null.
+		    if(key == null)
+		        throw new ArgumentNullException("key");
+		        
+			// Increase the capacity when 80% is already used.
+			int capacity = Capacity;
+			if(capacity == 0 ||
+			   100*size/capacity > OptimalCapacity)
+				IncreaseCapacity();
+			
+			// Lookup the entry.
+			int index = Lookup(key);
+			
+			// Raise fixed size exception.
+			if(index < 0)
+			    throw new NotSupportedException("Maximal capacity hit.");
+			
+			// Raise an exception for duplicates.
+			if(entries[index].Key != null)
+			    throw new ArgumentException("An entry with the same key already exists.", "key");
+			
+			// Write the entry data, and increase the size.
+			entries[index].Key = key;
+			entries[index].Value = value;
+			++size;
+		}
+		
+		public void Clear()
+		{
+		    for(int i = 0; i < entries.Length; ++i)
+		    {
+		        entries[i].Key = null;
+		        entries[i].Value = null;
+		    }
+		    size = 0;
+		}
+		
+		public bool Contains(object key)
+        {
+		    // Key cannot be null.
+		    if(key == null)
+		        throw new ArgumentNullException("key");
+		        
+            // Empty implies don't contain.
+			if(size == 0) return false;
+			
+			// Lookup.
+			int index = Lookup(key);
+			return index > 0 && entries[index].Key != null;
+        }
+        
+        public bool ContainsKey(object key)
+        {
+            return Contains(key);
+        }
+        
+		public IEnumerator IEnumerable.GetEnumerator()
+		{
+		    return new ValueIterator(this);
+		}
+		
+		public IDictionaryEnumerator GetEnumerator()
+		{
+			return new ValueIterator(this);
+		}
+        
+		public void Remove(object key)
+		{
+			// Do nothing if I'm empty.
+			if(size == 0)
+			    return;
+			
+			// Find the entry.
+			int index = Lookup(key);
+			
+			// Unexistent slot.
+			if(index < 0 || entries[index].Key == null)
+			    return;
+			
+			// Decrease the size.
+			entries[index].Key = null;
+			entries[index].Value = null;
+			--size;
+			
+			// Reduce the capacity, if the criteria has been met.
+			int capacity = entries.Length;
+			if(100*size/(capacity>>1) < ReduceCapacity)
+				DecreaseCapacity();
+		}
+		
+    	public bool IsFixedSize {
+		    get {
+		        return false;
+		    }
+		}
+		
+		public bool IsReadOnly {
+		    get {
+		        return false;
+		    }
+		}
+		
+		public object this[object key] {
+            get {
+                // The key cannot be null.
+                if(key == null)
+                    throw new ArgumentNullException("key");
+                
+			    // Return if I'm empty.
+			    if(size == 0)
+			        return null;
+			
+			    // Find the entry.
+			    int index = Lookup(key);
+			    if(index < 0)
+			        return null;
+			        
+                // Return the value.
+			    if(entries[index].Key != null)
+				    return entries[index].Value;
+			    return null;
+		    }
+		    set {
+                // The key cannot be null.
+                if(key == null)
+                    throw new ArgumentNullException("key");
+
+			    // Do nothing if I'm empty.
+			    if(size == 0) return;
+			
+			    // Find the entry.
+			    int index = Lookup(key);
+			    
+			    // Try increasing the capacity.
+			    if(index < 0)
+			    {
+			        IncreaseCapacity();
+			        index = Lookup(key);
+			        if(index < 0)
+			            throw new NotSupportedException("Couldn't increase the capacity.");
+			    }
+			
+                // Checks for insertion
+                if(entries[index].Key == null)
+                {
+				    // Check if I have to increase the capacity.
+				    int capacity = entries.Length;
+				    if(capacity == 0 ||
+				       100*size/capacity > OptimalCapacity)
+				    {
+					    // Increase the capacity.
+					    IncreaseCapacity();
+					
+					    // Lookup again
+					    index = Lookup(key);
+				    }
+				
+                    entries[index].Key = key;
+                    ++size;
+                }
+
+                // Set the entry value.
+                entries[index].Value = value;
+		    }
+        }
+		
+		public ICollection Keys {
+		    get {
+		        return new KeyCollection(this);
+		    }
+		}
+		
+		public ICollection Values {
+		    get {
+		        return this;
+		    }
+		}
+
+        protected virtual int GetHashCode(object key)
+        {
+            return key != null ? key.GetHashCode() : 0;
+        }
+		
+		private int Lookup(object key)
+		{
+            // Don't return with null keys.
+            if(key == null)
+                return -1;
+
+			// Get the hash code.
+			int hash = GetHashCode(key);
+			
+			// Find the key or an empty pair.
+			int capacity = entries.Length;
+			for(int i = 0; i < capacity; i++)
+			{
+				// Quadratic probing.
+				int index = (hash + (i + i*i)/2) % capacity;
+				
+				// Check the key.
+				//Console.WriteLine("entry at index " + index + " of " + capacity + ": " + entries[index]);
+				object entryKey = entries[index].Key;
+				if(entryKey == null || entryKey.Equals(key))
+					return index;
+			}
+			
+			return -1;
+		}
+		
+		private int Capacity {
+		    get {
+		        return entries != null ? entries.Length : 0;
+		    }
+		}
+		
+		private void IncreaseCapacity()
+		{
+			// Store the old elements.
+			DictionaryEntry[] oldEntries = entries;
+			
+			// Use exponential increase.
+			int capacity = Capacity << 1;
+			if(capacity == 0)
+				capacity = 4;
+			
+			// Create the new entries.
+			entries = new DictionaryEntry[capacity];
+		
+			// Reset the size.
+			size = 0;
+			
+			// Insert the old elements.
+			InsertEntries(oldEntries);
+		}
+		
+    	private void DecreaseCapacity()
+		{
+			// Don't decrease below 4.
+			if(entries.Length <= 4) return;
+			
+			// Store the old elements.
+			DictionaryEntry[] oldEntries = entries;
+			
+			// Use exponential decrease.
+			int capacity = Capacity >> 1;
+			if(capacity == 0)
+				capacity = 4;
+			
+			// Create the new entries.
+			entries = new DictionaryEntry[capacity];
+		
+			// Reset the size.
+			size = 0;
+			
+			// Insert the old elements.
+			InsertEntries(oldEntries);
+		}
+		
+		private void InsertEntries(DictionaryEntry[] oldEntries)
+		{
+            if(oldEntries == null)
+                return;
+                
+			for(int i = 0; i < oldEntries.Length; ++i)
+			{
+				if(oldEntries[i].Key != null)
+					Add(oldEntries[i].Key, oldEntries[i].Value);
+			}
+		}
+	}
+	
+	void TestHashtable() {
+	    Hashtable ret = new Hashtable();
+	}
+}
+

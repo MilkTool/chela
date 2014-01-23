@@ -1,0 +1,43 @@
+namespace Chela.Lang
+{
+    ///<summary>
+    ///This structure represents a type that can be null.
+    ///</summary>
+    public struct Nullable<T> where T: struct
+    {
+        private T value;
+        private bool hasValue;
+
+        public Nullable()
+        {
+            hasValue = false;
+        }
+
+        public Nullable(T value)
+        {
+            this.value = value;
+            hasValue = true;
+        }
+
+        public Nullable(object value)
+        {
+            if(value == null)
+                hasValue = false;
+            else
+                this.value = (T)value;
+        }
+
+        public bool HasValue {
+            get {
+                return hasValue;
+            }
+        }
+        
+        public T Value {
+            get {
+                return value;
+            }
+        }
+    }
+}
+

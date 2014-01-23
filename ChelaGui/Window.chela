@@ -1,0 +1,447 @@
+namespace Chela.Gui
+{
+    /// <summary>
+    /// High-level window.
+    /// </summary>
+    public class Window
+    {
+        private WindowContext context;
+        private GraphicContext paintGc;
+        private Theme theme;
+        private Sizer sizer;
+
+        /// <summary>
+        /// Default window position.
+        /// </summary>
+        public static ivec2 DefaultPosition = ivec2(20,20);
+
+        /// <summary>
+        /// Default window position.
+        /// </summary>
+        public static ivec2 DefaultSize = ivec2(200,200);
+
+        /// <summary>
+        /// Show window event.
+        /// </summary>
+        public event GuiEventHandler Showed;
+
+        /// <summary>
+        /// Hide window event.
+        /// </summary>
+        public event GuiEventHandler Hidden;
+
+        /// <summary>
+        /// Close window event.
+        /// </summary>
+        public event GuiEventHandler Closed;
+
+        /// <summary>
+        /// Destroy window event.
+        /// </summary>
+        public event GuiEventHandler Destroyed;
+
+        /// <summary>
+        /// Exposed window event.
+        /// </summary>
+        public event ExposeEventHandler Exposed;
+
+        /// <summary>
+        /// The window has got the input focus.
+        /// </summary>
+        public event GuiEventHandler GotFocus;
+
+        /// <summary>
+        /// The window has lost the input focus.
+        /// </summary>
+        public event GuiEventHandler LostFocus;
+
+        /// <summary>
+        /// Mouse entered the window.
+        /// </summary>
+        public event GuiEventHandler MouseEnter;
+
+        /// <summary>
+        /// Mouse entered the window.
+        /// </summary>
+        public event GuiEventHandler MouseLeave;
+
+        /// <summary>
+        /// Mouse button pressed.
+        /// </summary>
+        public event ButtonEventHandler ButtonPressed;
+
+        /// <summary>
+        /// Mouse button released.
+        /// </summary>
+        public event ButtonEventHandler ButtonReleased;
+
+        /// <summary>
+        /// Mouse motion.
+        /// </summary>
+        public event MotionEventHandler MouseMotion;
+
+        /// <summary>
+        /// Key pressed.
+        /// </summary>
+        public event KeyEventHandler KeyPressed;
+
+        /// <summary>
+        /// Key released.
+        /// </summary>
+        public event KeyEventHandler KeyReleased;
+
+        public Window(Display disp, Window parent, ivec2 position, ivec2 size)
+        {
+            // Get the default screen.
+            Screen screen = disp.DefaultScreen;
+
+            // Compute the parent context.
+            WindowContext parentContext = screen.RootWindowContext;
+            if(parent != null)
+                parentContext = parent.Context;
+
+            // Create the context
+            context = disp.CreateSimpleWindowContext(parentContext, position, size, 0, Color.White, Color.White);
+
+            // Connect the context.
+            context.associatedWindow = this;
+            theme = null; // Use the display theme.
+            paintGc = null;
+        }
+
+        public Window(Window parent, ivec2 position, ivec2 size)
+            : this(parent != null ? parent.Context.Display : Display.Current,
+                   parent, position, size)
+        {
+        }
+
+        public Window(Window parent)
+            : this(parent, DefaultPosition, DefaultSize)
+        {
+        }
+
+        public Window(WindowContext context)
+        {
+            // Connect the context.
+            this.context = context;
+            context.associatedWindow = this;
+            theme = null; // Use the display theme.
+            paintGc = null;
+        }
+
+        /// <summary>
+        /// Read-only window context property.
+        /// </summary>
+        public WindowContext Context {
+            get {
+                return context;
+            }
+        }
+
+        /// <summary>
+        /// The current display.
+        /// </summary>
+        public Display CurrentDisplay {
+            get {
+                return context.CurrentDisplay;
+            }
+        }
+
+        /// <summary>
+        /// The current font manager.
+        /// </summary>
+        public FontManager CurrentFontManager {
+            get {
+                return CurrentDisplay.FontManager;
+            }
+        }
+
+        /// <summary>
+        /// A graphic context to be used in painting
+        /// </summary>
+        public GraphicContext PaintGC {
+            get {
+                if(paintGc == null)
+                    paintGc = context.CreateGraphicContext(true);
+                return paintGc;
+            }
+        }
+
+        /// <summary>
+        /// The window width.
+        /// </summary>
+        public int Width {
+            get {
+                return context.Width;
+            }
+        }
+
+        /// <summary>
+        /// The window height.
+        /// </summary>
+        public int Height {
+            get {
+                return context.Height;
+            }
+        }
+        
+        /// <summary>
+        /// Gets the window sizer.
+        /// </summary>
+        public Sizer GetSizer()
+        {
+            return sizer;
+        }
+        
+        /// <summary>
+        /// Sets the window sizer.
+        /// </summary>
+        public void SetSizer(Sizer sizer)
+        {
+            // Store the new sizer.
+            this.sizer = sizer;
+            
+            // Update the layout.
+            if(sizer != null)
+                sizer.Fit(this);
+        }
+
+        /// <summary>
+        /// The window theme.
+        /// </summary>
+        public Theme Theme
+        {
+            get {
+                if(theme == null)
+                    return context.Display.Theme;
+                return theme;
+            }
+            set {
+                theme = value;
+            }
+        }
+
+        /// <summary>
+        /// Process a event.
+        /// </summary>
+        public virtual void ProcessEvent(GuiEvent ev)
+        {
+            // Perform high-level dispatch.
+            switch(ev.EventType)
+            {
+            case GuiEventType.Show:
+                OnShow(ev);
+                break;
+            case GuiEventType.Hide:
+                OnHide(ev);
+                break;
+            case GuiEventType.Close:
+                OnClose(ev);
+                break;
+            case GuiEventType.Destroy:
+                OnDestroy(ev);
+                break;
+            case GuiEventType.GotFocus:
+                OnGotFocus(ev);
+                break;
+            case GuiEventType.LostFocus:
+                OnLostFocus(ev);
+                break;
+            case GuiEventType.MouseEnter:
+                OnMouseEnter(ev);
+                break;
+            case GuiEventType.MouseLeave:
+                OnMouseLeave(ev);
+                break;
+            case GuiEventType.MouseMotion:
+                OnMouseMotion((MotionEvent)ev);
+                break;
+            case GuiEventType.ButtonPressed:
+                OnButtonPressed((ButtonEvent)ev);
+                break;
+            case GuiEventType.ButtonReleased:
+                OnButtonReleased((ButtonEvent)ev);
+                break;
+            case GuiEventType.KeyPressed:
+                OnKeyPressed((KeyEvent)ev);
+                break;
+            case GuiEventType.KeyReleased:
+                OnKeyReleased((KeyEvent)ev);
+                break;
+            case GuiEventType.Expose:
+                OnExpose((ExposeEvent)ev);
+                break;
+            default:
+                // Do nothing.
+                break;
+            }
+        }
+
+        /// <summary>
+        /// Called when a show event was received.
+        /// </summary>
+        protected virtual void OnShow(GuiEvent ev)
+        {
+            if(Showed != null)
+                Showed(this, ev);
+        }
+
+        /// <summary>
+        /// Called when a hide event was received.
+        /// </summary>
+        protected virtual void OnHide(GuiEvent ev)
+        {
+            if(Hidden != null)
+                Hidden(this, ev);
+        }
+
+        /// <summary>
+        /// Called when the close button has been clicked.
+        /// </summary>
+        protected virtual void OnClose(GuiEvent ev)
+        {
+            if(Closed != null)
+                Closed(this, ev);
+        }
+
+        /// <summary>
+        /// Called when the window has been destroyed.
+        /// </summary>
+        protected virtual void OnDestroy(GuiEvent ev)
+        {
+            if(Destroyed != null)
+                Destroyed(this, ev);
+        }
+
+        /// <summary>
+        /// Called when the window was exposed, used for drawing.
+        /// </summary>
+        protected virtual void OnExpose(ExposeEvent ev)
+        {
+            if(Exposed != null)
+                Exposed(this, ev);
+        }
+
+        /// <summary>
+        /// Called when the mouse has entered the window.
+        /// </summary>
+        protected virtual void OnMouseEnter(GuiEvent ev)
+        {
+            if(MouseEnter != null)
+                MouseEnter(this, ev);
+        }
+
+        /// <summary>
+        /// Called when the mouse has leaved the window.
+        /// </summary>
+        protected virtual void OnMouseLeave(GuiEvent ev)
+        {
+            if(MouseLeave != null)
+                MouseLeave(this, ev);
+        }
+
+        /// <summary>
+        /// Called when the mouse pointer has been moved.
+        /// </summary>
+        protected virtual void OnMouseMotion(MotionEvent ev)
+        {
+            if(MouseMotion != null)
+                MouseMotion(this, ev);
+        }
+
+        /// <summary>
+        /// Called when a key has been pressed.
+        /// </summary>
+        protected virtual void OnKeyPressed(KeyEvent ev)
+        {
+            if(KeyPressed != null)
+                KeyPressed(this, ev);
+        }
+
+        /// <summary>
+        /// Called when a key has been released.
+        /// </summary>
+        protected virtual void OnKeyReleased(KeyEvent ev)
+        {
+            if(KeyReleased != null)
+                KeyReleased(this, ev);
+        }
+
+        /// <summary>
+        /// Called when the mouse button has been pressed.
+        /// </summary>
+        protected virtual void OnButtonPressed(ButtonEvent ev)
+        {
+            if(ButtonPressed != null)
+                ButtonPressed(this, ev);
+        }
+
+        /// <summary>
+        /// Called when the mouse has button has been released.
+        /// </summary>
+        protected virtual void OnButtonReleased(ButtonEvent ev)
+        {
+            if(ButtonReleased != null)
+                ButtonReleased(this, ev);
+        }
+
+        /// <summary>
+        /// Called when the window has got the input focus.
+        /// </summary>
+        protected virtual void OnGotFocus(GuiEvent ev)
+        {
+            if(GotFocus != null)
+                GotFocus(this, ev);
+        }
+
+        /// <summary>
+        /// Called when the window has lost the input focus.
+        /// </summary>
+        protected virtual void OnLostFocus(GuiEvent ev)
+        {
+            if(LostFocus != null)
+                LostFocus(this, ev);
+        }
+        
+        /// <summary>
+        /// Captures the mouse in the window.
+        /// </summary>
+        public void CaptureMouse()
+        {
+            context.CaptureMouse();
+        }
+        
+        /// <summary>
+        /// Releases the mouse capture.
+        /// </summary>
+        public void ReleaseMouse()
+        {
+            context.ReleaseMouse();
+        }
+
+        /// <summary>
+        /// Makes the window visible
+        /// </summary>
+        public void Show()
+        {
+            context.Show();
+        }
+
+        /// <summary>
+        /// Makes the window unvisible.
+        /// </summary>
+        public void Hide()
+        {
+            context.Hide();
+        }
+
+        /// <summary>
+        /// Sends a full expose event.
+        /// </summary>
+        public void Refresh()
+        {
+            context.Refresh();
+        }
+    }
+}
+

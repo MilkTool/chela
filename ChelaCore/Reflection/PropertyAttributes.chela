@@ -1,0 +1,20 @@
+using Chela.Lang;
+
+namespace Chela.Reflection
+{
+    ///<summary>
+    ///Property attributes.
+    ///</summary>
+    [Flags]
+    public enum PropertyAttributes
+    {
+        None = 0,	//None
+        SpecialName = 512,	//SpecialName
+        ReservedMask = 62464,	//ReservedMask
+        RTSpecialName = 1024,	//RTSpecialName
+        HasDefault = 4096,	//HasDefault
+        Reserved2 = 8192,	//Reserved2
+        Reserved3 = 16384,	//Reserved3
+        Reserved4 = 32768,	//Reserved4
+    }
+}

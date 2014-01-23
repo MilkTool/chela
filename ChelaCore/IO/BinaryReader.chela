@@ -1,0 +1,315 @@
+using Chela.Lang;
+using Chela.Text;
+
+namespace Chela.IO
+{
+    ///<summary>
+    ///A reader to be used with data written by BinaryWriter
+    ///</summary>
+    public class BinaryReader: IDisposable
+    {   
+        private Stream stream;
+        private Encoding encoding;
+        private byte[] readBuffer;
+        private char[] charBuffer;
+        private int remaining;
+        private int bufferPosition;
+
+        public BinaryReader(Stream inStream, Encoding encoding)
+        {
+            this.stream = inStream;
+            this.encoding = encoding;
+            this.readBuffer = new byte[Math.Max(16, encoding.GetMaxByteCount(1))];
+            this.remaining = 0;
+            this.bufferPosition = 0;
+        }
+
+        public BinaryReader(Stream inStream)
+            : this(inStream, Encoding.UTF8)
+        {
+        }
+    
+        ~BinaryReader()
+        {
+            Dispose(false);
+        }
+        
+        ///<summary>
+        ///The stream used by this reader.
+        ///</summary>
+        public virtual Stream BaseStream {
+            get {
+                return stream;
+            }
+        }
+        
+        ///<summary>
+        ///Closes the reader and the stream.
+        ///</summary>
+        ///It does call Dispose(true).
+        public virtual void Close()
+        {
+            Dispose(true);
+        }
+    
+        void IDisposable.Dispose()
+        {
+            Dispose(true);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if(disposing)
+                stream.Close();
+        }
+        
+        ///<summary>
+        ///Fills the internal buffer with the specified number of bytes.
+        ///</summary>
+        ///<remarks>
+        ///The buffer size is Max(16, encoding.GetByteCount(1)).
+        ///</remarks>
+        protected virtual void FillBuffer(int numBytes)
+        {
+            if(numBytes < 0 || numBytes > readBuffer.Length)
+                throw new ArgumentOutOfRangeException("numBytes");
+
+            // Avoid reading the buffer.
+            if(remaining >= numBytes)
+                return;
+
+            // Move the consumed data to the beginning of the buffer.
+            for(int i = 0; i < remaining; ++i)
+                readBuffer[i] = readBuffer[i + bufferPosition];
+
+            // Fill the buffer and move back the position.
+            remaining += stream.Read(readBuffer, remaining, numBytes - remaining);
+            bufferPosition = 0;
+            
+            // Make sure the requested number of bytes has been readed.
+            if(remaining < numBytes)
+                throw new EndOfStreamException();
+        }
+        
+        ///<summary>
+        ///Consumes a byte from the buffer.
+        ///</summary>
+        private byte ConsumeByte()
+        {
+            --remaining;
+            byte b = readBuffer[bufferPosition++];
+            return b;
+        }
+        
+        ///<summary>
+        ///Peek the presence of the next character.
+        ///</summary>
+        public virtual int PeekChar()
+        {
+            if(stream.CanSeek)
+                return -1;
+                
+            long oldPosition = stream.Position;
+            int ret = Read();
+            stream.Position = oldPosition;
+            return ret;
+        }
+        
+        ///<summary>
+        ///Reads the next character.
+        ///</summary>
+        public virtual int Read()
+        {
+            // Prepare the character buffer.
+            /*if(charBuffer == null)
+                charBuffer = new char[1];
+                                   
+            try
+            {
+                int readedCount;
+                do
+                {
+                    // Try to read the next byte.
+                    readedCount = stream.Read(readBuffer, 0, 1);
+                    if(readedCount == 0)
+                        return -1;
+                        
+                    // Try to decode a character.
+                    readedCount = decoder.GetChars(readBuffer, 0, 1, charBuffer, 0);
+                }
+                while(readedCount == 0);
+                
+                // Return the readed count.
+                return readedCount;
+            }
+            catch(EndOfStreamException)
+            {
+                return -1; // Return -1 if EOF was hit.
+            }*/
+            return -1;
+        }
+        
+        ///<summary>
+        ///Reads a byte array.
+        ///</summary>
+        public virtual int Read(byte[] buffer, int index, int count)
+        {
+            // Check the parameters.
+            if(buffer == null)
+                throw new ArgumentNullException("buffer");
+            else if(index < 0 || index + count > buffer.Length)
+                throw new ArgumentOutOfRangeException("index or count");
+
+            // Use the stream.
+            return stream.Read(buffer, index, count);
+        }
+        
+        ///<summary>
+        ///Reads a character array
+        ///</summary>
+        public virtual int Read(char[] buffer, int index, int count)
+        {
+            return 0;
+        }
+        
+        ///<summary>
+        ///Reads an octet.
+        ///</summary>
+        private byte ReadOctet()
+        {
+            FillBuffer(1);
+            return ConsumeByte();
+        }
+        
+        ///<summary>
+        ///Reads a word.
+        ///</summary>
+        private ushort ReadWord()
+        {
+            FillBuffer(2);
+            return (ushort) (
+                    ConsumeByte() |
+                   (ConsumeByte() << 8));
+        }
+
+        ///<summary>
+        ///Reads a dword.
+        ///</summary>
+        private uint ReadDWord()
+        {
+            FillBuffer(4);
+            return (uint) (
+                    ConsumeByte() |
+                   (ConsumeByte() << 8u) |
+                   (ConsumeByte() << 16u) |
+                   (ConsumeByte() << 24u));
+        }
+                
+        ///<summary>
+        ///Reads a qword.
+        ///</summary>
+        private ulong ReadQWord()
+        {
+            FillBuffer(8);
+            return (ulong) (
+                    ConsumeByte() |
+                   (ConsumeByte() << 8ul) |
+                   (ConsumeByte() << 16ul) |
+                   (ConsumeByte() << 24ul) |
+                   (ConsumeByte() << 32ul) |
+                   (ConsumeByte() << 40ul) |
+                   (ConsumeByte() << 48ul) |
+                   (ConsumeByte() << 56ul));
+        }        
+
+        ///<summary>
+        ///Reads a boolean value.
+        ///</summary
+        public virtual bool ReadBoolean()
+        {
+            return ReadOctet() != 0;
+        }
+        
+        ///<summary>
+        ///Reads a byte value.
+        ///</summary
+        public virtual byte ReadByte()
+        {
+            return ReadOctet();
+        }
+
+        ///<summary>
+        ///Reads a signed byte value.
+        ///</summary
+        public virtual sbyte ReadSByte()
+        {
+            return reinterpret_cast<sbyte> (ReadOctet());
+        }
+
+        ///<summary>
+        ///Reads a double precision IEEE 754 floating point value.
+        ///</summary
+        public virtual double ReadDouble()
+        {
+            return reinterpret_cast<double> (ReadQWord());
+        }
+
+        ///<summary>
+        ///Reads a single precision IEEE 754 floating point value.
+        ///</summary
+        public virtual float ReadSingle()
+        {
+            return reinterpret_cast<float> (ReadDWord());
+        }
+        
+        ///<summary>
+        ///Reads a signed short value.
+        ///</summary
+        public virtual short ReadInt16()
+        {
+            return reinterpret_cast<short> (ReadWord());
+        }
+
+        ///<summary>
+        ///Reads an unsigned short value.
+        ///</summary
+        public virtual ushort ReadUInt16()
+        {
+            return ReadWord();
+        }
+
+        ///<summary>
+        ///Reads a signed int value.
+        ///</summary
+        public virtual int ReadInt32()
+        {
+            return reinterpret_cast<int> (ReadDWord());
+        }
+
+        ///<summary>
+        ///Reads an unsigned int value.
+        ///</summary
+        public virtual uint ReadUInt32()
+        {
+            return ReadDWord();
+        }
+
+        ///<summary>
+        ///Reads a signed long value.
+        ///</summary
+        public virtual long ReadInt64()
+        {
+            return reinterpret_cast<long> (ReadQWord());
+        }
+
+        ///<summary>
+        ///Reads an unsigned long value.
+        ///</summary
+        public virtual ulong ReadUInt64()
+        {
+            return ReadQWord();
+        }
+
+    }
+}
+

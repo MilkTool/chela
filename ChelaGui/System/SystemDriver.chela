@@ -1,0 +1,55 @@
+using Chela.Gui;
+
+namespace Chela.Gui.SystemDriver
+{
+    ///<summary>
+    ///SystemDriver is wrapper to the SysLayer gui drivers.
+    ///</summary>
+    internal class SystemDriver: GuiDriver
+    {
+        // System driver handle
+        private unsafe DRIVER *driver;
+        private Display display;
+
+        private unsafe SystemDriver(DRIVER *driver)
+        {
+            this.driver = driver;
+            this.display = null;
+        }
+
+        public override Display TheDisplay{
+            get {
+                unsafe {
+                    if(display == null)
+                        display = new SystemDisplay(_ChGui_Driver_GetDisplay(driver));
+                }
+                return display;
+            }
+        }
+
+        ///<summary>
+        ///This function parses the system drivers
+        ///provided by the Chela SysLayer.
+        ///</summary>
+        public static void Register()
+        {
+            unsafe {
+                // Get the driver count.
+                int numdrivers = _ChGui_GetDriverCount();
+
+                // Register each one of the drivers.
+                for(int i = 0; i < numdrivers; ++i)
+                {
+                    // Get the driver.
+                    DRIVER *driver = _ChGui_GetDriver(i);
+                    if(driver == null)
+                        continue;
+
+                    // Register it.
+                    GuiDriver.RegisterDriver(new SystemDriver(driver));
+                }
+            }
+        }
+    }
+}
+

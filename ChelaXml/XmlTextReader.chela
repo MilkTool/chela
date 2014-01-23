@@ -1,0 +1,552 @@
+using Chela.Lang;
+using Chela.IO;
+using Chela.Text;
+
+namespace Chela.Xml
+{
+    /// <summary>
+    /// A XML reader that gets his data from a TextReader.
+    /// </summary>
+    public class XmlTextReader: XmlReader
+    {
+        private int attributeCount;
+        private string baseUri;
+        private int depth;
+        private Encoding encoding;
+        private string localName;
+        private string name;
+        private string nameSpace;
+        private bool namespaces;
+        private XmlNameTable nameTable;
+        private bool normalization;
+        private XmlNodeType nodeType;
+        private string prefix;
+        private char quoteChar;
+        private ReadState readState;
+        private WhitespaceHandling whitespaceHandling;
+        private string xmlLang;
+        private XmlResolver xmlResolver;
+        private XmlSpace xmlSpace;
+        private TextReader reader;
+
+        /// <summary>
+        /// Constructs a reader.
+        /// </summary>
+        protected XmlTextReader()
+        {
+        }
+                
+        /// <summary>
+        /// Constructs a reader with the specified file.
+        /// </summary>
+        public XmlTextReader(string uri)
+            : this(uri, new NameTable())
+        {
+        }
+
+        /// <summary>
+        /// Constructs a reader with the specified xml fragment.
+        /// </summary>
+        public XmlTextReader(string xmlFragment, XmlNodeType fragType, XmlParserContext context)
+            : this(new StringReader(xmlFragment), fragType, context)
+        {
+        }
+
+        /// <summary>
+        /// Constructs a reader with the specified xml fragment.
+        /// </summary>
+        public XmlTextReader(Stream xmlFragment, XmlNodeType fragType, XmlParserContext context)
+            : this(new StreamReader(xmlFragment), fragType, context)
+        {
+        }
+
+        /// <summary>
+        /// Constructs a reader with the specified xml fragment.
+        /// </summary>
+        private XmlTextReader(TextReader xmlFragment, XmlNodeType fragType, XmlParserContext context)
+        {
+            // TODO: Implement this.
+        }
+        
+        
+        /// <summary>
+        /// Constructs a reader with the specified file.
+        /// </summary>
+        public XmlTextReader(string uri, XmlNameTable nt)
+            : this(nt)
+        {
+        }
+
+        /// <summary>
+        /// Constructs a reader with the specified name table.
+        /// </summary>
+        protected XmlTextReader(XmlNameTable nt)
+        {
+            if(nt == null)
+                throw new ArgumentNullException("nt");
+            this.namespaces = true;
+            this.nameTable = nt;
+            this.normalization = false;
+            this.readState = ReadState.Initial;
+            this.whitespaceHandling = WhitespaceHandling.All;
+            this.xmlLang = string.Empty;
+            this.xmlSpace = XmlSpace.None;
+            this.xmlResolver = new XmlUrlResolver();
+        }
+        
+        /// <summary>
+        /// Constructs a reader with the specified stream.
+        /// </summary>
+        public XmlTextReader(Stream input)
+            : this(string.Empty, input, new NameTable())
+        {
+        }
+
+        /// <summary>
+        /// Constructs a reader with the specified stream.
+        /// </summary>
+        public XmlTextReader(string url, Stream input)
+            : this(url, input, new NameTable())
+        {
+        }
+        
+        /// <summary>
+        /// Constructs a reader with the specified stream.
+        /// </summary>
+        public XmlTextReader(Stream input, NameTable nt)
+            : this(string.Empty, input, nt)
+        {
+        }
+        
+        /// <summary>
+        /// Constructs a reader with the specified stream.
+        /// </summary>
+        public XmlTextReader(string url, Stream input, NameTable nt)
+            : this(url, new StreamReader(input), nt)
+        {
+        }
+
+        /// <summary>
+        /// Constructs a reader with the specified stream.
+        /// </summary>
+        public XmlTextReader(TextReader input)
+            : this(string.Empty, input, new NameTable())
+        {
+        }
+
+        /// <summary>
+        /// Constructs a reader with the specified stream.
+        /// </summary>
+        public XmlTextReader(string url, TextReader input)
+            : this(url, input, new NameTable())
+        {
+        }
+        
+        /// <summary>
+        /// Constructs a reader with the specified stream.
+        /// </summary>
+        public XmlTextReader(TextReader input, NameTable nt)
+            : this(string.Empty, input, nt)
+        {
+        }
+        
+        /// <summary>
+        /// Constructs a reader with the specified stream.
+        /// </summary>
+        public XmlTextReader(string url, TextReader input, NameTable nt)
+            : this(nt)
+        {
+            this.reader = input;
+        }
+
+        /// <summary>
+        /// Common initialization.
+        /// </summary>
+        private void Init()
+        {
+            readState = Xml.ReadState.Initial;
+        }
+
+        
+        /// <summary>
+        /// Closes the reader.
+        /// </summary
+        public override void Close()
+        {
+            readState = ReadState.Closed;
+            reader.Close();
+        }
+        
+        /// <summary>
+        /// The value of the requested attribute.
+        /// </summary>
+        public override string GetAttribute(string name)
+        {
+            throw new NotImplementedException();
+        }
+        
+        /// <summary>
+        /// The value of the requested attribute.
+        /// </summary>
+        public override string GetAttribute(string name, string namespaceURI)
+        {
+            throw new NotImplementedException();
+        }
+        
+        /// <summary>
+        /// The value of the attribute at index i of the current element.
+        /// </summary>
+        public override string GetAttribute(int i)
+        {
+            throw new NotImplementedException();
+        }
+        
+        /// <summary>
+        /// Closes the reader and return the buffered xml.
+        /// </summary>
+        public TextReader GetRemainder()
+        {
+            readState = ReadState.EndOfFile;
+            return reader;
+        }
+
+        /// <summary>
+        /// Resolves a namespace prefix.
+        /// </summary>
+        public override string LookupNamespace(string prefix)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Moves the current position into the attribute with the specified
+        /// index.
+        /// </summary>
+        public override void MoveToAttribute(int i)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Moves the current position into the specified attribute.
+        /// </summary>
+        public override void MoveToAttribute(string name, string ns)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Moves the current position into the specified attribute.
+        /// </summary>
+        public override void MoveToAttribute(string name)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Move to the node that contains the current Attribute.
+        /// </summary>
+        public override bool MoveToElement()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Move to the firs attribute of the current node.
+        /// </summary>
+        public override bool MoveToFirstAttribute()
+        {
+            throw new NotImplementedException();
+        }
+        
+        /// <summary>
+        /// Move to the node that contains the current Attribute.
+        /// </summary>
+        public override bool MoveToNextAttribute()
+        {
+            throw new NotImplementedException();
+        }
+        
+        /// <summary>
+        /// Move the reader to the next node in the stream.
+        /// </summary>
+        public override bool Read()
+        {
+            throw new NotImplementedException();
+        }
+        
+        /// <summary>
+        /// Parses an attribute value.
+        /// </summary>
+        public override bool ReadAttributeValue()
+        {
+            throw new NotImplementedException();
+        }
+        
+        /// <summary>
+        /// Reads the contents of the current node, including his markup
+        /// </summary>
+        public override string ReadInnerXml()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Reads the contents of the current node, including his markup
+        /// Includes the current node.
+        /// </summary>
+        public override string ReadOuterXml()
+        {
+            throw new NotImplementedException();
+        }
+        
+        /// <summary>
+        /// Reads all of the string content in the current node.
+        /// </summary>
+        public override string ReadString()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Resolves the entity references.
+        /// </summary>
+        public override void ResolveEntity()
+        {
+            throw new NotImplementedException();
+        }
+        
+        /// <summary>
+        /// The number of attributes in the current node.
+        /// </summary>
+        public override int AttributeCount {
+            get {
+                return attributeCount;
+            }
+        }
+        
+        /// <summary>
+        /// Gets the base URI of the current node.
+        /// </summary>
+        public override string BaseURI {
+            get {
+                return baseUri;
+            }
+        }
+        
+        /// <summary>
+        /// Gets the current depth in the document.
+        /// </summary>
+        public override int Depth  {
+            get {
+                return depth;
+            }
+        }
+        
+        /// <summary>
+        /// Gets the encoding used.
+        /// </summary>
+        public Encoding Encoding {
+            get {
+                return encoding;
+            }
+        }
+        
+        /// <summary>
+        /// Gets a value indicating if the reader has reached the End-Of-File.
+        /// </summary>
+        public override bool EOF {
+            get {
+                throw new NotImplementedException();
+            }
+        }
+        
+        
+        /// <summary>
+        /// Indicates if the current node can have a text value.
+        /// </summary>
+        public override bool HasValue {
+            get {
+                throw new NotImplementedException();
+            }
+        }
+
+        /// <summary>
+        /// Tells if this attribute is generated according the DTD.
+        /// </summary>
+        public override bool IsDefault {
+            get {
+                throw new NotImplementedException();
+            }
+        }
+
+        /// <summary>
+        /// Tells if this node is an empty element.
+        /// </summary>
+        public override bool IsEmptyElement {
+            get {
+                throw new NotImplementedException();
+            }
+        }
+        
+        /// <summary>
+        /// Retrieves the value of the specified attribute.
+        /// </summary>
+        public override string this[int i] {
+            get {
+                return GetAttribute(i);
+            }
+        }
+
+        /*/// <summary>
+        /// Retrieves the value of the specified attribute.
+        /// </summary>
+        public override string this[string name] {
+            get {
+                return GetAttribute(name);
+            }
+        }
+
+        /// <summary>
+        /// Retrieves the value of the specified attribute.
+        /// </summary>
+        public override string this[string name, string namespaceURI] {
+            get {
+                return GetAttribute(name, namespaceURI);
+            }
+        }*/
+
+        /// <summary>
+        /// The local name of the current node.
+        /// </summary>
+        public override string LocalName {
+            get {
+                return localName;
+            }
+        }
+        
+        /// <summary>
+        /// The qualified name of the current node.
+        /// </summary>
+        public override string Name {
+            get {
+                return name;
+            }
+        }
+        
+        /// <summary>
+        /// Reader support for namespaces.
+        /// </summary>
+        public bool Namespaces {
+            get {
+                return namespaces;
+            }
+            set {
+                namespaces = value;
+            }
+        }
+
+        /// <summary>
+        /// The namespace URI of the current node.
+        /// </summary>
+        public override string NamespaceURI {
+            get {
+                throw new NotImplementedException();
+            }
+        }
+
+        /// <summary>
+        /// The name table used.
+        /// </summary>
+        public override XmlNameTable NameTable {
+            get {
+                return nameTable;
+            }
+        }
+
+        /// <summary>
+        /// The current node type.
+        /// </summary>
+        public override XmlNodeType NodeType {
+            get {
+                return nodeType;
+            }
+        }
+        
+        /// <summary>
+        /// Normalize white spaces.
+        /// </summary>
+        public bool Normalization {
+            get {
+                return normalization;
+            }
+            set {
+                normalization = value;
+            }
+        }
+        
+        /// <summary>
+        /// The namespace prefix of the current node.
+        /// </summary>
+        public override string Prefix {
+            get {
+                return prefix;
+            }
+        }
+        
+        /// <summary>
+        /// The quotation character used to enclose the current attribute.
+        /// </summary>
+        public override char QuoteChar {
+            get {
+                return quoteChar;
+            }
+        }
+
+        /// <summary>
+        /// The read state.
+        /// </summary>
+        public override ReadState ReadState {
+            get {
+                return readState;
+            }
+        }
+        
+        /// <summary>
+        /// The text value of the current node.
+        /// </summary>
+        public override string Value {
+            get {
+                throw new NotImplementedException();
+            }
+        }
+
+        /// <summary>
+        /// Reader white space handling.
+        /// </summary>
+        public WhitespaceHandling WhitespaceHandling {
+            get {
+                return whitespaceHandling;
+            }
+        }
+
+        /// <summary>
+        /// The current xml:lang scope.
+        /// </summary>
+        public override string XmlLang {
+            get {
+                return xmlLang;
+            }
+        }
+
+        /// <summary>
+        /// The current xml:space
+        /// </summary>
+        public override XmlSpace XmlSpace {
+            get {
+                return xmlSpace;
+            }
+        }
+    }
+}
+

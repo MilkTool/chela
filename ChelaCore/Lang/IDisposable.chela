@@ -1,0 +1,7 @@
+namespace Chela.Lang
+{
+    public interface IDisposable
+    {
+        void Dispose();
+    }
+}

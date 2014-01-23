@@ -1,0 +1,490 @@
+using Chela.Lang;
+
+namespace Chela.Xml
+{
+    /// <summary>
+    /// A reader that is non-cached, forwards only for XML data.
+    /// </summary>
+    public abstract class XmlReader
+    {
+        protected XmlReader()
+        {
+        }
+        
+        /// <summary>
+        /// Closes the reader.
+        /// </summary
+        public abstract void Close();
+        
+        /// <summary>
+        /// The value of the requested attribute.
+        /// </summary>
+        public abstract string GetAttribute(string name);
+        
+        /// <summary>
+        /// The value of the requested attribute.
+        /// </summary>
+        public abstract string GetAttribute(string name, string namespaceURI);
+        
+        /// <summary>
+        /// The value of the attribute at index i of the current element.
+        /// </summary>
+        public abstract string GetAttribute(int i);
+
+        /// <summary>
+        /// Tells if a given character is a valid name start.
+        /// </summary
+        private static bool IsNameStart(char c)
+        {
+            return Char.IsLetter(c) || c == '_' || c == ':';
+        }
+
+        /// <summary>
+        /// Tells if a given character is a valid name char.
+        /// </summary
+        private static bool IsNameChar(char c)
+        {
+            return Char.IsLetter(c) || Char.IsDigit(c) || c == '.'  || c == '-' ||
+                    c == '_' || c == ':';
+        }
+        
+        /// <summary>
+        /// Tells if the specified string is a valid XML name.
+        /// </summary>
+        public static bool IsName(string str)
+        {
+            // Don't accept the empty string.
+            if(str == null || str == string.Empty)
+                return false;
+                
+            // Check the first character.
+            if(!IsNameStart(str[0]))
+                return false;
+            
+            // Check the rest of the characters.
+            for(int i = 1; i < str.Length; ++i)
+            {
+                // Check the character.
+                if(!IsNameChar(str[i]))
+                    return false;
+            }
+            
+            return true;
+        }
+
+        /// <summary>
+        /// Tells if the specified string is a valid XML name token.
+        /// </summary>
+        public static bool IsNameToken(string str)
+        {
+            // Don't accept the empty string.
+            if(str == null || str == string.Empty)
+                return false;
+                
+            // Check all of the characters.
+            for(int i = 0; i < str.Length; ++i)
+            {
+                if(!IsNameChar(str[i]))
+                    return false;
+            }
+
+            return true;
+        }
+        
+        /// <summary>
+        /// Determines if a node content is an Element with the specified name.
+        /// </summary>
+        public virtual bool IsStartElement(string localName, string ns)
+        {
+            return MoveToContent() == XmlNodeType.Element &&
+                LocalName == localName && NamespaceURI == ns;
+        }
+        
+        /// <summary>
+        /// Determines if a node content is an Element with the specified name.
+        /// </summary>
+        public virtual bool IsStartElement(string name)
+        {
+            return MoveToContent() == XmlNodeType.Element && Name == name;
+        }
+
+        /// <summary>
+        /// Determines if a node content is an Element..
+        /// </summary>
+        public virtual bool IsStartElement()
+        {
+            return MoveToContent() == XmlNodeType.Element;
+        }
+        
+        /// <summary>
+        /// Resolves a namespace prefix.
+        /// </summary>
+        public abstract string LookupNamespace(string prefix);
+
+        /// <summary>
+        /// Moves the current position into the attribute with the specified
+        /// index.
+        /// </summary>
+        public abstract void MoveToAttribute(int i);
+
+        /// <summary>
+        /// Moves the current position into the specified attribute.
+        /// </summary>
+        public abstract void MoveToAttribute(string name, string ns);
+
+        /// <summary>
+        /// Moves the current position into the specified attribute.
+        /// </summary>
+        public abstract void MoveToAttribute(string name);
+
+        /// <summary>
+        /// Checks if the current node can have content, or move to the next or
+        /// to the end of stream.
+        /// </summary>
+        public virtual XmlNodeType MoveToContent()
+        {
+            do
+            {
+                // Check the node type.
+                XmlNodeType type = NodeType;
+                if(type == XmlNodeType.Attribute ||
+                   type == XmlNodeType.CDATA ||
+                   type == XmlNodeType.Element ||
+                   type == XmlNodeType.EndElement ||
+                   type == XmlNodeType.EntityReference ||
+                   type == XmlNodeType.EndEntity ||
+                   type == XmlNodeType.Text)
+                   break;
+            }while(Read());
+            
+            // Return the current node.
+            return NodeType;
+        }
+
+        /// <summary>
+        /// Move to the node that contains the current Attribute.
+        /// </summary>
+        public abstract bool MoveToElement();
+
+        /// <summary>
+        /// Move to the firs attribute of the current node.
+        /// </summary>
+        public abstract bool MoveToFirstAttribute();
+        
+        /// <summary>
+        /// Move to the node that contains the current Attribute.
+        /// </summary>
+        public abstract bool MoveToNextAttribute();
+        
+        /// <summary>
+        /// Move the reader to the next node in the stream.
+        /// </summary>
+        public abstract bool Read();
+        
+        /// <summary>
+        /// Parses an attribute value.
+        /// </summary>
+        public abstract bool ReadAttributeValue();
+        
+        /// <summary>
+        /// Reads the content of a text-only element.
+        /// </summary>
+        public virtual string ReadElementString(string localName, string ns)
+        {
+            if(MoveToContent() != XmlNodeType.Element)
+                throw new XmlException("The node is not an element.");
+            if(LocalName != localName || NamespaceURI != ns)
+                throw new XmlException("The element is not the specified.");
+            return ReadString();
+        }
+
+        /// <summary>
+        /// Reads the content of a text-only element.
+        /// </summary>
+        public virtual string ReadElementString(string name)
+        {
+            if(MoveToContent() != XmlNodeType.Element)
+                throw new XmlException("The node is not an element.");
+            if(Name != name)
+                throw new XmlException("The element is not the specified.");
+            return ReadString();
+        }
+
+        /// <summary>
+        /// Reads the content of a text-only element.
+        /// </summary>
+        public virtual string ReadElementString()
+        {
+            if(MoveToContent() != XmlNodeType.Element)
+                throw new XmlException("The node is not an element.");
+            return ReadString();
+        }
+        
+        /// <summary>
+        /// Reads an end element and advance.
+        /// </summary>
+        public virtual void ReadEndElement()
+        {
+            // Read until and end element is found.
+            if(MoveToContent() != XmlNodeType.EndElement)
+                throw new XmlException("The node is not an end element.");
+                
+            // Read the next node.
+            Read();
+        }
+        
+        /// <summary>
+        /// Reads the contents of the current node, including his markup
+        /// </summary>
+        public abstract string ReadInnerXml();
+
+        /// <summary>
+        /// Reads the contents of the current node, including his markup
+        /// Includes the current node.
+        /// </summary>
+        public abstract string ReadOuterXml();
+
+        /// <summary>
+        /// Reads an element and advance.
+        /// </summary>
+        public virtual void ReadStartElement()
+        {
+            // Read until and end element is found.
+            if(MoveToContent() != XmlNodeType.Element)
+                throw new XmlException("The node is not an element.");
+                
+            // Read the next node.
+            Read();
+        }
+        
+        /// <summary>
+        /// Reads an element with the specified name and advance.
+        /// </summary>
+        public virtual void ReadStartElement(string name)
+        {
+            // Read until and end element is found.
+            if(MoveToContent() != XmlNodeType.Element)
+                throw new XmlException("The node is not an element.");
+            if(Name != name)
+                throw new XmlException("The element is not the requested.");
+                
+            // Read the next node.
+            Read();
+        }
+
+        /// <summary>
+        /// Reads an element with the specified name and advance.
+        /// </summary>
+        public virtual void ReadStartElement(string localName, string ns)
+        {
+            // Read until and end element is found.
+            if(MoveToContent() != XmlNodeType.Element)
+                throw new XmlException("The node is not an element.");
+            if(LocalName != localName || NamespaceURI != ns)
+                throw new XmlException("The element is not the requested.");
+                
+            // Read the next node.
+            Read();
+        }
+        
+        /// <summary>
+        /// Reads all of the string content in the current node.
+        /// </summary>
+        public abstract string ReadString();
+
+        /// <summary>
+        /// Resolves the entity references.
+        /// </summary>
+        public abstract void ResolveEntity();
+        
+        /// <summary>
+        /// Skips the current element.
+        /// </summary>
+        public virtual void Skip()
+        {
+            // Move to the element.
+            MoveToElement();
+            
+            // Just pass empty elements.
+            if(IsEmptyElement)
+            {
+                Read();
+                return;
+            }
+            
+            // Read until the matching element.
+            int depth = Depth;
+            while(Read())
+            {
+                if(Depth == depth && NodeType == XmlNodeType.EndElement)
+                    break;
+            }
+        }
+        
+        /// <summary>
+        /// The number of attributes in the current node.
+        /// </summary>
+        public abstract int AttributeCount {
+            get;
+        }
+        
+        /// <summary>
+        /// Gets the base URI of the current node.
+        /// </summary>
+        public abstract string BaseURI {
+            get;
+        }
+        
+        /// <summary>
+        /// Indicates if the reader can resolve entities.
+        /// </summary>
+        public virtual bool CanResolveEntity {
+            get {
+                return false;
+            }
+        }
+        
+        /// <summary>
+        /// Gets the current depth in the document.
+        /// </summary>
+        public abstract int Depth  {
+            get;
+        }
+        
+        /// <summary>
+        /// Gets a value indicating if the reader has reached the End-Of-File.
+        /// </summary>
+        public abstract bool EOF {
+            get;
+        }
+        
+        /// <summary>
+        /// Indicates whether the current node has attributes.
+        /// </summary>
+        public virtual bool HasAttributes {
+            get {
+                return AttributeCount > 0;
+            }
+        }
+        
+        /// <summary>
+        /// Indicates if the current node can have a text value.
+        /// </summary>
+        public abstract bool HasValue {
+            get;
+        }
+
+        /// <summary>
+        /// Tells if this attribute is generated according the DTD.
+        /// </summary>
+        public abstract bool IsDefault {
+            get;
+        }
+
+        /// <summary>
+        /// Tells if this node is an empty element.
+        /// </summary>
+        public abstract bool IsEmptyElement {
+            get;
+        }
+        
+        /// <summary>
+        /// Retrieves the value of the specified attribute.
+        /// </summary>
+        public abstract string this[int i] {
+            get;
+        }
+
+        /*/// <summary>
+        /// Retrieves the value of the specified attribute.
+        /// </summary>
+        public abstract string this[string name] {
+            get;
+        }
+
+        /// <summary>
+        /// Retrieves the value of the specified attribute.
+        /// </summary>
+        public abstract string this[string name, string namespaceURI] {
+            get;
+        }*/
+
+        /// <summary>
+        /// The local name of the current node.
+        /// </summary>
+        public abstract string LocalName {
+            get;
+        }
+        
+        /// <summary>
+        /// The qualified name of the current node.
+        /// </summary>
+        public abstract string Name {
+            get;
+        }
+
+        /// <summary>
+        /// The namespace URI of the current node.
+        /// </summary>
+        public abstract string NamespaceURI {
+            get;
+        }
+
+        /// <summary>
+        /// The name table used.
+        /// </summary>
+        public abstract XmlNameTable NameTable {
+            get;
+        }
+
+        /// <summary>
+        /// The current node type.
+        /// </summary>
+        public abstract XmlNodeType NodeType {
+            get;
+        }
+        
+        /// <summary>
+        /// The namespace prefix of the current node.
+        /// </summary>
+        public abstract string Prefix {
+            get;
+        }
+        
+        /// <summary>
+        /// The quotation character used to enclose the current attribute.
+        /// </summary>
+        public abstract char QuoteChar {
+            get;
+        }
+
+        /// <summary>
+        /// The read state.
+        /// </summary>
+        public abstract ReadState ReadState {
+            get;
+        }
+        
+        /// <summary>
+        /// The text value of the current node.
+        /// </summary>
+        public abstract string Value {
+            get;
+        }
+
+        /// <summary>
+        /// The current xml:lang scope.
+        /// </summary>
+        public abstract string XmlLang {
+            get;
+        }
+
+        /// <summary>
+        /// The current xml:space
+        /// </summary>
+        public abstract XmlSpace XmlSpace {
+            get;
+        }
+    }
+}
+

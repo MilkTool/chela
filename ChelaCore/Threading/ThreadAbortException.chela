@@ -1,0 +1,9 @@
+using Chela.Lang;
+
+namespace Chela.Threading
+{
+    public class ThreadAbortException: SystemException
+    {
+    }
+}
+

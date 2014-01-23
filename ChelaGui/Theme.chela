@@ -1,0 +1,53 @@
+namespace Chela.Gui
+{
+    public class Theme
+    {
+        // Default theme constructor.
+        public Theme()
+        {
+        }
+
+        // Default theme.
+        public static readonly Theme DefaultTheme = new Theme();
+        
+        // Current theme.
+        private static Theme current = DefaultTheme;
+    
+        /// <summary>
+        /// The current theme.
+        /// </summary>        
+        public static Theme Current {
+            get {
+                return current;
+            }
+            set {
+                if(value == null)
+                    current = DefaultTheme;
+                else
+                    current = value;
+            }
+        }
+        
+        // Colors used when the theme doesn't draw a widget
+        public Color OutlineColor = Color(64,64, 64);
+        public Color ShadowColor = Color(128,128,128);
+
+        // Button colors.
+        public Color ButtonColor1 = Color(220,245,245);
+        public Color ButtonColor2 = Color(120,200,200);
+        public Color ButtonDownColor1 = Color(140,210,210);
+        public Color ButtonDownColor2 = Color(200,225,225);   
+        public Color ButtonOverColor1 = Color(220,255,255);
+        public Color ButtonOverColor2 = Color(140,210,210);
+
+        /// <summary>
+        /// Function called by the widget to give the theme the opportunity to
+        /// perform all of the drawing.
+        /// </summary>
+        public virtual bool ExposeWidget(Widget widget, ExposeEvent ev, GraphicContext gc)
+        {
+            return false;
+        }
+    }
+}
+

@@ -1,0 +1,66 @@
+using Chela.Collections;
+
+namespace Chela.Gui
+{
+    /// <summary>
+    /// GuiDriver is the base class of the Chela gui system
+    /// </summary>
+    public abstract class GuiDriver
+    {
+        private static ArrayList driverRegistry;
+        private static GuiDriver currentDriver; // TODO: Use thread local storage.
+
+        public GuiDriver()
+        {
+        }
+
+        /// <summary>
+        /// This function registers a new gui driver.
+        /// </summary>
+        public static void RegisterDriver(GuiDriver driver)
+        {
+            if(driverRegistry == null)
+                driverRegistry = new ArrayList();
+            driverRegistry.Add(driver);
+        }
+
+        private static void RegisterSystemDrivers()
+        {
+            Chela.Gui.SystemDriver.SystemDriver.Register();
+        }
+
+        /// <summary>
+        /// This function returns the default gui driver.
+        /// </summary>
+        public static GuiDriver GetDefaultDriver()
+        {
+            if(driverRegistry == null)
+                RegisterSystemDrivers();
+
+            return (GuiDriver)driverRegistry[0];
+        }
+
+        /// <summary>
+        /// The current thread driver, it always returns a driver.
+        /// </summary>
+        public static GuiDriver Current {
+            get {
+                // Return
+                if(currentDriver == null)
+                    currentDriver = GetDefaultDriver();
+                return currentDriver;
+            }
+            set {
+                currentDriver = value;
+            }
+        }
+
+        /// <summary>
+        /// This property returns the driver display.
+        /// </summary>
+        public abstract Display TheDisplay {
+            get;
+        }
+    }
+}
+

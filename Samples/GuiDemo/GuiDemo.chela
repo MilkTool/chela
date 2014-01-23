@@ -1,0 +1,41 @@
+using Chela.Gui;
+using Chela.Lang;
+using Chela.Threading;
+
+void TestGui_OnClose(object sender, GuiEvent ev)
+{
+    Console.WriteLine("Close button pressed.");
+    Display.Current.Quit();
+}
+
+void Button_OnActivate(object sender, ActivateEvent ev)
+{
+    Console.WriteLine("Button pressed.");
+}
+
+int Main(string[] args)
+{
+    // Get the current display.
+    Display disp = Display.Current;
+
+    // Get the default screen.
+    Screen screen = disp.DefaultScreen;
+
+    // Create a simple window.
+    Frame frame = new Frame(null, ivec2(0,0), ivec2(200,200));
+    frame.Title = "Test Window";
+    frame.Closed += TestGui_OnClose;
+
+    // Create the button.
+    Button button = new Button(frame, ivec2(30,30), ivec2(70, 30));
+    button.Activated += Button_OnActivate;
+
+    // Show the frame.
+    frame.Show();
+
+    // Enter into the main loop.
+    disp.MainLoop();
+
+    return 0;
+}
+

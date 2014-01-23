@@ -1,0 +1,113 @@
+using Chela.Globalization;
+
+namespace Chela.Lang
+{
+    public struct SByte: IFormattable, IntegerConstraint
+    {
+        internal sbyte __value;
+
+        ///<summary>
+        ///Gets a string representation of the integer.
+        ///</summary>
+        public override string ToString()
+        {
+            return FormatUtil.IntToString_General<sbyte> (__value, null);
+        }
+        
+        ///<summary>
+        ///Gets a string representation of the integer.
+        ///</summary>
+        public string ToString(IFormatProvider provider)
+        {
+            return FormatUtil.IntToString_General<sbyte> (__value, provider);
+        }
+        
+        ///<summary>
+        ///Gets a string representation of the integer.
+        ///</summary>
+        public string ToString(string format)
+        {
+            return FormatUtil.IntToString<sbyte> (__value, format, null);
+        }
+
+        ///<summary>
+        ///Gets a string representation of the integer.
+        ///</summary>
+        public string ToString(string format, IFormatProvider provider)
+        {
+            return FormatUtil.IntToString<sbyte> (__value, format, provider);
+        }
+
+        ///<summary>
+        ///Computes the hash code for this byte.
+        ///</summary>
+        public override int GetHashCode()
+        {
+            return (int)__value;
+        }
+        
+        ///<summary>
+        ///Compares this integer with another.
+        ///</summary>
+        public override bool Equals(object o)
+        {
+            if(o == null || !(o is SByte))
+                return false;
+                
+            SByte cmp = (SByte)o;
+            return __value == cmp.__value;
+        }
+        
+        ///<summary>
+        ///Parses a string representation of an integer.
+        ///</summary>
+        public static sbyte Parse(string s)
+        {
+            return Parse(s, NumberStyles.Integer, null);
+        }
+        
+        ///<summary>
+        ///Parses a string representation of an integer.
+        ///</summary>
+        public static sbyte Parse(string s, IFormatProvider provider)
+        {
+            return Parse(s, NumberStyles.Integer, provider);
+        }
+        
+        ///<summary>
+        ///Parses a string representation of an integer.
+        ///</summary>
+        public static sbyte Parse(string s, NumberStyles styles)
+        {
+            return Parse(s, styles, null);
+        }
+                
+        ///<summary>
+        ///Parses a string representation of an integer.
+        ///</summary>
+        public static sbyte Parse(string s, NumberStyles styles, IFormatProvider provider)
+        {
+            sbyte res;
+            if(!TryParse(s, styles, provider, out res))
+                throw new FormatException();
+            return res;
+        }
+        
+        ///<summary>
+        ///Tries to parse a string representation of an integer.
+        ///</summary>
+        public static bool TryParse(string s, out sbyte value)
+        {
+            return TryParse(s, NumberStyles.Integer, null, out value);
+        }
+        
+        ///<summary>
+        ///Tries to parse a string representation of an integer.
+        ///</summary>
+        public static bool TryParse(string s, NumberStyles styles, IFormatProvider provider, out sbyte value)
+        {
+            return FormatUtil.TryParse_Integer<sbyte> (s, NumberStyles.Integer, provider, out value);
+        }
+    }
+}
+

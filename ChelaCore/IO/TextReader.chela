@@ -1,0 +1,95 @@
+using Chela.Lang;
+using Chela.Text;
+
+namespace Chela.IO
+{
+    /// <summary>
+    /// A text reader.
+    /// </summary>
+    public abstract class TextReader: IDisposable
+    {
+        /// <summary>
+        /// A null text reader.
+        /// </summary>
+        public static readonly TextReader Null = new NullTextReader();
+        
+        protected TextReader()
+        {
+        }
+        
+        ~TextReader()
+        {
+            Dispose(false);
+        }
+        
+        /// <summary>
+        /// Closes the text reader.
+        /// </summary>
+        public virtual void Close()
+        {
+        }
+        
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+        
+        protected virtual void Dispose(bool disposing)
+        {
+        }
+        
+        /// <summary>
+        /// Gets the next character, without removing it.
+        /// </summary>
+        public virtual int Peek()
+        {
+            return -1;
+        }
+        
+        /// <summary>
+        /// Gets the next character.
+        /// </summary>
+        public virtual int Read()
+        {
+            return -1;
+        }
+        
+        /// <summary>
+        /// Reads at most the characters specified.
+        /// </summary>
+        public virtual int Read(char[] buffer, int index, int count)
+        {
+            return 0;
+        }
+
+        /// <summary>
+        /// Reads at most the characters specified, blocking if needed.
+        /// </summary>
+        public virtual int ReadBlock(char[] buffer, int index, int count)
+        {
+            return 0;
+        }
+        
+        /// <summary>
+        /// Reads a line of characters.
+        /// </summary>
+        public virtual string ReadLine()
+        {
+            return null;
+        }
+        
+        /// <summary>
+        /// Reads all of the characters to the end.
+        /// </summary>
+        public virtual string ReadToEnd()
+        {
+            return null;
+        }
+        
+        public static TextReader Synchronized(TextReader reader)
+        {
+            throw new NotImplementedException();
+        }
+    }
+}
+

@@ -1,0 +1,38 @@
+using Chela.Lang;
+
+namespace Chela.Globalization
+{
+    ///<summary>
+    ///Number formatting styles.
+    ///</summary>
+    [Flags]
+    public enum NumberStyles
+    {
+        AllowCurrencySymbol = 0x0100,
+        AllowDecimalPoint   = 0x0020,
+        AllowExponent       = 0x0080,
+        AllowHexSpecifier   = 0x0200,
+        AllowLeadingSign    = 0x0004,
+        AllowLeadingWhite   = 0x0001,
+        AllowParentheses    = 0x0010,
+        AllowThousands      = 0x0040,
+        AllowTrailingSign   = 0x0008,
+        AllowTrailingWhite  = 0x0002,
+        Any = AllowLeadingWhite | AllowTrailingWhite |
+              AllowLeadingSign | AllowTrailingSign |
+              AllowParentheses | AllowDecimalPoint |
+              AllowThousands | AllowCurrencySymbol | AllowExponent,
+        Currency = AllowLeadingWhite | AllowTrailingWhite | AllowLeadingSign |
+                   AllowTrailingSign | AllowParentheses | AllowDecimalPoint | 
+                   AllowThousands | AllowCurrencySymbol,
+        Float = AllowLeadingWhite | AllowTrailingWhite | AllowLeadingSign |
+                AllowDecimalPoint | AllowExponent,
+        HexNumber = AllowLeadingWhite | AllowTrailingWhite | AllowHexSpecifier,
+        Integer = AllowLeadingWhite | AllowTrailingWhite | AllowLeadingSign,
+        None = 0,
+        Number = AllowLeadingWhite | AllowTrailingWhite | AllowLeadingSign |
+                 AllowTrailingSign | AllowDecimalPoint | AllowThousands,
+        
+    }
+}
+

@@ -1,0 +1,26 @@
+namespace Chela.Collections
+{
+    public interface IDictionaryEnumerator: IEnumerator
+    {
+        ///<summary>
+        ///The dictionary entry over this position.
+        ///</summary>
+        DictionaryEntry Entry {
+            get;
+        }
+        
+        ///<summary>
+        ///The dictionary key in this position.
+        ///</summary>
+        object Key {
+            get;
+        }
+        
+        ///<summary>
+        ///The dictionary value in this position.
+        ///</summary>
+        object Value {
+            get;
+        }
+    }
+}

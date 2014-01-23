@@ -1,0 +1,21 @@
+using Chela.Gui;
+
+namespace Chela.Gui.SystemDriver
+{
+    internal class SystemFont: Font
+    {
+        private SystemDisplay display;
+
+        public unsafe SystemFont(SystemDisplay display)
+        {
+            this.display = display;
+        }
+
+        public override Display CurrentDisplay {
+            get {
+                return display;
+            }
+        }
+    }
+}
+

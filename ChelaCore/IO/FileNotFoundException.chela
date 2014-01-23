@@ -1,0 +1,42 @@
+using Chela.Lang;
+
+namespace Chela.IO
+{
+    public class FileNotFoundException: IOException
+    {
+        private string fileName;
+        
+        public FileNotFoundException()
+        {
+        }
+        
+        public FileNotFoundException(string message)
+            : base(message)
+        {
+        }
+        
+        public FileNotFoundException(string message, Exception innerException)
+            : base(message, innerException)
+        {
+        }
+        
+        public FileNotFoundException(string message, string fileName)
+            : base(message)
+        {
+            this.fileName = fileName;
+        }
+        
+        public FileNotFoundException(string message, string fileName, Exception innerException)
+            : base(message, innerException)
+        {
+            this.fileName = fileName;
+        }
+        
+        public string FileName {
+            get {
+                return fileName;
+            }
+        }
+    }
+}
+

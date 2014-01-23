@@ -1,0 +1,22 @@
+using Chela.Lang;
+
+namespace Chela.IO
+{
+    public class DirectoryNotFoundException: IOException
+    {
+        public DirectoryNotFoundException()
+        {
+        }
+        
+        public DirectoryNotFoundException(string message)
+            : base(message)
+        {
+        }
+        
+        public DirectoryNotFoundException(string message, Exception innerException)
+            : base(message, innerException)
+        {
+        }
+    }
+}
+

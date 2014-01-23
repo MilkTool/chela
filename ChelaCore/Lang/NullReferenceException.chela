@@ -1,0 +1,27 @@
+namespace Chela.Lang
+{
+    public class NullReferenceException: SystemException
+    {
+        public NullReferenceException()
+            : base("Attempting to use a null reference.")
+        {
+        }
+
+        public NullReferenceException(string message)
+            : base(message)
+        {
+        }
+
+        public NullReferenceException(string message, Exception innerException)
+            : base(message, innerException)
+        {
+        }
+    }
+}
+
+// This function is required by the runtime.
+public __cdecl void __chela_throw_null__()
+{
+    throw new Chela.Lang.NullReferenceException();
+}
+

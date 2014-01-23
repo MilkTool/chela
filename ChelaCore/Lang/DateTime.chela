@@ -1,0 +1,148 @@
+namespace Chela.Lang
+{
+    internal extern __cdecl long _Chela_Date_Now();
+    internal extern __cdecl long _Chela_Date_UtcNow();
+
+    ///<summary>
+    ///This structure represents a time instant since January 1st, 12:00 (Common Era)
+    ///</summary>
+    public struct DateTime
+    {
+        internal long ticks;
+        internal DateTimeKind kind;
+
+        ///<summary>
+        ///Constructs a date time using a specified number of ticks.
+        ///</summary>
+        public DateTime(long ticks)
+            : this(ticks, DateTimeKind.Unspecified)
+        {
+        }
+
+        ///<summary>
+        ///Constructs a date time using a specified number of ticks.
+        ///</summary>
+        public DateTime(long ticks, DateTimeKind kind)
+        {
+            this.ticks = ticks;
+            this.kind = kind;
+        }
+
+        ///<summary>
+        ///Returns the kind of this date time.
+        ///</summary>
+        public DateTimeKind Kind {
+            get {
+                return kind;
+            }
+        }
+
+        ///<summary>
+        ///Returns the local date and time from now.
+        ///</summary>
+        public static DateTime Now {
+            get {
+                return new DateTime(_Chela_Date_Now(), DateTimeKind.Local);
+            }
+        }
+
+        ///<summary>
+        ///Returns the utc date and time from now.
+        ///</summary>
+        public static DateTime UtcNow {
+            get {
+                return new DateTime(_Chela_Date_UtcNow(), DateTimeKind.Utc);
+            }
+        }
+
+        ///<summary>
+        ///The number of ticks in this date time.
+        ///</summary>
+        public long Ticks {
+            get {
+                return ticks;
+            }
+        }
+
+        ///<summary>
+        ///Adds a time span into a date.
+        ///</summary>
+        public static DateTime operator+(DateTime d, TimeSpan t)
+        {
+            return new DateTime(d.ticks + t.ticks);
+        }
+
+        ///<summary>
+        ///Adds a time span into a date.
+        ///</summary>
+        public static DateTime operator+(TimeSpan t, DateTime d)
+        {
+            return new DateTime(d.ticks + t.ticks);
+        }
+
+        ///<summary>
+        ///Subtract a time span from a date.
+        ///</summary>
+        public static DateTime operator-(DateTime d, TimeSpan t)
+        {
+            return new DateTime(d.ticks - t.ticks);
+        }
+
+        ///<summary>
+        ///Returns the time difference between two dates.
+        ///</summary>
+        public static TimeSpan operator-(DateTime d1, DateTime d2)
+        {
+            return new TimeSpan(d1.ticks - d2.ticks);
+        }
+
+        ///<summary>
+        ///Check if a date is smaller than other.
+        ///</summary>
+        public static bool operator<(DateTime d1, DateTime d2)
+        {
+            return d1.ticks < d2.ticks;
+        }
+
+        ///<summary>
+        ///Check if a date is smaller or equal to another.
+        ///</summary>
+        public static bool operator<=(DateTime d1, DateTime d2)
+        {
+            return d1.ticks <= d2.ticks;
+        }
+
+        ///<summary>
+        ///Check if a date is equal than other.
+        ///</summary>
+        public static bool operator==(DateTime d1, DateTime d2)
+        {
+            return d1.ticks == d2.ticks;
+        }
+
+        ///<summary>
+        ///Check if a date is not equal than other.
+        ///</summary>
+        public static bool operator!=(DateTime d1, DateTime d2)
+        {
+            return d1.ticks != d2.ticks;
+        }
+
+        ///<summary>
+        ///Check if a date is greater than other.
+        ///</summary>
+        public static bool operator>(DateTime d1, DateTime d2)
+        {
+            return d1.ticks > d2.ticks;
+        }
+
+        ///<summary>
+        ///Check if a date is greater or equal than other.
+        ///</summary>
+        public static bool operator>=(DateTime d1, DateTime d2)
+        {
+            return d1.ticks > d2.ticks;
+        }
+
+    }
+}

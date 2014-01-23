@@ -1,0 +1,44 @@
+using Chela.Gui;
+
+namespace Chela.Gui.SystemDriver
+{
+    internal class SystemRenderContext: RenderContext
+    {
+        public SystemDisplay display;
+        public unsafe RENDER_CTX *context;
+
+        public unsafe SystemRenderContext(SystemDisplay display, RENDER_CTX *context)
+        {
+            this.display = display;
+            this.context = context;
+        }
+
+        public unsafe RENDER_CTX *Handle {
+            get {
+                return context;
+            }
+        }
+
+        public override bool MakeCurrent(WindowContext window)
+        {
+            unsafe {
+                SystemWindowContext winCtx = (SystemWindowContext)window;
+                return _ChGui_Render_MakeCurrent(context, winCtx.Handle);
+            }
+        }
+
+        public override void SwapBuffers()
+        {
+            unsafe {
+                _ChGui_Render_SwapBuffers(context);
+            }
+        }
+
+        public override Display Display {
+            get {
+                return display;
+            }
+        }
+    }
+}
+

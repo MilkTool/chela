@@ -1,0 +1,75 @@
+namespace Chela.Lang
+{
+    internal extern __cdecl int _Chela_Sys_Exit(int exitCode);
+    
+    ///<summary>
+    ///The environment data.
+    ///</summary>
+    public static class Environment
+    {
+        ///<summary>
+        ///The application exit code.
+        ///</summary>
+        private int exitCode;
+        
+        ///<summary>
+        ///Stops the application
+        ///</summary>
+        public void Exit(int exitCode)
+        {
+            _Chela_Sys_Exit(exitCode);
+        }
+        
+        ///<summary>
+        ///Expands all of the environment variables references in the string.
+        ///</summary>
+        public string ExpandEnvironmentVariables(string name)
+        {
+            return ExpandEnvironmentVariables(name, false);
+        }
+        
+        ///<summary>
+        ///Expands all of the environment variables references in the string.
+        ///</summary>
+        public string ExpandEnvironmentVariables(string name, bool unixStyle)
+        {
+            return name;
+        }
+
+        ///<summary>
+        ///The application exit code. Only used when the main function 
+        ///doesn't return a value
+        ///</summary>
+        public int ExitCode {
+            get {
+                return exitCode;
+            }
+            set {
+                exitCode = value;
+            }                
+        }
+        
+        ///<summary>
+        ///The new line character.
+        ///</summary>
+        public string NewLine {
+            get {
+#if _WIN32
+                return "\r\n";
+#else
+                return "\n";
+#endif
+            }
+        }
+        
+        ///<summary>
+        ///The ticks since system startup in milliseconds.
+        ///</summary>
+        public int TickCount {
+            get {
+                return (int)(DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond);
+            }
+        }
+    }
+}
+

@@ -1,0 +1,53 @@
+using Chela.Lang;
+
+namespace Chela.Collections.Generic
+{
+    ///<summary>
+    ///A dictionary interface.
+    ///</summary>
+    public interface IDictionary<TKey, TValue>: ICollection<KeyValuePair<TKey, TValue> >
+    {
+        ///<summary>
+        ///Adds a map between the key and the value.
+        ///</summary>
+        void Add(TKey key, TValue value);
+        
+        ///<summary>
+        ///Checks if a key its present in the dictionary.
+        ///</summary>
+        bool ContainsKey(TKey key);
+        
+        ///<summary>
+        ///Removes a mapping from the dictionary.
+        ///</summary>
+        bool Remove(TKey key);
+        
+        ///<summary>
+        ///Tries to get a value from the mapping.
+        ///</summary>
+        bool TryGetValue(TKey key, out TValue value);
+        
+        ///<summary>
+        ///Provides access to the mappings
+        ///</summary>
+        TValue this[TKey key] {
+            get;
+            set;
+        }
+        
+        ///<summary>
+        ///A collection with all of the keys.
+        ///</summary>
+        ICollection<TKey> Keys {
+            get;
+        }
+        
+        ///<summary>
+        ///A collection with all of the values.
+        ///</summary>
+        ICollection<TValue> Values {
+            get;
+        }
+    }
+}
+

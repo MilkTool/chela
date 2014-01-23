@@ -1,0 +1,290 @@
+using Chela.Lang;
+using Chela.IO;
+
+namespace Chela.Gui
+{
+    public sealed class BMPFormatProvider: ImageFormatProvider
+    {
+        ///<summary>
+        ///Little-endian 'BM' signature.
+        ///</summary>
+        public const ushort MagicNumber = (ushort) ('B' | ('M' << 8));
+
+        ///<summary>
+        ///BitmapInfoHeader size
+        ///</summary>        
+        public const uint BitmapInfoHeaderSize = 40u;
+        
+        ///<summary>
+        ///The windows bitmap header.
+        ///</summary>
+        public struct BitmapHeader
+        {
+            public uint size;
+            public ushort reserved1;
+            public ushort reserved2;
+            public uint bmpOffset;
+            
+            ///<summary>
+            ///Read the bitmap header.
+            ///</summary>
+            public void Read(BinaryReader reader)
+            {
+                size = reader.ReadUInt32();
+                reserved1 = reader.ReadUInt16();
+                reserved2 = reader.ReadUInt16();
+                bmpOffset = reader.ReadUInt32();
+            }
+
+            ///<summary>
+            ///Writes the bitmap header.
+            ///</summary>
+            public void Write(BinaryWriter writer)
+            {
+                writer.Write(size);
+                writer.Write(reserved1);
+                writer.Write(reserved2);
+                writer.Write(bmpOffset);
+            }
+        }
+        
+        ///<summary>
+        ///The bitmap information header.
+        ///</summary>
+        public struct BitmapInfoHeader
+        {
+            uint headerSize;
+            int width;
+            int height;
+            ushort colorPlanes;
+            ushort bpp;
+            uint compressionMethod;
+            uint imageSize;
+            int horizResol;
+            int vertResol;
+            uint paletteColors;
+            uint importantColors;
+            
+            ///<summary>
+            ///Read the information header.
+            ///</summary>
+            public void Read(BinaryReader reader)
+            {
+                headerSize = reader.ReadUInt32();
+                if(headerSize != BitmapInfoHeaderSize)
+                    throw new UnsupportedImageFormatException("Unsupported bitmap info of size");
+
+                width = reader.ReadInt32();
+                height = reader.ReadInt32();
+                colorPlanes = reader.ReadUInt16();
+                bpp = reader.ReadUInt16();
+                compressionMethod = reader.ReadUInt32();
+                imageSize = reader.ReadUInt32();
+                horizResol = reader.ReadInt32();
+                vertResol = reader.ReadInt32();
+                paletteColors = reader.ReadUInt32();
+                importantColors = reader.ReadUInt32();
+            }
+
+            ///<summary>
+            ///Writes the information header.
+            ///</summary>
+            public void Write(BinaryWriter writer)
+            {
+                writer.Write(headerSize);
+                writer.Write(width);
+                writer.Write(height);
+                writer.Write(colorPlanes);
+                writer.Write(bpp);
+                writer.Write(compressionMethod);
+                writer.Write(imageSize);
+                writer.Write(horizResol);
+                writer.Write(vertResol);
+                writer.Write(paletteColors);
+                writer.Write(importantColors);
+            }
+            
+        }
+
+        ///<summary>
+        ///Bitmap compression method.
+        ///</summary>        
+        public enum CompressionMethod
+        {
+            RGB = 0,
+            RLE8,
+            RLE4,
+        }
+        
+        protected BMPFormatProvider()
+        {
+        }
+
+        ///<summary>
+        ///The format name.
+        ///</summary>
+        public override string Name {
+            get {
+                return "Windows Bitmap";
+            }
+        }
+        
+        ///<summary>
+        ///The format file name extension.
+        ///</summary>
+        public override string Extension {
+            get {
+                return ".bmp";
+            }
+        }
+        
+        ///<summary>
+        ///Loads the image from the given stream.
+        ///</summary>
+        public override Image Load(Stream stream)
+        {
+            // Create the binary reader.
+            BinaryReader reader = new BinaryReader(stream);
+            
+            // Read the signature.
+            if(reader.ReadUInt16() != MagicNumber)
+                throw new UnsupportedImageFormatException("Invalid signature.");
+
+            // Read the header.
+            BitmapHeader header;
+            header.Read(reader);
+            
+            // Read the information header.
+            BitmapInfoHeader infoHeader;
+            infoHeader.Read(reader);
+            
+            // Compute the pixel format.
+            PixelFormat pixelFormat;
+            switch(infoHeader.bpp)
+            {
+            case 8:
+                pixelFormat = PixelFormat.Indexed;
+                break;
+            case 16:
+                pixelFormat = PixelFormat.RGB555;
+                break;
+            case 24:
+                pixelFormat = PixelFormat.RGB;
+                break;
+            default:
+                throw new NotSupportedException();
+            }
+            
+            // Read the palette.
+            Palette palette = null;
+            int palSize = (int)infoHeader.paletteColors;
+            if(palSize != 0)
+            {
+                palette = new Palette(PixelFormat.RGB, palSize);
+                byte[] palColors = palette.Colors;
+                for(int i = 0; i < palSize; ++i)
+                {
+                    palColors[i*3+2] = reader.ReadByte(); // Blue
+                    palColors[i*3+1] = reader.ReadByte(); // Green
+                    palColors[i*3] = reader.ReadByte();   // Red
+                }
+            }
+
+            // Compute the source and dest pixel size.
+            int srcPixelSize = infoHeader.bpp/8;
+            int dstPixelSize = ImageUtil.GetPixelSize(pixelFormat);
+                                    
+            // Compute the row size.
+            int width = infoHeader.width;
+            int height = infoHeader.height;
+            int srcRowSize = ((infoHeader.bpp*width)>>5) << 2;
+            int dstRowSize = width*dstPixelSize;
+                        
+            // Compute or use the image size.
+            int imageSize;
+            if((int)infoHeader.compressionMethod == CompressionMethod.RGB)
+                imageSize = srcRowSize * height;
+            else
+                imageSize = (int)infoHeader.imageSize;
+                
+            // Read the raw image data.
+            byte[] rawPixels = new byte[imageSize];
+            stream.Position = (long)header.bmpOffset;
+            int readed = stream.Read(rawPixels, 0, imageSize);
+            if(readed != imageSize)
+                throw new UnsupportedImageFormatException("Incomplete image.");
+
+            // Create the image.
+            Image image = new Image(pixelFormat, infoHeader.width,
+                                    infoHeader.height, palette);
+            byte[] pixelData = image.Pixels;
+
+            // Read the pixels.
+            switch(pixelFormat)
+            {
+            case PixelFormat.Indexed:
+                {
+                    for(int y = 0; y < height; ++y)
+                    {
+                        int srcRow = srcRowSize*y;
+                        int dstRow = dstRowSize*y;
+                        for(int x = 0; x < width; ++x)
+                            pixelData[dstRow + x] = rawPixels[srcRow + x];
+                    }
+                }
+                break;
+            case PixelFormat.RGB555:
+                {
+                    for(int y = 0; y < height; ++y)
+                    {
+                        int srcRow = srcRowSize*y;
+                        int dstRow = dstRowSize*y;
+                        for(int x = 0; x < width; ++x)
+                        {
+                            pixelData[dstRow + x*2] = rawPixels[srcRow + x*2];
+                            pixelData[dstRow + x*2 + 1] = rawPixels[srcRow + x*2 + 1];
+                        }
+                    }
+                }
+                break;
+            case PixelFormat.RGB:
+                {
+                    for(int y = 0; y < height; ++y)
+                    {
+                        int srcRow = srcRowSize*y;
+                        int dstRow = dstRowSize*y;
+                        for(int x = 0; x < width; ++x)
+                        {
+                            pixelData[dstRow + x*3] = rawPixels[srcRow + x*3 + 2]; // Red
+                            pixelData[dstRow + x*3 + 1] = rawPixels[srcRow + x*3 + 1]; // Gren
+                            pixelData[dstRow + x*3 + 2] = rawPixels[srcRow + x*3]; // Blue
+                        }
+                    }
+                }
+                break;
+            default:
+                throw new NotSupportedException();
+            }
+            
+            // Return the loaded image.
+            return image;            
+        }
+        
+        ///<summary>
+        ///Check if the format provider can save the given image.
+        ///</summary>
+        public override bool CanStore(Image image)
+        {
+            return false;
+        }
+        
+        ///<summary>
+        ///Store the image into the given stream.
+        ///</summary>
+        public override void Store(Stream stream, Image image)
+        {
+            throw new NotImplementedException();
+        }
+    }
+}
+

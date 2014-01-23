@@ -1,0 +1,40 @@
+using Chela.Lang;
+
+namespace Chela.Compute
+{
+    ///<summary>
+    ///A stream holder is used to keep track of the location of an stream data.
+    ///</summary>
+    public interface IStreamHolder: IResourceHolder
+    {
+        ///<summary>
+        ///The number of elements in the stream.
+        ///</summary>
+        int Length {
+            get;
+        }
+        
+        ///<summary>
+        ///The number of dimensions.
+        ///</summary>
+        int Dimensions {
+            get;
+        }
+        
+        ///<summary>
+        ///The element type.
+        ///</summary>
+        Type ElementType{
+            get;
+        }
+        
+        ///<summary>
+        ///Simulates a linear stream.
+        ///</summary>
+        object this[int index] {
+            get;
+            set;
+        }
+    }
+}
+

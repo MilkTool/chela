@@ -1,0 +1,7 @@
+namespace System.Runtime.InteropServices
+{
+    public typedef Chela.Runtime.InteropServices.GCHandleType GCHandleType;
+    public typedef Chela.Runtime.InteropServices.GCHandle GCHandle;
+    public typedef Chela.Runtime.InteropServices.StringHandle StringHandle;
+}
+

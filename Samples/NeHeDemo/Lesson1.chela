@@ -1,0 +1,44 @@
+using Chela.Lang;
+using Chela.Graphics.GL2;
+
+namespace NeHeDemo
+{
+    public sealed class Lesson1: Lesson
+    {
+        protected override void Render()
+        {
+            // Clear the screen and the depth buffer.
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+
+            // Reset the screen.            
+            GL.MatrixMode(MatrixMode.Modelview);
+            GL.LoadIdentity();
+            
+            // Move left 1.5 units and into The Screen 6.0
+            GL.Translate(-1.5f, 0.0f, -6.0f); 
+            
+            // Draw a triangle.
+            GL.Begin(BeginMode.Triangles);
+                GL.Vertex3( 0.0f, 1.0f, 0.0f);              // Top
+                GL.Vertex3(-1.0f,-1.0f, 0.0f);              // Bottom Left
+                GL.Vertex3( 1.0f,-1.0f, 0.0f);              // Bottom Right
+            GL.End();
+            
+            // Move right 3 units.
+            GL.Translate(3.0f, 0.0f, 0.0f); 
+            
+            // Draw a quad.
+            GL.Begin(BeginMode.Quads);                      // Draw A Quad
+                GL.Vertex3(-1.0f, 1.0f, 0.0f);              // Top Left
+                GL.Vertex3( 1.0f, 1.0f, 0.0f);              // Top Right
+                GL.Vertex3( 1.0f,-1.0f, 0.0f);              // Bottom Right
+                GL.Vertex3(-1.0f,-1.0f, 0.0f);              // Bottom Left
+            GL.End();
+            
+            // Swap the buffers.
+            SwapBuffers();
+        }
+    }
+}
+
+    

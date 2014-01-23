@@ -1,0 +1,40 @@
+namespace Chela.Lang
+{
+    public class BadImageFormatException: SystemException
+    {
+        private string fileName;
+
+        public BadImageFormatException()
+        {
+        }
+
+        public BadImageFormatException(string message)
+            : base(message)
+        {
+        }
+
+        public BadImageFormatException(string message, Exception inner)
+            : base(message, inner)
+        {
+        }
+
+        public BadImageFormatException(string message, string fileName, Exception inner)
+            : base(message, inner)
+        {
+            this.fileName = fileName;
+        }
+
+        public BadImageFormatException(string message, string fileName)
+            : base(message)
+        {
+            this.fileName = fileName;
+        }
+
+        public string FileName {
+            get {
+                return fileName;
+            }
+        }
+    }
+}
+

@@ -1,0 +1,11 @@
+namespace Chela.Lang
+{
+    [AttributeUsage(AttributeTargets.Enum, Inherited=false)]
+    public class FlagsAttribute: Attribute
+    {
+        public FlagsAttribute()
+        {
+        }
+    }
+}
+

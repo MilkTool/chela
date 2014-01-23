@@ -1,0 +1,455 @@
+using Chela.Threading;
+using Chela.Lang;
+using Chela.Runtime.Core;
+
+unsafe extern __cdecl void *_Chela_Malloc(size_t size);
+unsafe extern __cdecl void *_Chela_Memalign(size_t boundary, size_t size);
+unsafe extern __cdecl void _Chela_Free(void *ptr);
+unsafe extern __cdecl void _Chela_Memset(void *ptr, int value, size_t num);
+unsafe extern __cdecl void _Chela_Memcpy(void *ptr, const void *src, size_t num);
+unsafe extern __cdecl void _Chela_IO_Puts(const sbyte *s);
+unsafe extern __cdecl int _Chela_IO_PutPointer(const sbyte *msg, const void *ptr);
+unsafe extern __cdecl int _Chela_IO_PutInt(const sbyte *msg, int value);
+unsafe extern __cdecl int _Chela_Atomic_CompareAndSwapInt(int *ptr, int oldValue, int newValue);
+extern __cdecl void _Chela_Sys_Abort();
+
+namespace Chela.Runtime.Core
+{
+    internal unsafe struct ContainerObjectHeader
+    {
+        public ulong prev;
+        public ulong next;
+        public long gcCount;
+        public long reserved;
+    }
+
+    // Memory management functions.
+    internal unsafe struct MemoryManager
+    {
+        private static LowLevelMutex gcMutex;
+        private static ContainerObjectHeader *gcFirstRoot;
+        private static bool inited;
+
+        public static void Initialize()
+        {
+            if(inited)
+                return;
+
+            gcFirstRoot = null;
+            gcMutex.Initialize();
+            inited = true;
+        }
+
+        public static void Shutdown()
+        {
+            gcMutex.Destroy();
+        }
+        
+        private static void CheckInited()
+        {
+            if(!inited)
+                Initialize();
+        }
+
+        // Object children traversing function.
+        private static void ForEachChild(StandardObject *obj, void *arg, void (*)(StandardObject **, void *arg) job)
+        {
+            // Get the object type.
+            TypeInformation *objectType = obj->vtable->type;
+
+            // Use references declared in the typeinfo.
+            byte *objBase = (byte*)obj;
+            for(uint i = 0; i < objectType->numreferences; ++i)
+            {
+                // Get the field pointer.
+                StandardObject **fieldPtr = (StandardObject **)(objBase + objectType->references[i]);
+
+                // Perform the job.
+                job(fieldPtr, arg);
+            }
+                
+            // Handle references inside of an array.
+            if(objectType->kind == (int)TypeKind.Array)
+            {
+                // Get the array element type.
+                TypeInformation *elementType = objectType->subtypes[0];
+                
+                // Handle structure subreferences and reference types.
+                bool refCounted = IsReferenceCounted(elementType);
+                uint numSubReferences = elementType->numreferences;
+                if(refCounted || numSubReferences > 0)
+                {
+                    // Get the length array and the elements array pointers.
+                    int *sizes = reinterpret_cast<int*> (objBase + objectType->sizeOffset);
+                    byte *elements = objBase + objectType->dataOffset;
+                    
+                    // Compute the total length.
+                    size_t totalLength = 0;
+                    int dimensions = objectType->dimensions; 
+                    for(int i = 0; i < dimensions; ++i)
+                        totalLength += (size_t)sizes[i];
+                        
+                    // Traverse the children.
+                    if(!refCounted)
+                    {
+                        size_t elementSize = elementType->size;
+                        for(size_t i = 0; i < totalLength; ++i)
+                        {
+                            // Compute the element offset.
+                            byte *elementBase = elements + elementSize*i;
+                            
+                            // Traverse the element sub references.
+                            for(uint j = 0; j < numSubReferences; ++j)
+                            {
+                                StandardObject **subReference =
+                                    reinterpret_cast<StandardObject**> (elementBase + elementType->references[j]);
+                                job(subReference, arg);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // Perform the job.
+                        StandardObject **references = reinterpret_cast<StandardObject**> (elements);
+                        for(size_t i = 0; i < totalLength; ++i)
+                            job(&references[i], arg);
+                    }
+                }
+            }
+        }
+
+        // Object manual casting.
+        private static StandardObject *GetRefCounted(void *ptr)
+        {
+            // Cast the pointer.
+            StandardObject *obj = (StandardObject*)ptr;
+
+            // Make sure it is a class/delegate instance.
+            TypeInformation *typeinfo = obj->vtable->type;
+            //int kind = typeinfo->kind;
+            //if(kind != TypeKind.Class && kind != TypeKind.Delegate)
+            //    return null;
+
+            // Adjust the object, removing the vtable offset.
+            if(obj->vtable->offset != 0)
+            {
+                byte* objData = (byte*)obj;
+                objData = objData - obj->vtable->offset; // Move to the actual object.
+                obj = (StandardObject*)objData;
+            }
+
+            // Return the object.
+            return obj;
+        }
+
+        private static void ReleaseChildReference(StandardObject **fieldPtr, void*)
+        {
+            // Get the child.
+            StandardObject *child = *fieldPtr;
+
+            // Destroy the child reference.
+            *fieldPtr = null;
+
+            // Decrement his reference count.
+            if(child != null)
+            {
+                //_Chela_IO_Puts(c"Release internal reference.");
+                DecrementRef(child);
+            }
+        }
+
+        private static void Release(StandardObject *obj)
+        {
+            // Release the children references.
+            ForEachChild(obj, null, &ReleaseChildReference);
+
+            // Free the object itself.
+            //_Chela_IO_Puts(c"Free unbuffered object");
+            obj->vtable->finalize(obj);
+
+            ManagedFree(obj);
+        }
+
+        // Reference couting interface access.
+        public static void IncrementRef(void *ptr)
+        {
+            if(ptr == null)
+                return;
+
+            StandardObject *obj = GetRefCounted(ptr);
+            if(obj == null)
+                return;
+
+            // Increase the reference atomically.
+            int *countPtr = (int*)&obj->count;
+            int oldCount, newCount;
+            do
+            {
+                oldCount = *countPtr;
+
+                // Make sure the object hasn't been released.
+                if((oldCount & ReferenceCountMask) == 0)
+                {
+                    _Chela_IO_Puts(c"Increasing reference to freed object.");
+                    _Chela_Sys_Abort();
+                }
+
+                newCount = oldCount + 1;
+            } while (_Chela_Atomic_CompareAndSwapInt(countPtr, oldCount, newCount) != oldCount);
+        }
+
+        public static void DecrementRef(void *ptr)
+        {
+            if(ptr == null)
+                return;
+
+            StandardObject *obj = GetRefCounted(ptr);
+            if(obj == null)
+                return;
+
+            // Decrease the reference atomically.
+            int *countPtr = (int*)&obj->count;
+            int oldCount, newCount;
+            do
+            {
+                oldCount = *countPtr;
+
+                // Make sure the object hasn't been released.
+                if((oldCount & ReferenceCountMask) == 0)
+                {
+                    _Chela_IO_Puts(c"Decreasing reference to freed object.");
+                    _Chela_Sys_Abort();
+                }
+
+                newCount = oldCount - 1;
+            } while (_Chela_Atomic_CompareAndSwapInt(countPtr, oldCount, newCount) != oldCount);
+
+            // Release the object if the ref count has reached zero.
+            if((newCount & ReferenceCountMask) == 0)
+                Release(obj);
+        }
+
+        // Memory allocation/deallocation.
+        public static void *UnmanagedAlloc(size_t amount)
+        {
+            return _Chela_Malloc(amount);
+        }
+
+        public static void *UnmanagedAllocArray(size_t amount, size_t count)
+        {
+            return _Chela_Malloc(amount*count);
+        }
+
+        public static void UnmanagedFree(void *pointer)
+        {
+            _Chela_Free(pointer);
+        }
+
+        public static void UnmanagedFreeArray(void *pointer)
+        {
+            _Chela_Free(pointer);
+        }
+        
+        private static void IncreaseObjectReference(StandardObject **fieldPtr, void *arg)
+        {
+            StandardObject *child = *fieldPtr;
+            if(child != null)
+                IncrementRef(child);
+        }
+
+        public static StandardObject *CloneObject(StandardObject *obj)
+        {
+            // Get the object type information.
+            TypeInformation *type = obj->vtable->type;
+            size_t amount = type->size;
+
+            // Compute the required alignment.
+            size_t align = Math.Max((size_t)sizeof(void*), type->align);
+
+            // If the object contains references, use garbage collection.
+            byte *objStart = null;
+            bool containsReferences = IsReferenceContainer(type);
+            if(containsReferences)
+            {
+                CheckInited();
+                gcMutex.Lock();
+
+                // Prepend a header to the object.
+                objStart = (byte*)_Chela_Memalign(align, amount + (size_t)sizeof(ContainerObjectHeader));
+
+                // Add the object to the GC list.
+                ContainerObjectHeader *header = (ContainerObjectHeader*)objStart;
+                header->prev = 0;
+                header->next = (ulong)reinterpret_cast<size_t> (gcFirstRoot);
+                header->gcCount = 0; // TODO: Use this.
+                if(gcFirstRoot != null)
+                    gcFirstRoot->prev = (ulong)reinterpret_cast<size_t> (header);
+                gcFirstRoot = header;                
+
+                // Return a displaced pointer.
+                objStart += sizeof(ContainerObjectHeader);
+                gcMutex.Unlock();
+            }
+            else
+            {
+                // The object is not garbage collected, use simple allocation.
+                objStart = (byte*)_Chela_Memalign(align, amount);
+            }
+            
+            // Copy the object data and initialize the reference count..
+            StandardObject *cloned = (StandardObject*)objStart;
+            _Chela_Memcpy(cloned, obj, amount);
+            cloned->count = 1;
+            
+            // Increase the references contained in the object.
+            if(containsReferences)
+                ForEachChild(cloned, null, &IncreaseObjectReference);
+                
+            // Return the cloned object.
+            return cloned;
+        }
+        
+        public static void *ManagedAlloc(size_t amount, TypeInformation *type)
+        {
+            // Compute the required alignment.
+            size_t align = Math.Max((size_t)sizeof(void*), type->align);
+
+            // If the object contains references, use garbage collection.
+            byte *objStart = null;            
+            if(IsReferenceContainer(type))
+            {
+                CheckInited();
+                gcMutex.Lock();
+
+                // Prepend a header to the object.
+                objStart = (byte*)_Chela_Memalign(align, amount + (size_t)sizeof(ContainerObjectHeader));
+
+                // Add the object to the GC list.
+                ContainerObjectHeader *header = (ContainerObjectHeader*)objStart;
+                header->prev = 0;
+                header->next = (ulong)reinterpret_cast<size_t> (gcFirstRoot);
+                header->gcCount = 0; // TODO: Use this.
+                if(gcFirstRoot != null)
+                    gcFirstRoot->prev = (ulong)reinterpret_cast<size_t> (header);
+                gcFirstRoot = header;                
+
+                // Return a displaced pointer.
+                objStart += sizeof(ContainerObjectHeader);
+                gcMutex.Unlock();
+            }
+            else
+            {
+                // The object is not garbage collected, use simple allocation.
+                objStart = (byte*)_Chela_Memalign(align, amount);
+            }
+
+            // Initialize the reference count.
+            StandardObject *obj = (StandardObject*)objStart;
+            _Chela_Memset(obj, 0, amount); // Initialize the object to zeros.
+            obj->count = 1; // Set the implicit reference count.
+            
+            // Setup the object vtables.
+            if(type->setupVTables != null)
+                type->setupVTables((void*)obj);
+                
+            return obj;
+        }
+        
+        public static void ManagedFree(StandardObject *obj)
+        {
+            // Has an associated mutex/condition variable ?
+            if((obj->count & ThreadDataReference) != 0)
+                Monitor.OnDestroyObject(obj);
+
+            // Free the object.
+            TypeInformation *type = obj->vtable->type;
+            if(IsReferenceContainer(type))
+            {
+                CheckInited();
+                gcMutex.Lock();
+
+                // Displace the pointer to the actual begining.
+                byte *objStart = (byte*)obj;
+                objStart -= sizeof(ContainerObjectHeader);
+
+                // Remove the object from the GC list.
+                ContainerObjectHeader *header = (ContainerObjectHeader*)objStart;
+
+                // Update the relations with the previous object.
+                if(header->prev == 0)
+                {
+                    gcFirstRoot = reinterpret_cast<ContainerObjectHeader*> ((size_t)header->next);
+                }
+                else
+                {
+                    ContainerObjectHeader *prev = reinterpret_cast<ContainerObjectHeader*> ((size_t)header->prev);
+                    prev->next = header->next;
+                }
+
+                // Update the relations with the next object.
+                if(header->next != 0)
+                {
+                    ContainerObjectHeader *next = reinterpret_cast<ContainerObjectHeader*> ((size_t)header->next);
+                    next->prev = header->prev;
+                }
+ 
+                gcMutex.Unlock();
+
+                // Now free the container.
+                UnmanagedFree(objStart);
+            }
+            else
+            {
+                // Just free the object.
+                UnmanagedFree(obj);
+            }
+        }
+    }
+}
+
+// Memory manager public API.
+public __cdecl unsafe void __chela_init_memmgr__()
+{
+    MemoryManager.Initialize();
+}
+
+public __cdecl unsafe void __chela_shutdown_memmgr__()
+{
+    MemoryManager.Shutdown();
+}
+
+public __cdecl unsafe void *__chela_umgd_alloc__(size_t amount)
+{
+    return MemoryManager.UnmanagedAlloc(amount);
+}
+
+public __cdecl unsafe void *__chela_umgd_allocay__(size_t amount, size_t count)
+{
+    return MemoryManager.UnmanagedAllocArray(amount, count);
+}
+
+public __cdecl unsafe void __chela_umgd_free__(void *ptr)
+{
+    MemoryManager.UnmanagedFree(ptr);
+}
+
+public __cdecl unsafe void __chela_umgd_freeay__(void *ptr)
+{
+    MemoryManager.UnmanagedFreeArray(ptr);
+}
+
+public __cdecl unsafe void *__chela_mgd_alloc__(size_t amount, void *type)
+{
+    return MemoryManager.ManagedAlloc(amount, (TypeInformation*)type);
+}
+
+public __cdecl unsafe void __chela_add_ref__(void *obj)
+{
+    MemoryManager.IncrementRef(obj);
+}
+
+public __cdecl unsafe void __chela_rel_ref__(void *obj)
+{
+    MemoryManager.DecrementRef(obj);
+}
+

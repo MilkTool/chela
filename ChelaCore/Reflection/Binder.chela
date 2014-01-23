@@ -1,0 +1,10 @@
+namespace Chela.Reflection
+{
+    ///<summary>
+    ///A method invocation binder.
+    ///</summary>
+    public abstract class Binder
+    {
+    }
+}
+

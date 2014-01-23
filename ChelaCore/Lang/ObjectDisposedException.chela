@@ -1,0 +1,40 @@
+namespace Chela.Lang
+{
+    /// <summary>
+    /// Exception thrown when using a disposed object.
+    /// </summary>
+    public class ObjectDisposedException: SystemException
+    {
+        private string objectName;
+        
+        public ObjectDisposedException(string objectName)
+            : base("Using a disposed object.")
+        {
+            this.objectName = objectName;
+        }
+
+        public ObjectDisposedException(string objectName, string message)
+            : base(message)
+        {
+            this.objectName = objectName;
+        }
+        
+        /// <summary>
+        /// The disposed object.
+        /// </summary>
+        public string ObjectName {
+            get {
+                return objectName;
+            }
+        }
+        
+        public override string Message {
+            get {
+                if(objectName != null)
+                    return objectName + ": " + base.Message;
+                return base.Message;
+            }
+        }
+    }
+}
+

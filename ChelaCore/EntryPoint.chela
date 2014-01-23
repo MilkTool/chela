@@ -1,0 +1,40 @@
+using Chela.Lang;
+
+public unsafe __cdecl int __chela_main_vv__(int argc, const byte **argv, void (*)() MainFunction)
+{
+    // Call the main function.
+    MainFunction();
+
+    return Environment.ExitCode;
+}
+
+public unsafe __cdecl int __chela_main_iv__(int argc, const byte **argv, int (*)() MainFunction)
+{
+    // Call the main function.
+    return MainFunction();
+}
+
+public unsafe __cdecl int __chela_main_vs__(int argc, const byte **argv, void (*)(string[]) MainFunction)
+{
+    // Read the command line.
+    string[] args = new string[argc-1];
+    for(int i = 1; i < argc; ++i)
+        args[i-1] = new string((sbyte*)argv[i]);
+
+    // Call the main function.
+    MainFunction(args);
+
+    return Environment.ExitCode;
+}
+
+public unsafe __cdecl int __chela_main_is__(int argc, const byte **argv, int (*)(string[]) MainFunction)
+{
+    // Read the command line.
+    string[] args = new string[argc-1];
+    for(int i = 1; i < argc; ++i)
+        args[i-1] = new string((sbyte*)argv[i]);
+
+    // Call the main function.
+    return MainFunction(args);
+}
+

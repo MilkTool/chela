@@ -1,0 +1,389 @@
+using Chela.Lang;
+using Chela.Text;
+
+namespace Chela.IO
+{
+    /// <summary>
+    /// A stream reader.
+    /// </summary>
+    public class StreamReader: TextReader
+    {
+        private const int MinBufferSize = 128;
+        private const int DefaultBufferSize = 1024;
+        
+        private Stream input;
+        private Encoding currentEncoding;
+        private Decoder decoder;
+        private StringBuilder lineBuilder;
+        private byte[] byteBuffer;
+        private char[] charBuffer;
+        private int byteBufferSize;
+        private int charBufferSize;
+        private int consumedChars;
+        private bool disposed;
+        
+        public StreamReader(string path, Encoding encoding,
+            bool detectEncodingFromByteOrderMarks, int bufferSize)
+            : this(new FileStream(path, FileMode.Open), encoding,
+                 detectEncodingFromByteOrderMarks, bufferSize)
+        {
+        }
+
+        public StreamReader(string path, Encoding encoding,
+            bool detectEncodingFromByteOrderMarks)
+            : this(path, encoding, detectEncodingFromByteOrderMarks, DefaultBufferSize)
+        {
+        }
+
+        public StreamReader(string path, Encoding encoding)
+            : this(path, encoding, false)
+        {
+        }
+        
+        public StreamReader(string path, bool detectEncodingFromByteOrderMarks)
+            : this(path, Encoding.UTF8, detectEncodingFromByteOrderMarks)
+        {
+        }
+        
+        public StreamReader(string path)
+            : this(path, false)
+        {
+        }
+
+        /// <summary>
+        /// Checks if a preamble matches a BOM.
+        /// </summary>
+        private bool CheckPreamble(byte[] readed, int readedSize, byte[] original)
+        {
+            // Check the length.
+            if(readedSize < original.Length)
+                return false;
+                
+            // Check the components.
+            for(int i = 0; i < original.Length; ++i)
+            {
+                if(readed[i] != original[i])
+                    return false;
+            }
+            
+            // Same preamble.
+            return true;
+            
+        }
+        
+        public StreamReader(Stream stream, Encoding encoding,
+            bool detectEncodingFromByteOrderMarks, int bufferSize)
+        {
+            // Store the stream.
+            this.input = stream;
+            
+            // Initialize the byte buffer.
+            bufferSize = Math.Max(bufferSize, MinBufferSize);
+            byteBufferSize = 0;
+            
+            // Detect the encoding.
+            if(detectEncodingFromByteOrderMarks)
+            {
+                // Read the BOM.
+                byte[] preamble = new byte[4];
+                int readedPreamble = input.Read(preamble, 0, 4);
+                if(CheckPreamble(preamble, readedPreamble, Encoding.UTF8.GetPreamble()))
+                {
+                    encoding = Encoding.UTF8;
+                }
+                else if(CheckPreamble(preamble, readedPreamble, Encoding.Unicode.GetPreamble()))
+                {
+                    encoding = Encoding.Unicode;
+                }
+                else if(CheckPreamble(preamble, readedPreamble, Encoding.BigEndianUnicode.GetPreamble()))
+                {
+                    encoding = Encoding.BigEndianUnicode;
+                }
+                else
+                {
+                    // This is not a BOM. Use UTF8 encoding.
+                    encoding = Encoding.UTF8;
+                    
+                    // Initialize the byte buffer.
+                    byteBuffer = new byte[encoding.GetMaxByteCount(bufferSize)];
+                    
+                    // Store the preamble data.
+                    for(int i = 0; i < readedPreamble; ++i)
+                        byteBuffer[i] = preamble[i];
+                    byteBufferSize = readedPreamble;                    
+                }
+                
+            }
+            else
+            {
+                // Default to UTF8.
+                encoding = Encoding.UTF8;
+            }
+            
+            // Initialize the byte buffer.
+            if(byteBuffer == null)
+                byteBuffer = new byte[encoding.GetMaxByteCount(bufferSize)];
+                
+            // Create the actual character buffer.
+            charBuffer = new char[encoding.GetMaxCharCount(byteBuffer.Length)];
+                
+            // Store the encoding and create the decoder.
+            currentEncoding = encoding;
+            decoder = encoding.GetDecoder();
+            
+            // First buffer fill.
+            byteBufferSize += input.Read(byteBuffer, byteBufferSize, byteBuffer.Length - byteBufferSize);
+            
+            // Decode first characters.
+            charBufferSize = decoder.GetChars(byteBuffer, 0, byteBufferSize,
+                            charBuffer, 0);
+            
+        }
+
+        public StreamReader(Stream stream, Encoding encoding,
+            bool detectEncodingFromByteOrderMarks)
+            : this(stream, encoding, detectEncodingFromByteOrderMarks, DefaultBufferSize)
+        {
+        }
+        
+        public StreamReader(Stream stream)
+            : this(stream, Encoding.UTF8, false)
+        {
+        }
+        
+        public StreamReader(Stream stream, bool detectEncodingFromByteOrderMarks)
+            : this(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks)
+        {
+        }
+        
+        public StreamReader(Stream stream, Encoding encoding)
+            : this(stream, encoding, false)
+        {
+        }
+        
+        /// <summary>
+        /// Closes the text reader.
+        /// </summary>
+        public override void Close()
+        {
+            if(disposed)
+                throw new ObjectDisposedException("StringReader");
+
+            // Dispose the stream.
+            Dispose(true);
+        }
+        
+        /// <summary>
+        /// Discards the data in the internal buffer.
+        /// </summary>
+        public void DiscardBufferedData()
+        {
+            consumedChars = charBufferSize;
+        }
+        
+        protected override void Dispose(bool disposing)
+        {
+            // Close the stream.
+            if(disposing)
+                input.Close();
+            disposed = true;
+        }
+        
+        /// <summary>
+        /// Fills the character buffer.
+        /// </summary>
+        private bool FillBuffer()
+        {
+            // Read the bytes.
+            byteBufferSize = input.Read(byteBuffer, 0, byteBuffer.Length);
+            if(byteBufferSize == 0)
+                return false;
+                
+            // Decode the characters.
+            charBufferSize = decoder.GetChars(byteBuffer, 0, byteBufferSize, charBuffer, 0);
+            consumedChars = 0;
+            return true;
+        }
+        
+        /// <summary>
+        /// Gets the next character, without removing it.
+        /// </summary>
+        public override int Peek()
+        {
+            if(disposed)
+                throw new ObjectDisposedException("StringReader");
+
+            // Make sure there are characters to read.
+            if(consumedChars >= charBufferSize)
+            {
+                if(!FillBuffer())
+                    return -1;
+            }
+            
+            // Return the next character.
+            return charBuffer[consumedChars];
+        }
+        
+        /// <summary>
+        /// Gets the next character.
+        /// </summary>
+        public override int Read()
+        {
+            if(disposed)
+                throw new ObjectDisposedException("StringReader");
+
+            // Make sure there are characters to read.
+            if(consumedChars >= charBufferSize)
+            {
+                if(!FillBuffer())
+                    return -1;
+            }
+            
+            // Return and consume the next character.
+            return charBuffer[consumedChars++];
+        }
+        
+        /// <summary>
+        /// Reads at most the characters specified, blocking if needed.
+        /// </summary>
+        private int ReadImpl(char[] buffer, int index, int count)
+        {
+            if(disposed)
+                throw new ObjectDisposedException("StringReader");
+
+            // Stop when hitting the end.
+            int readed = 0;
+            while(readed < count)
+            {
+                // Fill the buffer.
+                if(consumedChars >= charBufferSize)
+                {
+                    if(!FillBuffer())
+                        return readed; // Hit EOF.
+                }
+                
+                // Transfer from the remaining characters.
+                int next = charBufferSize - consumedChars;
+                if(next > count - readed)
+                    next = count - readed;
+                    
+                // Copy the characters from the internal buffer.
+                for(int i = 0; i < next; ++i)
+                    buffer[index + readed + i] = charBuffer[consumedChars + i];
+                    
+                // Increase the readed count.
+                readed += next;
+            }
+            
+            return readed;
+        }
+        
+        /// <summary>
+        /// Reads at most the characters specified.
+        /// </summary>
+        public override int Read(char[] buffer, int index, int count)
+        {
+            // This is the same as ReadBlock().
+            return ReadImpl(buffer, index, count);
+        }
+
+        /// <summary>
+        /// Reads at most the characters specified, blocking if needed.
+        /// </summary>
+        public override int ReadBlock(char[] buffer, int index, int count)
+        {
+            // This is the same as Read().
+            return ReadImpl(buffer, index, count);
+        }
+        
+        /// <summary>
+        /// Reads a line of characters. A newline is one of the following
+        /// sequences: "\n", "\r", "\r\n"
+        /// </summary>
+        public override string ReadLine()
+        {
+            if(disposed)
+                throw new ObjectDisposedException("StringReader");
+
+            // Create the line builder.
+            if(lineBuilder == null)
+                lineBuilder = new StringBuilder();
+            
+            // Clear the previous line data.
+            lineBuilder.Length = 0;
+            
+            // Read the line content.
+            int c = Peek();
+            for(; c >= 0 && c != '\r' && c != '\n'; c = Peek())
+            {
+                // Add the character.
+                lineBuilder.Append((char)Read());
+            }
+            
+            // Skip the optional carriage return.
+            if(c == '\r')
+            {
+                Read();
+                c = Peek();
+            }
+            
+            // Skip the optional newline.
+            if(c == '\n')
+                Read();
+            
+            // Check for the EOF.
+            if(lineBuilder.Length == 0 && c < 0)
+                return null;
+
+            // Return the line content.                
+            return lineBuilder.ToString();
+        }
+        
+        /// <summary>
+        /// Reads all of the characters to the end.
+        /// </summary>
+        public override string ReadToEnd()
+        {
+            if(disposed)
+                throw new ObjectDisposedException("StringReader");
+
+            // Read all of the content.
+            StringBuilder builder = new StringBuilder();
+            for(;;)
+            {
+                // Make sure the buffer is filled.
+                if(consumedChars >= charBufferSize)
+                {
+                    if(!FillBuffer())
+                        break;
+                }
+                
+                // Consume the characters in the buffer.
+                for(int i = consumedChars; i < charBufferSize; ++i)
+                    builder.Append(charBuffer[i]);
+            }
+            
+            // Return the string with the content.
+            return builder.ToString();
+        }
+        
+        /// <summary>
+        /// The underlying stream.
+        /// </summary>
+        public virtual Stream BaseStream {
+            get {
+                return input;
+            }
+        }
+        
+        /// <summary>
+        /// The current encoding.
+        /// </summary>
+        public virtual Encoding CurrentEncoding {
+            get {
+                return currentEncoding;
+            }
+        }
+    }
+}
+

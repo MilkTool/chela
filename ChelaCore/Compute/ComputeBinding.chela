@@ -1,0 +1,8 @@
+namespace Chela.Compute
+{
+    ///<summary>
+    ///Kernel compute closure.
+    ///</summary>
+    public delegate void ComputeBinding();
+}
+

@@ -1,0 +1,38 @@
+namespace Chela.Lang
+{
+    ///<summary>
+    ///This struct is used to build a string in reverse order.
+    ///Its useful for integer number formatting.
+    ///</summary>
+    internal struct ReverseStringBuilder
+    {
+        private char[] buffer;
+        private int dest;
+        
+        public ReverseStringBuilder(int bufferSize)
+        {
+            buffer = new char[bufferSize];
+            dest = bufferSize;
+        }
+        
+        public override string ToString()
+        {
+            if(dest == buffer.Length)
+                return string.Empty;            
+            return new string(buffer, dest, buffer.Length - dest);
+        }
+        
+        public void Prepend(char c)
+        {
+            buffer[--dest] = c;
+        }
+        
+        public void Prepend(string s)
+        {
+            for(int i = s.Length-1; i >= 0; --i)
+                Prepend(s[i]);
+        }
+        
+    }
+}
+

@@ -1,0 +1,200 @@
+using Chela.Lang;
+
+namespace Chela.IO
+{
+    ///<summary>
+    ///Unmanaged memory stream
+    ///</summary>
+    public class UnmanagedMemoryStream: Stream
+    {
+        private unsafe byte *buffer;
+        private long position;
+        private long length;
+        private long capacity;
+        private FileAccess access;
+        
+        public unsafe UnmanagedMemoryStream(byte *pointer, long length, long capacity, FileAccess access)
+        {
+            this.buffer = pointer;
+            this.length = length;
+            this.capacity = capacity;
+            this.access = access;
+        }
+        
+        public unsafe UnmanagedMemoryStream(byte *pointer, long length)
+            : this(pointer, length, length, FileAccess.Read)
+        {
+        }
+        
+        ///<summary>
+        ///Flushes the stream buffer.
+        ///</summary>
+        public override void Flush()
+        {
+        }
+        
+		///<summary>
+		///Reads data from the stream.
+		///</summary>
+		public override int Read(byte[] buffer, int offset, int count)
+		{
+		    // Check the arguments.
+		    if(buffer == null)
+		        throw new ArgumentNullException("buffer");
+		    else if(offset + count > buffer.Length)
+		        throw new ArgumentException("(offset + count) is greater than the buffer length.");
+		    else if(offset < 0 || count < 0)
+		        throw new ArgumentOutOfRangeException("offset or count", "is negative");
+		    else if(!CanRead)
+		        throw new NotSupportedException("The stream does not support reading.");
+		        
+		    // Compute the amount to read.
+		    int readed = count;
+		    if(position + count > length)
+		        readed = (int)(length - position);
+		        
+            unsafe
+            {
+                // Read the data
+                byte *src = &this.buffer[position];
+                byte *dest = &buffer[offset];
+                for(int i = 0; i < readed; ++i)
+                    dest[i] = src[i];
+            }
+
+            // Increase the position and return the readed number of bytes.
+            position += readed;
+            return readed;                		    
+		}
+
+		///<summary>
+		///Writes data into the stream.
+		///</summary>
+		public override void Write(byte [] buffer, int offset, int count)
+		{
+		    // Check the arguments.
+		    if(buffer == null)
+		        throw new ArgumentNullException("buffer");
+		    else if(offset + count > buffer.Length)
+		        throw new ArgumentException("(offset + count) is greater than the buffer length.");
+		    else if(offset < 0 || count < 0)
+		        throw new ArgumentOutOfRangeException("offset or count", "is negative");
+		    else if(!CanRead)
+		        throw new NotSupportedException("The stream does not support reading.");
+		        
+		    // Compute the amount to read.
+		    int written = count;
+		    if(position + count > capacity)
+		        written = (int)(length - position);
+		        
+            unsafe
+            {
+                // Write the data
+                byte *src = &buffer[offset];
+                byte *dest = &this.buffer[position];
+                for(int i = 0; i < written; ++i)
+                    dest[i] = src[i];
+                    
+                // Update the length.
+                if(position > length)
+                    length = position;
+            }
+		}
+        
+		///<summary>
+		///Moves the stream cursor.
+		///</summary>
+		public override long Seek(long offset, SeekOrigin origin)
+		{
+		    // Compute the new position according to the origin.
+		    long newPosition;
+		    switch(origin)
+		    {
+		    case SeekOrigin.Begin:
+		        newPosition = offset;
+		        break;
+		    case SeekOrigin.Current:
+		        newPosition = position + offset;
+		        break;
+		    case SeekOrigin.End:
+		        newPosition = length + offset;
+		        break;		    
+		    default:
+		        throw new ArgumentException("Invalid seek origin.");
+		    }
+		    
+		    // Handle the position bounds.
+		    if(newPosition > capacity)
+		        position = capacity;
+		    else if(newPosition < 0)
+		        position = 0;
+            else
+                position = newPosition;
+            return position;                
+		}
+		
+		///<summary>
+		///Sets the length of the current stream.
+		///</summary>
+		public override void SetLength(long value)
+		{
+		    if(!CanWrite)
+		        throw new NotSupportedException("The stream doesn't support writing.");
+		    if(value > capacity)
+		        throw new IOException("exceeded capacity.");
+            length = value;
+		}
+		
+		///<summary>
+		///Is the stream readable?.
+		///<summary>
+		public override bool CanRead {
+		    get {
+		        return access == FileAccess.Read ||
+		               access == FileAccess.ReadWrite;
+		    }
+		}
+		
+		///<summary>
+		///Is the stream seekable?.
+		///<summary>
+		public override bool CanSeek {
+		    get {
+		        return true;
+		    }
+		}
+		
+		///<summary>
+		///Is the stream writable?.
+		///<summary>
+		public override bool CanWrite {
+		    get {
+		        return access == FileAccess.Read ||
+		               access == FileAccess.ReadWrite;
+		    }
+		}
+		
+		///<summary>
+		///Retrieves the stream length.
+		///</summary>
+        public override long Length {
+            get {
+                return length;
+            }
+        }
+		
+		///<summary>
+		///Retrieves the current position in the stream.
+		///</summary>
+        public override long Position {
+            get {
+                return position;
+            }
+            set {
+                Seek(value, SeekOrigin.Begin);
+            }
+        }
+
+    }
+}
+

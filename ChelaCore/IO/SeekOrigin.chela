@@ -1,0 +1,10 @@
+namespace Chela.IO
+{
+	public enum SeekOrigin
+	{
+		Begin = 0,
+		Current,
+		End,
+	}
+}
+

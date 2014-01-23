@@ -1,0 +1,53 @@
+namespace Chela.Gui
+{
+    public class Canvas: Window
+    {
+        public Canvas(Display disp, Window parent, ivec2 position, ivec2 size)
+            : base(disp, parent, position, size)
+        {
+        }
+
+        public Canvas(Window parent, ivec2 position, ivec2 size)
+            : base(parent, position, size)
+        {
+        }
+
+        public Canvas(Window parent)
+            : base(parent)
+        {
+        }
+
+        public Canvas(WindowContext context)
+            : base(context)
+        {
+        }
+
+        public Canvas(RenderContext renderContext, Window parent, ivec2 position, ivec2 size)
+            : base(CreateWindowContext(renderContext, parent, position, size))
+        {
+        }
+
+        public Canvas(RenderContext renderContext, Window parent)
+            : this(renderContext, parent, DefaultPosition, DefaultSize)
+        {
+        }
+
+        private static WindowContext CreateWindowContext(RenderContext renderContext, Window parent,
+                                                         ivec2 position, ivec2 size)
+        {
+            // Get the default screen.
+            Display disp = renderContext.Display;
+            Screen screen = disp.DefaultScreen;
+
+            // Compute the parent context.
+            WindowContext parentContext = screen.RootWindowContext;
+            if(parent != null)
+                parentContext = parent.Context;
+
+            // Create the window context.
+            return disp.CreateRenderWindowContext(renderContext, parentContext, position, size,
+                                                     0, Color.White, Color.Black);
+        }
+    }
+}
+

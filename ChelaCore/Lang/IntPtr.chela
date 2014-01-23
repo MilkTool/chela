@@ -1,0 +1,89 @@
+namespace Chela.Lang
+{
+    ///<summary>
+    ///Structure for signed pointers.
+    ///</summary>
+    public struct IntPtr
+    {
+        public static readonly IntPtr Zero;
+        internal ptrdiff_t __value;
+
+        ///<summary>
+        ///Compares this integer with another.
+        ///</summary>
+        public override bool Equals(object o)
+        {
+            IntPtr other = (IntPtr)o;
+            return __value == other.__value;
+        }
+
+        ///<summary>
+        ///Computes the hash code for this integer.
+        ///</summary>
+        public override int GetHashCode()
+        {
+            if(sizeof(ptrdiff_t) == 8)
+            {
+                long val = (long)__value;
+                return (int) ( ((val & 0xFFFFFFFF00000000UL) >> 32) ^
+                       (val & 0x00000000FFFFFFFFUL) );
+            }
+            else //if(sizeof(size_t) == 4)
+            {
+                return (int)__value;
+            }
+        }
+
+        ///<summary>
+        ///Returns the size of the current implementation.
+        ///</summary>
+        public static int Size  {
+            get {
+                return sizeof(size_t);
+            }
+        }
+        
+        ///<summary>
+        ///Gets a string representation of the integer.
+        ///</summary>
+        public override string ToString()
+        {
+            return ToString(null, null);
+        }
+        
+        ///<summary>
+        ///Gets a string representation of the integer.
+        ///</summary>
+        public string ToString(IFormatProvider provider)
+        {
+            return ToString(null, provider);
+        }
+        
+        ///<summary>
+        ///Gets a string representation of the integer.
+        ///</summary>
+        public string ToString(string format)
+        {
+            return ToString(format, null);
+        }
+
+        ///<summary>
+        ///Gets a string representation of the integer.
+        ///</summary>
+        public string ToString(string format, IFormatProvider provider)
+        {
+            if(sizeof(ptrdiff_t) == 8)
+            {
+                long val = (long)__value;
+                return val.ToString(format, provider);
+            }
+            else //if(sizeof(ptrdiff_t) == 4)
+            {
+                int val = (int)__value;
+                return val.ToString(format, provider);
+            }
+        }
+
+    }
+}
+

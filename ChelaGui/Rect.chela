@@ -1,0 +1,70 @@
+namespace Chela.Gui
+{
+    public struct Rect
+    {
+        public ivec2 Position;
+        public ivec2 Size;
+
+        public Rect(int x, int y, int width, int height)
+        {
+            Position = ivec2(x,y);
+            Size = ivec2(width, height);
+        }
+
+        public Rect(ivec2 position, ivec2 size)
+        {
+            Position = position;
+            Size = size;
+        }
+
+        public Rect(ivec4 positionAndSize)
+        {
+            Position = positionAndSize.xy;
+            Size = positionAndSize.zw;
+        }
+
+        public bool Contains(ivec2 point)
+        {
+            ivec2 end = Position + Size;
+            return point.x >= Position.x && point.x <= end.x &&
+                   point.y >= Position.y && point.y <= end.y;
+        }
+
+        public int X {
+            get {
+                return Position.x;
+            }
+            set {
+                Position.x = value;
+            }
+        }
+
+        public int Y {
+            get {
+                return Position.y;
+            }
+            set {
+                Position.y = value;
+            }
+        }
+
+        public int Width {
+            get {
+                return Size.x;
+            }
+            set {
+                Size.x = value;
+            }
+        }
+
+        public int Height {
+            get {
+                return Size.y;
+            }
+            set {
+                Size.y = value;
+            }
+        }
+
+    }
+}

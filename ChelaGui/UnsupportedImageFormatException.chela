@@ -1,0 +1,22 @@
+using Chela.Lang;
+
+namespace Chela.Gui
+{
+    public class UnsupportedImageFormatException: ApplicationException
+    {
+        public UnsupportedImageFormatException()
+        {
+        }
+        
+        public UnsupportedImageFormatException(string message)
+            : base(message)
+        {
+        }
+        
+        public UnsupportedImageFormatException(string message, Exception innerException)
+            : base(message, innerException)
+        {
+        }
+    }
+}
+

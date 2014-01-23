@@ -1,0 +1,27 @@
+namespace Chela.Compute
+{
+    ///<summary>
+    ///A kernel compute step
+    ///</summary>
+    public sealed class ComputeStep: PipelineNode
+    {
+        ///<summary>
+        ///The kernel binding.
+        ///</summary>
+        private ComputeBinding binding;
+        
+        public ComputeStep(ComputeBinding binding)
+        {
+            this.binding = binding;
+        }
+        
+        ///<summary>
+        ///Just run the kernel step.
+        ///</summary>
+        protected override void RunStep()
+        {
+            binding();
+        }
+    }
+}
+

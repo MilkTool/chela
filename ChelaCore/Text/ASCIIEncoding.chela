@@ -1,0 +1,235 @@
+using Chela.Lang;
+
+namespace Chela.Text
+{
+    /// <summary>
+    /// 7-bits ASCI encoding.
+    /// </summary>
+    public class ASCIIEncoding: Encoding
+    {
+        private int MaxASCII = 127;
+        
+        public ASCIIEncoding()
+        {
+        }
+        
+        /// <summary>
+        /// Gets a the exact amount of bytes used by a encoded string.
+        /// </summary>
+        public unsafe override int GetByteCount(char *chars, int count)
+        {
+            if(chars == null)
+                throw new ArgumentNullException("chars");
+            int characters = 0;
+            for(int i = 0; i < count; ++i)
+            {
+                char c = chars[i];
+                // Handle surrogate pairs.
+                if(Char.IsSurrogate(c))
+                {
+                    ++i;
+                    if(i < count)
+                    {
+                        c = chars[i];
+                        if(!Char.IsSurrogate(c))
+                            ++characters;
+                    }
+                }
+                ++characters;
+            }
+            return characters;
+        }
+        
+        /// <summary>
+        /// Gets a the exact amount of bytes used by a encoded string.
+        /// </summary>
+        public override int GetByteCount(string s)
+        {
+            if(s == null)
+                throw new ArgumentNullException("s");
+            unsafe {
+                return GetByteCount((char*)s.RawData, s.Length);
+            }
+        }
+
+        /// <summary>
+        /// Gets a the exact amount of bytes used by a encoded string.
+        /// </summary>
+        public override int GetByteCount(char[] chars, int index, int count)
+        {
+            if(chars == null)
+                throw new ArgumentNullException("chars");
+            else if(index < 0 || index + count > chars.Length)
+                throw new ArgumentOutOfRangeException("index or count");
+
+            unsafe {
+                return GetByteCount(&chars[index], count);
+            }
+        }
+
+        /// <summary>
+        /// Encodes the specified characters.
+        /// </summary>
+        public unsafe override int GetBytes(char *chars, int charCount, byte *bytes, int byteCount)
+        {
+            if(chars == null)
+                throw new ArgumentNullException("chars");
+            if(bytes == null)
+                throw new ArgumentNullException("bytes");
+            int dest = 0;
+            int source = 0;
+            while(dest < byteCount && source < charCount)
+            {
+                // Try to encode the character
+                char c = chars[source++];
+                
+                // Handle surrogate pairs.
+                if(Char.IsSurrogate(c) && source < charCount)
+                {
+                    c = chars[source++];
+                    if(!Char.IsSurrogate(c))
+                    {
+                        // Shouldn't reach here.
+                        bytes[dest++] = (byte)'?';
+                        if(dest >= byteCount)
+                            break;
+                    }
+                }
+                
+                // Send the character.
+                if(c > MaxASCII)
+                    c = '?';
+                bytes[dest++] = (byte)c;
+            }
+            
+            // Make sure everything was encoded.
+            if(source < charCount)
+                throw new ArgumentException("byteCount is less than the result.");
+            
+            return dest;
+        }
+
+        /// <summary>
+        /// Encodes the specified characters.
+        /// </summary>
+        public override int GetBytes(string s, int charIndex, int charCount, byte[] bytes, int byteIndex)
+        {
+            // Check the parameters.
+            if(s == null)
+                throw new ArgumentNullException("s");
+            else if(charIndex < 0 || charIndex + charCount > s.Length)
+                throw new ArgumentOutOfRangeException("charIndex or charCount");
+            else if(bytes == null)
+                throw new ArgumentNullException("bytes");
+            else if(byteIndex < 0 || byteIndex > bytes.Length)
+                throw new ArgumentOutOfRangeException("byteIndex");
+
+            // Unsafe the unsafe version.
+            unsafe {
+                return GetBytes((char*)&s.RawData[charIndex], s.Length - charIndex,
+                                &bytes[byteIndex], bytes.Length - byteIndex);
+            }
+        }
+        
+        /// <summary>
+        /// Encodes the specified characters.
+        /// </summary>
+        public override int GetBytes(char[] chars, int charIndex, int charCount, byte[] bytes, int byteIndex)
+        {
+            // Check the parameters.
+            if(chars == null)
+                throw new ArgumentNullException("s");
+            else if(charIndex < 0 || charIndex + charCount > chars.Length)
+                throw new ArgumentOutOfRangeException("charIndex or charCount");
+            else if(byteIndex < 0)
+                throw new ArgumentOutOfRangeException("byteIndex");
+
+            // Unsafe the unsafe version.
+            unsafe {
+                return GetBytes(&chars[charIndex], charCount, &bytes[byteIndex], bytes.Length);
+            }
+        }
+
+        /// <summary>
+        /// Gets the exact number of characters represented by a bytes sequence.
+        /// </summary>
+        public unsafe override int GetCharCount(byte *bytes, int count)
+        {
+            return count;
+        }
+        
+        /// <summary>
+        /// Gets the exact number of characters represented by a bytes sequence.
+        /// </summary>
+        public override int GetCharCount(byte[] bytes, int index, int count)
+        {
+            if(bytes == null)
+                throw new ArgumentNullException("bytes");
+            else if(index < 0 || index + count > bytes.Length)
+                throw new ArgumentOutOfRangeException("index or count");
+
+            unsafe {
+                return GetCharCount(&bytes[index], count);
+            }
+        }
+
+        /// <summary>
+        /// Decodes a byte sequence representing an encoded string.
+        /// </summary>
+        public unsafe override int GetChars(byte *bytes, int byteCount, char *chars, int charCount)
+        {
+            int dest = 0;
+            int source = 0;
+            while(dest < charCount && source < byteCount)
+            {
+                // Try to encode the character
+                int b = bytes[source++];
+                if(b > MaxASCII)
+                    b = '?';
+                chars[dest++] = (char)b;
+            }
+            
+            // Make sure everything was encoded.
+            if(source < byteCount)
+                throw new ArgumentException("byteCount is less than the result.");
+            
+            return dest;
+        }
+
+        /// <summary>
+        /// Decodes a byte sequence representing an encoded string.
+        /// </summary>
+        public override int GetChars(byte[] bytes, int byteIndex, int byteCount, char[] chars, int charIndex)
+        {
+            if(bytes == null)
+                throw new ArgumentNullException("bytes");
+            else if(byteIndex < 0 || byteIndex + byteCount > bytes.Length)
+                throw new ArgumentOutOfRangeException("byteIndex or byteCount");
+            else if(chars == null)
+                throw new ArgumentNullException("chars");
+            else if(charIndex < 0 || charIndex > chars.Length)
+                throw new ArgumentOutOfRangeException("charIndex");
+
+            unsafe {
+                return GetChars(&bytes[byteIndex], byteCount, &chars[charIndex], chars.Length - charIndex);
+            }
+        }
+        
+        /// <summary>
+        /// Returns the maximum number of encoded bytes used by a encoded string.
+        /// </summary>
+        public override int GetMaxByteCount(int charCount)
+        {
+            return charCount;
+        }
+
+        /// <summary>
+        /// Returns the maximum number of decoded characters used by a encoded string.
+        /// </summary>
+        public override int GetMaxCharCount(int byteCount)
+        {
+            return byteCount;
+        }
+    }
+}
+

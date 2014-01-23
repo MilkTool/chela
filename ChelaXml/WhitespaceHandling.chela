@@ -1,0 +1,15 @@
+using Chela.Lang;
+
+namespace Chela.Xml
+{
+    /// <summary>
+    /// The type of whitespaces returned by a XmlTextReader.
+    /// </summary>
+    public enum WhitespaceHandling
+    {
+        All = 0,
+        Significant = 1,
+        None = 2,
+    }
+}
+

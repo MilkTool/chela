@@ -1,0 +1,146 @@
+namespace Chela.Gui
+{
+    public abstract class GraphicContext
+    {
+        ///<summary>
+        ///Begin drawing commands.
+        ///</summary>
+        public abstract void BeginDrawing();
+
+        ///<summary>
+        ///Ends drawing commands.
+        ///</summary>
+        public abstract void EndDrawing();
+
+        ///<summary>
+        ///Background color.
+        ///</summary>
+        public abstract Color Background {
+            get;
+            set;
+        }
+
+        ///<summary>
+        ///Foreground color.
+        ///</summary>
+        public abstract Color Foreground {
+            get;
+            set;
+        }
+
+        ///<summary>
+        ///Clears all the window content.
+        ///</summary>
+        public abstract void Clear();
+
+        ///<summary>
+        ///Clears an area to the background color.
+        ///</summary>
+        public abstract void ClearRect(int x0, int y0, int x1, int y1);
+
+        ///<summary>
+        ///Draws a point.
+        ///</summary>
+        public abstract void DrawPoint(int x0, int y0);
+
+        ///<summary>
+        ///Draws a point.
+        ///</summary>
+        public virtual void DrawPoint(ivec2 point)
+        {
+            DrawPoint(point.x, point.y);
+        }
+
+        ///<summary>
+        ///Draws a line.
+        ///</summary>
+        public abstract void DrawLine(int x0, int y0, int x1, int y1);
+
+        ///<summary>
+        ///Draws a line.
+        ///</summary>
+        public virtual void DrawLine(ivec2 start, ivec2 end)
+        {
+            DrawLine(start.x, start.y, end.x, end.y);
+        }        
+
+        ///<summary>
+        ///Draws a rectangle outline.
+        ///</summary>
+        public abstract void DrawRectangle(int x0, int y0, int x1, int y1);
+
+        ///<summary>
+        ///Draws a rectangle outline.
+        ///</summary>
+        public virtual void DrawRectangle(ivec2 topLeft, ivec2 bottomRight)
+        {
+            DrawRectangle(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y);
+        }
+
+        ///<summary>
+        ///Draws a fill rectangle.
+        ///</summary>
+        public abstract void DrawFillRectangle(int x0, int y0, int x1, int y1);
+
+        ///<summary>
+        ///Draws a fill rectangle.
+        ///</summary>
+        public virtual void DrawFillRectangle(ivec2 topLeft, ivec2 bottomRight)
+        {
+            DrawFillRectangle(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y);
+        }
+
+        ///<summary>
+        ///Draws a triangle outline.
+        ///</summary>
+        public abstract void DrawTriangle(int x0, int y0, int x1, int y1, int x2, int y2);
+
+        ///<summary>
+        ///Draws a triangle outline.
+        ///</summary>
+        public virtual void DrawTriangle(ivec2 p1, ivec2 p2, ivec2 p3)
+        {
+            DrawTriangle(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y);
+        }
+
+        ///<summary>
+        ///Draws a fill triangle.
+        ///</summary>
+        public abstract void DrawFillTriangle(int x0, int y0, int x1, int y1, int x2, int y2);
+
+        ///<summary>
+        ///Draws a fill triangle.
+        ///</summary>
+        public virtual void DrawFillTriangle(ivec2 p1, ivec2 p2, ivec2 p3)
+        {
+            DrawFillTriangle(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y);
+        }
+
+        ///<summary>
+        ///Draws a horizontal gradient.
+        ///</summary>
+        public abstract void DrawHorizGradient(int x0, int y0, int x1, int y1, Color startColor, Color endColor);
+
+        ///<summary>
+        ///Draws a horizontal gradient.
+        ///</summary>
+        public virtual void DrawHorizGradient(ivec2 p0, ivec2 p1, Color startColor, Color endColor)
+        {
+            DrawHorizGradient(p0.x, p0.y, p1.x, p1.y, startColor, endColor);
+        }
+
+        ///<summary>
+        ///Draws a vertical gradient.
+        ///</summary>
+        public abstract void DrawVertGradient(int x0, int y0, int x1, int y1, Color startColor, Color endColor);
+
+        ///<summary>
+        ///Draws a vertical gradient.
+        ///</summary>
+        public virtual void DrawVertGradient(ivec2 topLeft, ivec2 bottomRight, Color startColor, Color endColor)
+        {
+            DrawVertGradient(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y, startColor, endColor);
+        }
+    }
+}
+

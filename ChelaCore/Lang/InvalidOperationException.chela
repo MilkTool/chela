@@ -1,0 +1,21 @@
+namespace Chela.Lang
+{
+    public class InvalidOperationException: SystemException
+    {
+        public InvalidOperationException()
+            : base("The operation is invalid.")
+        {
+        }
+
+        public InvalidOperationException(string message)
+            : base(message)
+        {
+        }
+
+        public InvalidOperationException(string message, Exception innerException)
+            : base(message, innerException)
+        {
+        }
+    }
+}
+

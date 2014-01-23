@@ -1,0 +1,9 @@
+namespace Chela.Lang
+{
+    ///<summary>
+    ///This structure represents the void type.
+    ///</summary>
+    public struct Void
+    {
+    }
+}

@@ -1,0 +1,63 @@
+namespace Chela.Collections
+{
+    public interface IList: ICollection
+    {
+        ///<summary>
+        ///Adds an item to the list, returning his index.
+        ///</summary>
+        int Add(object value);
+        
+        ///<summary>
+        ///Removes all of the elements of the list.
+        ///</summary>
+        void Clear();
+        
+        ///<summary>
+        ///Does the list contain an element.
+        ///</summary>
+        bool Contains(object value);
+        
+        ///<summary>
+        ///What is the index of an element.
+        ///</summary>
+        int IndexOf(object value);
+        
+        ///<summary>
+        ///Inserts an element in a specified index.
+        ///</summary>
+        void Insert(int index, object value);
+        
+        ///<summary>
+        ///Removes an element of the list.
+        ///</summary>
+        void Remove(object value);
+        
+        ///<summary>
+        ///Removes an element in a position.
+        ///</summary>
+        void RemoveAt(int index);
+        
+        ///<summary>
+        ///Does this list have a fixed size?
+        ///</summary>
+        bool IsFixedSize {
+            get;
+        }
+        
+        ///<summary>
+        ///Is this list read only.
+        ///</summary>
+        bool IsReadOnly {
+            get;
+        }
+        
+        ///<summary>
+        ///Gets/sets an element in the list.
+        ///</summary>
+        object this[int index] {
+            get;
+            set;
+        }
+    }
+}
+

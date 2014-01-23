@@ -1,0 +1,31 @@
+using Chela.Lang;
+
+namespace Chela.TestModule
+{
+    [AttributeUsage(AttributeTargets.Class)]
+    public class TestAttribute: Attribute
+    {
+        private string name;
+        private string description;
+
+        public TestAttribute(string name)
+        {
+            this.name = name;
+        }
+
+        public string Description {
+            get {
+                return description;
+            }
+            set {
+                description = value;
+            }
+        }
+
+        public override string ToString()
+        {
+            return name + ": " + description;
+        }
+    }
+}
+

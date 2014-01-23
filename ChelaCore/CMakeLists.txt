@@ -1,0 +1,238 @@
+# Chela language runtime.
+set(Lang_SRC
+    Lang/ApplicationException.chela
+    Lang/ArgumentException.chela
+    Lang/ArgumentOutOfRangeException.chela
+    Lang/ArgumentNullException.chela
+    Lang/Array.chela
+    Lang/Attribute.chela
+    Lang/AttributeTargets.chela
+    Lang/AttributeUsageAttribute.chela
+    Lang/BadImageFormatException.chela
+    Lang/Boolean.chela
+    Lang/Boolean2.chela
+    Lang/Boolean3.chela
+    Lang/Boolean4.chela
+    Lang/Byte.chela
+    Lang/Char.chela
+    Lang/ChelaIntrinsic.chela
+    Lang/Closure.chela
+    Lang/Console.chela
+    Lang/DateTime.chela
+    Lang/DateTimeKind.chela
+    Lang/Decimal.chela
+    Lang/Delegate.chela
+    Lang/Double.chela
+    Lang/Double2.chela
+    Lang/Double3.chela
+    Lang/Double4.chela
+    Lang/Enum.chela
+    Lang/Environment.chela
+    Lang/EventArgs.chela
+    Lang/EventHandler.chela
+    Lang/Exception.chela
+    Lang/FlagsAttribute.chela
+    Lang/FloatingPointConstraint.chela
+    Lang/FormatException.chela
+    Lang/FormatUtil.chela
+    Lang/Func.chela
+    Lang/ICloneable.chela
+    Lang/IComparable.chela
+    Lang/IConvertible.chela
+    Lang/IDisposable.chela
+    Lang/IEquatable.chela
+    Lang/IFormattable.chela
+    Lang/IFormatProvider.chela
+    Lang/IndexOutOfRangeException.chela
+    Lang/InvalidCastException.chela
+    Lang/InvalidOperationException.chela
+    Lang/Int16.chela
+    Lang/Int32.chela
+    Lang/Int32x2.chela
+    Lang/Int32x3.chela
+    Lang/Int32x4.chela
+    Lang/Int64.chela
+    Lang/IntPtr.chela
+    Lang/IntegerConstraint.chela
+    Lang/Math.chela
+    Lang/NotImplementedException.chela
+    Lang/NotSupportedException.chela
+    Lang/Nullable.chela
+    Lang/NullReferenceException.chela
+    Lang/NumberConstraint.chela
+    Lang/Object.chela
+    Lang/ObjectDisposedException.chela
+    Lang/Random.chela
+    Lang/ReverseStringBuilder.chela
+    Lang/SByte.chela
+    Lang/Single.chela
+    Lang/Single2.chela
+    Lang/Single3.chela
+    Lang/Single3x3.chela
+    Lang/Single4.chela
+    Lang/Single4x4.chela
+    Lang/String.chela
+    Lang/SystemException.chela
+    Lang/ThreadStaticAttribute.chela
+    Lang/TimeSpan.chela
+    Lang/Type.chela
+    Lang/TypeCode.chela
+    Lang/UInt16.chela
+    Lang/UInt32.chela
+    Lang/UInt64.chela
+    Lang/UIntPtr.chela
+    Lang/Uri.chela
+    Lang/ValueType.chela
+    Lang/Void.chela
+)
+
+set(Collections_SRC
+    Collections/Generic/Dictionary.chela
+    Collections/Generic/EqualityComparer.chela
+    Collections/Generic/ICollection.chela
+    Collections/Generic/IDictionary.chela
+    Collections/Generic/IEnumerable.chela
+    Collections/Generic/IEnumerator.chela
+    Collections/Generic/IEqualityComparer.chela
+    Collections/Generic/IList.chela
+    Collections/Generic/KeyValuePair.chela
+    Collections/Generic/List.chela
+    Collections/ArrayList.chela
+    Collections/DictionaryEntry.chela
+    Collections/Hashtable.chela
+    Collections/ICollection.chela
+    Collections/IComparable.chela
+    Collections/IDictionary.chela
+    Collections/IDictionaryEnumerator.chela
+    Collections/IEqualityComparer.chela
+    Collections/IEnumerable.chela
+    Collections/IEnumerator.chela
+    Collections/IList.chela
+)
+
+set(Compute_SRC
+    Compute/ComputeDriver.chela
+    Compute/ComputeBinding.chela
+    Compute/ComputeStep.chela
+    Compute/IStreamHolder.chela
+    Compute/IResourceHolder.chela
+    Compute/LocalCpuDriver.chela
+    Compute/LocalCpuThread.chela
+    Compute/StreamHolder.chela
+    Compute/StreamHolder1D.chela
+    Compute/StreamHolder2D.chela
+    Compute/StreamHolder3D.chela
+    Compute/UniformHolder.chela
+    Compute/PipelineNode.chela
+)
+
+set(Globalization_SRC
+    Globalization/CultureInfo.chela
+    Globalization/DateTimeFormatInfo.chela
+    Globalization/DateTimeStyles.chela
+    Globalization/NumberFormatInfo.chela
+    Globalization/NumberStyles.chela
+    Globalization/UnicodeCategory.chela
+)
+
+set(Net_SRC
+    Net/ICredentials.chela
+)
+
+set(Reflection_SRC
+    Reflection/Assembly.chela
+    Reflection/Binder.chela
+    Reflection/BindingFlags.chela
+    Reflection/CommonAttributes.chela
+    Reflection/ConstructorInfo.chela
+    Reflection/FieldAttributes.chela
+    Reflection/FieldInfo.chela
+    Reflection/EventAttributes.chela
+    Reflection/EventInfo.chela
+    Reflection/ManifestResourceInfo.chela
+    Reflection/MemberInfo.chela
+    Reflection/MemberTypes.chela
+    Reflection/MethodAttributes.chela
+    Reflection/MethodBase.chela
+    Reflection/MethodInfo.chela
+    Reflection/NativeModule.chela
+    Reflection/ParameterAttributes.chela
+    Reflection/ParameterInfo.chela
+    Reflection/PropertyAttributes.chela
+    Reflection/PropertyInfo.chela
+    Reflection/TypeAttributes.chela
+)
+
+set(Text_SRC
+    Text/ASCIIEncoding.chela
+    Text/Decoder.chela
+    Text/Encoder.chela
+    Text/Encoding.chela
+    Text/StringBuilder.chela
+    Text/UnicodeEncoding.chela
+    Text/UTF8Encoding.chela
+)
+
+set(Threading_SRC
+    Threading/LowLevelConditionVariable.chela
+    Threading/LowLevelThread.chela
+    Threading/LowLevelMutex.chela
+    Threading/Monitor.chela
+    
+    Threading/Thread.chela
+    Threading/ThreadAbortException.chela
+    Threading/ThreadState.chela
+)
+
+set(IO_SRC
+    IO/BinaryReader.chela
+    IO/BinaryWriter.chela
+    IO/DirectoryNotFoundException.chela
+    IO/EndOfStreamException.chela
+    IO/File.chela
+    IO/FileAccess.chela
+    IO/FileNotFoundException.chela
+    IO/FileMode.chela
+    IO/FileShare.chela
+    IO/FileStream.chela
+    IO/IOErrorCode.chela
+    IO/IOException.chela
+    IO/NullTextReader.chela
+    IO/PathTooLongException.chela
+    IO/SeekOrigin.chela
+    IO/Stream.chela
+    IO/StreamReader.chela
+    IO/StringReader.chela
+    IO/TextReader.chela
+    IO/UnmanagedMemoryStream.chela
+)
+
+set(Runtime_SRC
+    Runtime/Core/ChelaIntrinsicAttribute.chela
+    Runtime/Core/ExceptionSupport.chela
+    Runtime/Core/MemoryManager.chela
+    Runtime/Core/ReferenceData.chela
+    Runtime/Core/Rtti.chela
+    
+    Runtime/InteropServices/GCHandle.chela
+    Runtime/InteropServices/StringHandle.chela
+)
+
+set(ChelaCore_SRC
+    ${Lang_SRC}
+    ${Collections_SRC}
+    ${Compute_SRC}
+    ${Globalization_SRC}
+    ${Net_SRC}
+    ${Reflection_SRC}
+    ${Runtime_SRC}
+    ${Text_SRC}
+    ${Threading_SRC}
+    ${IO_SRC}
+
+    EntryPoint.chela
+)
+
+# Build the native runtime.
+chela_module(ChelaCore LIBRARY FLAGS -noruntime LIBS ChelaSysLayer SRC ${ChelaCore_SRC})
+

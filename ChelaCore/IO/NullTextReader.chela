@@ -1,0 +1,7 @@
+namespace Chela.IO
+{
+    internal class NullTextReader: TextReader
+    {
+    }
+}
+    

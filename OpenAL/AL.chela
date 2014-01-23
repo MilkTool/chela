@@ -1,0 +1,84 @@
+using Chela.Lang;
+using Chela.Reflection;
+
+namespace Chela.OpenAL
+{
+    // Typedefs used for the pointers.
+    public typedef byte ALboolean;
+    public typedef sbyte ALchar;
+    public typedef sbyte ALbyte;
+    public typedef char ALubyte;
+    public typedef short ALshort;
+    public typedef ushort ALushort;
+    public typedef int ALint;
+    public typedef uint ALuint;
+    public typedef int ALsizei;
+    public typedef float ALfloat;
+    public typedef double ALdouble;
+    public typedef void ALvoid;
+
+    /// <summary>
+    /// OpenAL bindings.
+    /// </summary>
+    public partial class AL
+    {
+        private static unsafe NativeModule openALModule = null;
+        
+        /// <summary>
+        /// Loads all of the entry points.
+        /// </summary>
+        public static void LoadAll()
+        {
+            unsafe {
+                Pointers.LoadEntryPoints();
+            }
+        }
+        
+        /// <summary>
+        /// Loads the OpenAL shared library
+        /// </summary>
+        private static unsafe void LoadLibrary()
+        {
+            // Try to load a windows dll.
+            openALModule = NativeModule.LoadModule("OpenAL32.dll");
+            if(openALModule != null)
+                return;
+                
+            // Try to load a unix shared object
+            openALModule = NativeModule.LoadModule("libopenal.so");
+            if(openALModule != null)
+                return;
+
+        }
+        
+        /// <summary>
+        /// Gets an entry point address.
+        /// </summary>
+        public static unsafe void *GetEntryPoint(const sbyte *entryPointName)
+        {
+            // Try to load the OpenAL module
+            if(openALModule == null)
+            {
+                LoadLibrary();
+                if(openALModule == null)
+                    throw new SystemException("Failed to load OpenAL");
+            }
+            
+            // Get the entry point.
+            return openALModule.GetSymbolValue(entryPointName);
+        }
+        
+        /// <summary>
+        /// Gets an entry point address.
+        /// </summary>
+        public static unsafe void *GetEntryPoint(string entryPointName)
+        {
+            sbyte *cname = entryPointName.C_Str();
+            try
+                return GetEntryPoint(cname);
+            finally
+                delete [] cname;
+        }
+    }
+}
+

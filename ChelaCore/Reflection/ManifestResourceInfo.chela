@@ -1,0 +1,10 @@
+namespace Chela.Reflection
+{
+    ///<summary>
+    ///A manifest resource information.
+    ///</summary>
+    public class ManifestResourceInfo
+    {
+    }
+}
+

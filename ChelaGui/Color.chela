@@ -1,0 +1,69 @@
+namespace Chela.Gui
+{
+    /// <summary>
+    /// A color representation.
+    /// </summary
+    public struct Color
+    {
+        const float ColorFactor = 1.0f/255.0f;
+        public static readonly Color White = Color(255,255,255);
+        public static readonly Color Black = Color(0,0,0);
+        public static readonly Color Red = Color(255,0,0);
+        public static readonly Color Green = Color(0,255,0);
+        public static readonly Color Blue = Color(0,0,255);
+        public static readonly Color Cyan = Color(0,255,255);
+        public static readonly Color Magenta = Color(255,0,255);
+        public static readonly Color Yellow = Color(255,255,0);
+
+        public byte r;
+        public byte g;
+        public byte b;
+        public byte a;
+
+        public Color(int r, int g, int b, int a)
+        {
+            this.r = (byte)r;
+            this.g = (byte)g;
+            this.b = (byte)b;
+            this.a = (byte)a;
+        }
+
+        public Color(int r, int g, int b)
+             : this(r, g, b, 0xFF)
+        {
+        }
+
+        public Color(int hexcode)
+        {
+            this.a = (byte) (0xFF - ((hexcode >> 24) & 0xFF));
+            this.r = (byte) ((hexcode >> 16) & 0xFF);
+            this.g = (byte) ((hexcode >> 8) & 0xFF);
+            this.b = (byte) (hexcode & 0xFF);
+        }
+
+        /// <summary>
+        /// This returns a web compatible color representation.
+        /// </summary>
+        public int ToInt()
+        {
+            return ((0xFF - a)<<24) | (r<<16) | (g<<8) | b;
+        }
+        
+        /// <summary>
+        /// Returns an int vector.
+        /// </summary>
+        public ivec4 ToIntVector()
+        {
+            return ivec4(r, g, b, a);
+        }
+        
+        /// <summary>
+        /// Returns an floating point vector.
+        /// </summary>
+        public vec4 ToFloatVector()
+        {
+            return vec4(r*ColorFactor, g*ColorFactor, b*ColorFactor, a*ColorFactor);
+        }
+    }
+}
+

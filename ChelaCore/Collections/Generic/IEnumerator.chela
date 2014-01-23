@@ -1,0 +1,15 @@
+using Chela.Lang;
+
+namespace Chela.Collections.Generic
+{
+    public interface IEnumerator<T>: IEnumerator//, IDisposable
+    {
+        ///<summary>
+        ///The element in the current position.
+        ///</summary>
+        T Current {
+            get;
+        }
+    }
+}
+

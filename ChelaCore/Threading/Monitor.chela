@@ -1,0 +1,32 @@
+using Chela.Lang;
+
+namespace Chela.Threading
+{
+    public static class Monitor
+    {
+        internal unsafe void OnDestroyObject(StandardObject* obj)
+        {
+        }
+
+        public void Enter(object obj)
+        {
+        }
+
+        public void Exit(object obj)
+        {
+        }
+
+        public void Pulse(object obj)
+        {
+        }
+
+        public void PulseAll(object obj)
+        {
+        }
+
+        public void Wait(object obj)
+        {
+        }
+    }
+}
+

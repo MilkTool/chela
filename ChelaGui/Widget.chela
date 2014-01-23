@@ -1,0 +1,132 @@
+using Chela.Lang;
+
+namespace Chela.Gui
+{
+    /// <summary>
+    /// A class that represents a widget.
+    /// </summary>
+    public class Widget: Window
+    {
+        private string label;
+        private bool isMouseOver = false;
+        private bool isLeftButtonDown = false;
+        private bool isRightButtonDown = false;
+
+        public Widget(Window parent, ivec2 position, ivec2 size)
+            : base(parent, position, size)
+        {
+            this.label = string.Empty;
+        }
+
+        public Widget(Window parent)
+            : this(parent, DefaultPosition, DefaultSize)
+        {
+        }
+
+        /// <summary>
+        /// The control label.
+        /// </summary>
+        public string Label {
+            get {
+                return label;
+            }
+            set {
+                label = value;
+            }
+        }
+
+        protected override void OnExpose(ExposeEvent ev)
+        {
+            // TODO: Notify the base.
+            base.OnExpose(ev);
+
+            // Begin drawing.
+            PaintGC.BeginDrawing();
+
+            // Ask the theme to draw.
+            if(!Theme.ExposeWidget(this, ev, PaintGC))
+                OnExposeContent(ev, PaintGC);
+
+            // End drawing.
+            PaintGC.EndDrawing();
+        }
+
+        /// <summary>
+        /// This function is called when the theme doesn't know how to draw
+        /// the control.
+        /// </summary>
+        protected virtual void OnExposeContent(ExposeEvent ev, GraphicContext gc)
+        {
+        }
+        
+        protected override void OnMouseEnter(GuiEvent ev)
+        {
+            // Keep track of the mouse.
+            isMouseOver = true;
+            
+            // Propagate the event.
+            base.OnMouseEnter(ev);
+        }
+
+        protected override void OnMouseLeave(GuiEvent ev)
+        {
+            // Keep track of the mouse.
+            isMouseOver = false;
+            
+            // Propagate the event.
+            base.OnMouseLeave(ev);
+        }
+        
+        protected override void OnButtonPressed(ButtonEvent ev)
+        {
+            // Keep track of the button down.
+            if(ev.Button == MouseButton.Left)
+                isLeftButtonDown = true;
+            else if(ev.Button == MouseButton.Right)
+                isRightButtonDown = false;
+
+            // Propagate the event.
+            base.OnButtonPressed(ev);
+        }
+
+        protected override void OnButtonReleased(ButtonEvent ev)
+        {
+            // Keep track of the button released.
+            if(ev.Button == MouseButton.Left)
+                isLeftButtonDown = false;
+            else if(ev.Button == MouseButton.Right)
+                isRightButtonDown = false;
+
+            // Propagate the event.
+            base.OnButtonReleased(ev);
+        }
+        
+        /// <summary>
+        /// Tells if the mouse is over myself.
+        /// </summary>
+        public bool IsMouseOver {
+            get {
+                return isMouseOver;
+            }
+        }
+        
+        /// <summary>
+        /// Tells if the mouse left button is pressed
+        /// </summary>
+        public bool IsLeftButtonDown {
+            get {
+                return isLeftButtonDown;
+            }
+        }
+
+        /// <summary>
+        /// Tells if the mouse right button is pressed
+        /// </summary>
+        public bool IsRightButtonDown {
+            get {
+                return isRightButtonDown;
+            }
+        }
+    }
+}
+

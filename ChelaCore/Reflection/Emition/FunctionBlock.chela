@@ -1,0 +1,9 @@
+using Chela.Lang;
+
+namespace Chela.Reflection.Emition
+{
+    public class FunctionBlock: PortableMember
+    {
+    }
+}
+

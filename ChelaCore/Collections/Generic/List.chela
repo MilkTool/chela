@@ -1,0 +1,321 @@
+using Chela.Lang;
+
+namespace Chela.Collections.Generic
+{
+    ///<summary>
+    ///Generic implementation of a list collection.
+    ///</summary>
+    public class List<T>: IList<T>, IList
+    {
+        private int size;
+        private T[] elements;
+        private int serial;
+        
+        ///<summary>
+        ///List enumerator.
+        ///</summary>
+        internal class ListEnumerator: IEnumerator<T>
+        {
+            private List<T> list;
+            private int index;
+            private int serial;
+            
+            public ListEnumerator(List<T> list)
+            {
+                this.list = list;
+                this.serial = list.serial;
+                Reset();
+            }
+            
+            public void Reset()
+            {
+                // Don't allow modification.
+                if(serial != list.serial)
+                    throw new InvalidOperationException("The list has been modified.");
+                    
+                // Position before the first element.
+                index = -1;
+            }
+            
+            public bool MoveNext()
+            {
+                // Don't allow modification.
+                if(serial != list.serial)
+                    throw new InvalidOperationException("The list has been modified.");
+
+                // Avoid getting past the end
+                if(index >= list.size)
+                    return false;
+                    
+                // Increase the index.
+                ++index;
+                return index < list.size;
+            }
+            
+            public object IEnumerator.Current {
+                get {
+                    return Current;
+                }
+            }
+            
+            public T Current {
+                get {
+                    // Don't allow modification.
+                    if(serial != list.serial)
+                        throw new InvalidOperationException("The list has been modified.");
+                    else if(index < 0 || index >= list.size)
+                        throw new InvalidOperationException("Current instance is positioned before the first element or after the last element");
+                    return list.elements[index];
+                }
+            }
+        }
+        
+        public List()
+        {
+            size = 0;
+            serial = 0;
+            elements = null;
+        }
+        
+        public List(int capacity)
+        {
+            size = 0;
+            elements = new T[capacity];
+        }
+        
+        ///ICollection<T> elements
+        public void Add(T element)
+        {
+            if(size == Capacity)
+                IncreaseCapacity();
+            elements[size++] = element;
+            ++serial;
+        }
+        
+        public void Clear()
+        {
+            // Delete the elements.
+            for(int i = 0; i < Capacity; ++i)
+                elements[i] = default(T);
+            
+            // Set the size to null.
+            size = 0;
+            ++serial;
+        }
+        
+        public bool Contains(T element)
+        {
+            // Linear search.
+            for(int i = 0; i < size; ++i)
+            {
+                if(elements[i] == element)
+                    return true;
+            }
+            
+            return false;
+        }
+        
+        public void CopyTo(T[] array, int arrayIndex)
+        {
+            // Copy the elements.
+            for(int i = 0; i < size; ++i)
+                array[arrayIndex + i] = elements[i];
+        }
+        
+        public bool Remove(T item)
+        {
+            // First find the element.
+            int index = -1;
+            for(int i = 0; i < size; ++i)
+            {
+                if(elements[i] == item)
+                {
+                    index = i;
+                    break;
+                }
+            }
+            
+            // Don't remove if not found.
+            if(index < 0)
+                return false;
+                
+            // Remove the element.
+            for(int i = index+1; i < size; ++i)
+                elements[i] = elements[i+1];
+            
+            // Delete the last element.
+            elements[--size] = default(T);
+            ++serial;
+            return true;
+        }
+        
+        public int Count {
+            get {
+                return size;
+            }
+        }
+        
+        public bool IsReadOnly {
+            get {
+                return false;
+            }
+        }
+        
+        //IList<T> methods.
+        public int IndexOf(T item)
+        {
+            // Use a linear search.
+            for(int i = 0; i < size; ++i)
+            {
+                if(elements[i] == item)
+                    return i;
+            }
+            
+            // Not found.
+            return -1;
+        }
+        
+        public void Insert(T item, int index)
+        {
+            throw new NotImplementedException();
+        }
+        
+        public void RemoveAt(int index)
+        {
+            throw new NotImplementedException();
+        }
+        
+        public IEnumerator<T> GetEnumerator()
+        {
+            return new ListEnumerator(this);
+            //throw new NotImplementedException();
+            //for(int i = 0; i < size; ++i)
+            //    yield return elements[i];
+        }
+        
+        public T this[int index] {
+            get {
+                return elements[index];
+            }
+            set {
+                elements[index] = value;
+            }
+        }
+        
+        // ICollection implementation
+        public void ICollection.CopyTo(Array array, int index)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool ICollection.IsSynchronized {
+            get {
+                return false;
+            }
+        }
+        
+        public object ICollection.SyncRoot {
+            get {
+                return this;
+            }
+        }
+
+        // IList implementation
+        public IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+        
+        public int IList.Add(object element)
+        {
+            int ret = Count;
+            Add((T)element);
+            return ret;
+        }
+        
+        public bool IList.Contains(object element)
+        {
+            return Contains((T)element);
+        }
+        
+        public int IList.IndexOf(object element)
+        {
+            return IndexOf((T)element);
+        }
+        
+        public void IList.Insert(int index, object element)
+        {
+            return Insert((T)element, index);
+        }
+        
+        public void IList.Remove(object element)
+        {
+            Remove((T)element);
+        }
+        
+        public object IList.this[int index] {
+            get {
+                return elements[index];
+            }
+            set {
+                elements[index] = (T)value;
+            }
+        }
+        
+        public bool IsFixedSize {
+            get {
+                return false;
+            }
+        }
+        
+        // List specific methods
+        public int Capacity {
+            get {
+                if(elements == null)
+                    return 0;
+                return elements.Length;
+            }
+            set {
+                // Verify the capacity value.
+                if(value < size)
+                    throw new ArgumentOutOfRangeException("capacity", value,
+                        "the capacity cannot be lesser than the list count.");
+                else if(value < 0)
+                    throw new ArgumentException("cannot be negative", "capacity");
+                        
+                // Create the new data store.
+                T[] newElements = new T[value];
+                
+                // Copy the old elements.
+                for(int i = 0; i < size; ++i)
+                    newElements[i] = elements[i];
+                    
+                // Use the new capacity.
+                elements = newElements;
+            }
+        }
+
+        ///<summary>
+        ///Creates an array containing all of the elements in this list.
+        ///</summary>
+        public T[] ToArray()
+        {
+            T[] ret = new T[size];
+            for(int i = 0; i < size; ++i)
+                ret[i] = elements[i];
+            return ret;
+        }
+        
+        private void IncreaseCapacity()
+        {
+            // Use exponential growth.
+            int newCapacity = Capacity << 1;
+            if(newCapacity < 4)
+                newCapacity = 4;
+                
+            // Increase the capacity.
+            Capacity = newCapacity;                
+        }
+    }
+}
+

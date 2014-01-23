@@ -1,0 +1,13 @@
+namespace Chela.Lang
+{
+    ///<summary>
+    ///The kinds of date times.
+    ///</summary>
+    public enum DateTimeKind
+    {
+        Unspecified = 0,
+        Utc,
+        Local,
+    }
+}
+

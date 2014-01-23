@@ -1,0 +1,12 @@
+using Chela.Lang;
+
+namespace Chela.Compute
+{
+    ///<summary>
+    ///A compute resource holder common interface.
+    ///</summary>
+    public interface IResourceHolder
+    {
+    }
+}
+

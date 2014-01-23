@@ -1,0 +1,19 @@
+namespace Chela.Gui
+{
+    public struct RenderAttribute
+    {
+        public static const int DoubleBuffer = 1;
+        public static const int Indexed = 2;
+        public static const int RGB = 3;
+        public static const int RGBA = 4;
+        public static const int RedSize = 5;
+        public static const int GreenSize = 6;
+        public static const int BlueSize = 7;
+        public static const int AlphaSize = 8;
+        public static const int DepthSize = 9;
+        public static const int StencilSize = 10;
+        public static const int Window = 11;
+        public static const int Pixmap = 12;
+    }
+}
+

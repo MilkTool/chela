@@ -1,0 +1,64 @@
+namespace System
+{
+    // Basic types.
+    public typedef Chela.Lang.Array Array;
+    public typedef Chela.Lang.Attribute Attribute;
+    public typedef Chela.Lang.AttributeTargets AttributeTargets;
+    public typedef Chela.Lang.AttributeUsageAttribute AttributeUsageAttribute;
+    public typedef Chela.Lang.Boolean Boolean;
+    public typedef Chela.Lang.Byte Byte;
+    public typedef Chela.Lang.Char Char;
+    public typedef Chela.Lang.DateTime DateTime;
+    public typedef Chela.Lang.Decimal Decimal;
+    public typedef Chela.Lang.Delegate Delegate;
+    public typedef Chela.Lang.Double Double;
+    public typedef Chela.Lang.Enum Enum;
+    public typedef Chela.Lang.Exception Exception;
+    public typedef Chela.Lang.Int16 Int16;
+    public typedef Chela.Lang.Int32 Int32;
+    public typedef Chela.Lang.Int64 Int64;
+    public typedef Chela.Lang.IntPtr IntPtr;
+    public typedef Chela.Lang.Object Object;
+    public typedef Chela.Lang.SByte SByte;
+    public typedef Chela.Lang.Single Single;
+    public typedef Chela.Lang.String String;
+    public typedef Chela.Lang.TimeSpan TimeSpan;
+    public typedef Chela.Lang.Type Type;
+    public typedef Chela.Lang.UInt16 UInt16;
+    public typedef Chela.Lang.UInt32 UInt32;
+    public typedef Chela.Lang.UInt64 UInt64;
+    public typedef Chela.Lang.UIntPtr UIntPtr;
+    public typedef Chela.Lang.ValueType ValueType;
+
+    // Attributes.
+    public typedef Chela.Lang.FlagsAttribute FlagsAttribute;
+
+    // Events.
+    public typedef Chela.Lang.EventArgs EventArgs;
+    public typedef Chela.Lang.EventHandler EventHandler;
+
+    // Exceptions.
+    public typedef Chela.Lang.ArgumentException ArgumentException;
+    public typedef Chela.Lang.ArgumentNullException ArgumentNullException;
+    public typedef Chela.Lang.ArgumentOutOfRangeException ArgumentOutOfRangeException;
+    public typedef Chela.Lang.BadImageFormatException BadImageFormatException;
+    public typedef Chela.Lang.IndexOutOfRangeException IndexOutOfRangeException;
+    public typedef Chela.Lang.InvalidCastException InvalidCastException;
+    public typedef Chela.Lang.InvalidOperationException InvalidOperationException;
+    public typedef Chela.Lang.NotImplementedException NotImplementedException;
+    public typedef Chela.Lang.NotSupportedException NotSupportedException;
+    public typedef Chela.Lang.NullReferenceException NullReferenceException;
+
+    // Interfaces.
+    public typedef Chela.Lang.IComparable IComparable;
+    public typedef Chela.Lang.ICloneable  ICloneable;
+    public typedef Chela.Lang.IConvertible IConvertible;
+    public typedef Chela.Lang.IDisposable IDisposable;
+    public typedef Chela.Lang.IFormatProvider IFormatProvider;
+
+    // Math
+    public typedef Chela.Lang.Math Math;
+
+    // Console.
+    public typedef Chela.Lang.Console Console;
+}

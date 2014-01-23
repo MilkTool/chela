@@ -1,0 +1,155 @@
+using Chela.Lang;
+using Chela.Text;
+
+namespace Chela.IO
+{
+    /// <summary>
+    /// A string reader.
+    /// </summary>
+    public class StringReader: TextReader
+    {
+        private string str;
+        private StringBuilder lineBuilder;
+        private int position;
+        private bool disposed;
+        
+        protected StringReader(string s)
+        {
+            if(s == null)
+                throw new ArgumentNullException("s");
+            str = s;
+        }
+        
+        /// <summary>
+        /// Closes the text reader.
+        /// </summary>
+        public override void Close()
+        {
+            Dispose(true);
+        }
+        
+        protected override void Dispose(bool disposing)
+        {
+            if(disposing)
+                disposed = true;
+            lineBuilder = null;
+        }
+        
+        /// <summary>
+        /// Gets the next character, without removing it.
+        /// </summary>
+        public override int Peek()
+        {
+            if(disposed)
+                throw new ObjectDisposedException("StringReader");
+            if(position < str.Length)
+                return str[position];
+            return -1;
+        }
+        
+        /// <summary>
+        /// Gets the next character.
+        /// </summary>
+        public override int Read()
+        {
+            if(disposed)
+                throw new ObjectDisposedException("StringReader");
+            if(position < str.Length)
+                return str[position];
+            return -1;
+        }
+        
+        /// <summary>
+        /// Reads at most the characters specified.
+        /// </summary>
+        public override int Read(char[] buffer, int index, int count)
+        {
+            if(disposed)
+                throw new ObjectDisposedException("StringReader");
+                
+            // Compute the amount to read.
+            int toread = count;
+            if(position + count > str.Length)
+                toread = position + count - str.Length;
+            
+            // Read the characters.
+            for(int i = 0; i < toread; ++i)
+                buffer[index + i] = str[position + i];
+            
+            // Increase the position and return the number of readed characters.
+            position += toread;
+            return toread;
+        }
+
+        /// <summary>
+        /// Reads at most the characters specified, blocking if needed.
+        /// </summary>
+        public override int ReadBlock(char[] buffer, int index, int count)
+        {
+            return Read(buffer, index, count);
+        }
+        
+        /// <summary>
+        /// Reads a line of characters.
+        /// </summary>
+        public override string ReadLine()
+        {
+            if(disposed)
+                throw new ObjectDisposedException("StringReader");
+            // Create the line builder.
+            if(lineBuilder == null)
+                lineBuilder = new StringBuilder();
+                
+            // Read the line content.
+            int c = Peek();
+            for(; c >= 0 && c != '\r' && c != '\n'; c = Peek())
+            {
+                // Add the character.
+                lineBuilder.Append((char)Read());
+            }
+            
+            // Skip the optional carriage return.
+            if(c == '\r')
+            {
+                Read();
+                c = Peek();
+            }
+            
+            // Skip the optional newline.
+            if(c == '\n')
+                Read();
+            
+            // Check for the EOF.
+            if(lineBuilder.Length == 0 && c < 0)
+                return null;
+
+            // Return the line content.                
+            return lineBuilder.ToString();
+        }
+        
+        /// <summary>
+        /// Reads all of the characters to the end.
+        /// </summary>
+        public override string ReadToEnd()
+        {
+            if(disposed)
+                throw new ObjectDisposedException("StringReader");
+            
+            // Just return the string when in the begining
+            if(position == 0)
+            {
+                position = str.Length;
+                return str;
+            }
+            else if(position == str.Length)
+            {
+                return string.Empty;
+            }
+
+            string ret = str.Substring(position, str.Length - position);
+            position = str.Length;
+            return ret;
+        }
+    }
+}
+

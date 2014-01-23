@@ -1,0 +1,67 @@
+namespace Chela.Collections
+{
+    public interface IDictionary: ICollection
+    {
+        ///<summary>
+        ///Adds a mapping between key and value, throwing an exception
+        ///if the key already exists.
+        ///</summary>
+        void Add(object key, object value);
+        
+        ///<summary>
+        ///Removes all of the elements from the dictionary.
+        ///</summary>
+        void Clear();
+        
+        ///<summary>
+        ///Does the dictionary containt the key?.
+        ///</summary>
+        bool Contains(object key);
+        
+        ///<summary>
+        ///Retrieves a dictionary enumerator.
+        ///</summary>
+        IDictionaryEnumerator GetEnumerator();
+        
+        ///<summary>
+        ///Removes an entry from the dictionary.
+        ///</summary>
+        void Remove(object key);
+        
+        ///<summary>
+        ///Does the dictionary has a fixed size.
+        ///</summary>
+        bool IsFixedSize {
+            get;
+        }
+        
+        ///<summary>
+        ///Is this a read-only dictionary.
+        ///</summary>
+        bool IsReadOnly {
+            get;
+        }
+        
+        ///<summary>
+        ///Gets or sets an element from the dictionary.
+        ///</summary>
+        object this[object key] {
+            get;
+            set;
+        }
+        
+        ///<summary>
+        ///The keys of this dictionary.
+        ///</summary>
+        ICollection Keys {
+            get;
+        }
+        
+        ///<summary>
+        ///The values of this dictionary.
+        ///</summary>
+        ICollection Values {
+            get;
+        }
+    }
+}

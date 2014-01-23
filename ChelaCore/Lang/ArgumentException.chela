@@ -1,0 +1,40 @@
+namespace Chela.Lang
+{
+    public class ArgumentException: SystemException
+    {
+        private string paramName = string.Empty;
+
+        public ArgumentException()
+        {
+        }
+
+        public ArgumentException(string message)
+            : base(message)
+        {
+        }
+
+        public ArgumentException(string message, Exception innerException)
+            : base(message, innerException)
+        {
+        }
+
+        public ArgumentException(string message, string paramName)
+            : base(message)
+        {
+            this.paramName = paramName;
+        }
+
+        public ArgumentException(string message, string paramName, Exception innerException)
+            : base(message, innerException)
+        {
+            this.paramName = paramName;
+        }
+
+        public string ParamName {
+            get {
+                return paramName;
+            }
+        }
+    }
+}
+

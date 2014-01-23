@@ -1,0 +1,80 @@
+using Chela.Lang;
+
+namespace Chela.Text
+{
+    ///<summary>
+    ///A character set encoder.
+    ///</summary>
+    public abstract class Encoder
+    {
+        protected Encoder()
+        {
+        }
+        
+        ///<summary>
+        ///Encodes the specified characters into a bytes buffer.
+        ///</summary>
+        public unsafe virtual void Convert(char *chars, int charCount, byte *bytes,
+            int byteCount, bool flush, out int charsUsed, out int bytesUsed,
+            out bool completed)
+        {
+        
+        }
+
+        ///<summary>
+        ///Encodes the specified characters into a bytes buffer.
+        ///</summary>
+        public virtual void Convert(char[] chars, int charIndex, int charCount,
+            byte[] bytes, int byteIndex, int byteCount, bool flush,
+            out int charsUsed, out int bytesUsed, out bool completed)
+        {
+        }
+        
+        ///<summary>
+        ///Computes the exact number of bytes required to encode a string.
+        ///</summary>
+        public unsafe virtual int GetByteCount(char* chars, int count, bool flush)
+        {
+            // Create a managed array with the characters.
+            char[] array = new char[count];
+            for(int i = 0; i < count; ++i)
+                array[i] = chars[i];
+            return GetByteCount(array, 0, count, flush);
+        }
+        
+        ///<summary>
+        ///Computes the exact number of bytes required to encode a string.
+        ///</summary>
+        public abstract int GetByteCount(char[] chars, int index, int count, bool flush);
+
+        ///<summary>
+        ///Encodes the specified characters.
+        ///</summary>
+        public virtual unsafe int GetBytes(char* chars, int charCount,
+                                           byte* bytes, int byteCount, bool flush)
+        {
+            // Create a managed array with the characters.
+            char[] charArray = new char[charCount];
+            for(int i = 0; i < charCount; ++i)
+                charArray[i] = chars[i];
+                
+            // Create a buffer for the encoded bytes.
+            byte[] buffer = new byte[byteCount];
+            
+            // Encode the characters.
+            int encoded = GetBytes(charArray, 0, charCount, buffer, 0, flush);
+            
+            // Copy back the encoded characters.
+            for(int i = 0; i < encoded; ++i)
+                bytes[i] = buffer[i];
+            return encoded;
+        }
+        
+        ///<summary>
+        ///Encodes the specified characters.
+        ///</summary>
+        public abstract int GetBytes(char[] chars, int charIndex, int charCount,
+                                     byte[] bytes, int byteIndex, bool flush);
+    }
+}
+

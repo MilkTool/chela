@@ -1,0 +1,16 @@
+namespace Chela.Gui
+{
+    ///<summary>
+    ///Mouse button identifier.
+    ///</summary>
+    public enum MouseButton
+    {
+        Any = 0,
+        Left,
+        Right,
+        Middle,
+        Aux1,
+        Aux2
+    }
+}
+

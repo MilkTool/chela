@@ -1,0 +1,227 @@
+using Chela.IO;
+using Chela.Lang;
+
+namespace Chela.Reflection
+{
+    ///<summary>
+    ///Represents a loaded assembly.
+    ///</summary>
+    public abstract class Assembly
+    {
+        internal unsafe struct RawResourceData
+        {
+            public string name;
+            public byte* data;
+            public int size;
+        }
+
+        internal uint numtypes;
+        internal unsafe TypeInformation **types;
+        internal unsafe NativeModule handle;
+        
+        // Chela portable module fast access.
+        internal unsafe byte *moduleStart;
+        internal unsafe byte *moduleEnd;
+        internal int numresources;
+        internal unsafe RawResourceData *resources;
+        internal int moduleMemberTableSize;
+        internal unsafe void **moduleMemberTable;
+        internal int moduleTypeTableSize;
+        internal unsafe void **moduleTypeTable;
+        internal int moduleStringTableSize;
+        internal unsafe void **moduleStringTable;
+        
+        protected Assembly()
+        {
+        }
+        
+        ///<summary>
+        ///Retrieves a manifest resource information.
+        ///</summary>
+        public virtual ManifestResourceInfo GetManifestResourceInfo(string resourceName)
+        {
+            return null;
+        }
+
+        ///<summary>
+        ///Retrieves a list of all of the resources included.
+        ///</summary>
+        public virtual string[] GetManifestResourceNames()
+        {
+            unsafe {
+                string[] names = new string[numresources];
+                for(int i = 0; i < numresources; ++i)
+                    names[i] = resources[i].name;
+                return names;
+            }
+        }
+        
+        ///<summary>
+        ///Finds a manifest resource name.
+        ///</summary>
+        private unsafe int GetManifestResourceIndex(string name)
+        {
+            // Perform a binary search.
+            int start = 0;
+            int end = numresources;
+            while(start != end)
+            {
+                int middle = (start + end)/2;
+                int comp = string.Compare(name, resources[middle].name);
+                if(comp == 0)
+                    return middle;
+                else if(comp < 0)
+                    end = middle;
+                else
+                    start = middle;
+            }
+
+            // Last resource arrived.
+            if(resources[start].name == name)
+                return start;
+            return -1;
+        }
+
+        ///<summary>
+        ///Gets a stream into a manifest resource.
+        ///</summary>
+        public virtual Stream GetManifestResourceStream(string resourceName)
+        {
+            unsafe {
+                // Find the resource id.
+                int resourceId = GetManifestResourceIndex(resourceName);
+                if(resourceId < 0)
+                    return null;
+                
+                // Create the resource stream.
+                RawResourceData *resource = &resources[resourceId];
+                return new UnmanagedMemoryStream(resource->data, resource->size);
+            }
+        }
+
+        ///<summary>
+        ///Retrieves the types present in the assembly.
+        ///</summary>
+        public virtual Type[] GetTypes()
+        {
+            Type[] ret = new Type[numtypes];
+            unsafe
+            {
+                for(uint i = 0; i < numtypes; ++i)
+                    ret[i] = reinterpret_cast<Type> (types[i]);
+            }
+            return ret;
+        }
+
+        ///<summary>
+        ///Finds the type with a particular name in the assembly.
+        ///</summary>
+        public virtual Type GetType(string name)
+        {
+            return GetType(name, false, false);
+        }
+
+        ///<summary>
+        ///Finds the type with a particular name in the assembly.
+        ///</summary>
+        public virtual Type GetType(string name, bool throwOnError)
+        {
+            return GetType(name, throwOnError, false);
+        }
+
+        ///<summary>
+        ///Finds the type with a particular name in the assembly.
+        ///</summary>
+        public virtual Type GetType(string name, bool throwOnError, bool ignoreCase)
+        {
+            unsafe {
+                if(ignoreCase)
+                    return GetTypeNoCase(name, throwOnError);
+                else
+                    return GetTypeUseCase(name, throwOnError);
+            }
+        }
+
+        private unsafe Type GetTypeUseCase(string name, bool throwOnError)
+        {
+            // Perform a binary search.
+            uint start = 0;
+            uint end = numtypes;
+            Type type;
+            while(start != end)
+            {
+                uint middle = (start + end)/2u;
+                type = reinterpret_cast<Type> (types[middle]);
+                int comp = string.Compare(name, type.fullName);
+                if(comp == 0)
+                    return type;
+                else if(comp < 0)
+                    end = middle;
+                else
+                    start = middle;
+            }
+
+            // Last type arrived.
+            type = reinterpret_cast<Type> (types[start]);
+            if(type.fullName == name)
+                return type;
+            else if(throwOnError)
+                throw new SystemException("Type not found.");
+            return null;
+        }
+        private unsafe Type GetTypeNoCase(string name, bool throwOnError)
+        {
+            // Perform a binary search.
+            uint start = 0;
+            uint end = numtypes;
+            Type type;
+            while(start != end)
+            {
+                uint middle = (start + end)/2u;
+                type = reinterpret_cast<Type> (types[middle]);
+                int comp = string.Compare(name, type.fullName, true);
+                if(comp == 0)
+                    return type;
+                else if(comp < 0)
+                    end = middle;
+                else
+                    start = middle;
+            }
+
+            // Last type arrived.
+            type = reinterpret_cast<Type> (types[start]);
+            if(string.Compare(name, type.fullName, true) == 0)
+                return null;
+            else if(throwOnError)
+                throw new SystemException("Type not found.");
+            return null;
+        }
+
+        ///<summary>
+        ///Loads an assembly from a file.
+        ///</summary>
+        public static Assembly LoadFrom(string assemblyFile)
+        {
+            unsafe
+            {
+                // Load the assembly module.
+                NativeModule module = NativeModule.LoadModule(assemblyFile);
+
+                // Get the assembly data field.
+                void *assemblyData = module.GetSymbolValue("_Chela_AssemblyData_");
+                if(assemblyData == null)
+                    throw new BadImageFormatException("The module is not a Chela assembly.");
+
+                // Cast the assembly data.
+                Assembly assembly = reinterpret_cast<Assembly> (assemblyData);
+
+                // Store the assembly handle.
+                assembly.handle = module;
+
+                // Return the loaded assembly.
+                return assembly;
+            }
+        }
+    }
+}
+

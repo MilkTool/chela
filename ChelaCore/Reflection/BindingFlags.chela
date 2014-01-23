@@ -1,0 +1,30 @@
+using Chela.Lang;
+
+namespace Chela.Reflection
+{
+    [Flags]
+    public enum BindingFlags
+    {
+        Default = 0,	//Default
+        IgnoreCase = 1,	//IgnoreCase
+        DeclaredOnly = 2,	//DeclaredOnly
+        Instance = 4,	//Instance
+        Static = 8,	//Static
+        Public = 16,	//Public
+        NonPublic = 32,	//NonPublic
+        FlattenHierarchy = 64,	//FlattenHierarchy
+        InvokeMethod = 256,	//InvokeMethod
+        CreateInstance = 512,	//CreateInstance
+        GetField = 1024,	//GetField
+        SetField = 2048,	//SetField
+        GetProperty = 4096,	//GetProperty
+        SetProperty = 8192,	//SetProperty
+        PutDispProperty = 16384,	//PutDispProperty
+        PutRefDispProperty = 32768,	//PutRefDispProperty
+        ExactBinding = 65536,	//ExactBinding
+        SuppressChangeType = 131072,	//SuppressChangeType
+        OptionalParamBinding = 262144,	//OptionalParamBinding
+        IgnoreReturn = 16777216,	//IgnoreReturn
+    }
+}
+

@@ -1,0 +1,302 @@
+using Chela.Lang;
+
+namespace Chela.IO
+{
+    struct FILE {}; // Opaque struct.
+    unsafe extern __cdecl FILE *_Chela_IO_Open(int pathSize, const char *path, int mode, int access,
+        int share, int async);
+    unsafe extern __cdecl int _Chela_IO_Close(FILE *stream);
+    unsafe extern __cdecl size_t _Chela_IO_Write(const void *ptr, size_t size, size_t count, FILE *stream);
+    unsafe extern __cdecl size_t _Chela_IO_Read(const void *ptr, size_t size, size_t count, FILE *stream);
+    unsafe extern __cdecl int _Chela_IO_Flush(FILE *stream);
+    unsafe extern __cdecl size_t _Chela_IO_Tell(FILE *stream);
+    unsafe extern __cdecl int _Chela_IO_Seek(FILE *stream, size_t offset, int origin);
+    unsafe extern __cdecl int _Chela_IO_SetLength(FILE *stream, size_t length);
+    unsafe extern __cdecl FILE *_Chela_IO_InvalidFile();
+    unsafe extern __cdecl int _Chela_IO_ErrorNo();
+    unsafe extern __cdecl const sbyte *_Chela_IO_ErrorStr(int error);
+    unsafe extern __cdecl int _Chela_IO_TransError(int error);
+    
+    ///<summary>
+    ///A file stream.
+    ///</summary>
+	public class FileStream: Stream
+    {
+        private const int DefaultBufferSize = 2048; // 2K buffer
+        private unsafe FILE *file;
+        private FileMode mode;
+        private FileAccess access;
+        private FileShare share;
+        private bool async;
+        
+        // Read buffer.
+        private byte[] readBuffer;
+        private int readBufferPosition;
+        
+        // Write buffer.
+        private byte[] writeBuffer;
+        private int writeBufferPosition;
+
+        public FileStream (string filename, FileMode mode)
+            : this(filename, mode, FileAccess.ReadWrite)
+        {
+        }
+        
+        public FileStream (string filename, FileMode mode, FileAccess access)
+            : this(filename, mode, access, FileShare.ReadWrite)
+        {
+        }
+
+        public FileStream (string filename, FileMode mode, FileAccess access,
+                           FileShare share)
+            : this(filename, mode, access, share, DefaultBufferSize)
+        {
+        }
+
+        public FileStream (string filename, FileMode mode, FileAccess access,
+                           FileShare share, int bufferSize)
+            : this(filename, mode, access, share, bufferSize, false)
+        {
+        }
+        
+        public FileStream (string filename, FileMode mode, FileAccess access,
+                           FileShare share, int bufferSize, bool async)
+        {
+            // Make sure the access is acceptable.
+            if(access != FileAccess.ReadWrite && access != FileAccess.Read &&
+               access != FileAccess.Write)
+                throw new ArgumentOutOfRangeException("access");
+
+            // Some modes require write access.
+            bool canWrite = access == FileAccess.Write ||
+                            access == FileAccess.ReadWrite;        
+                            
+            // Make sure the mode is acceptable.
+            switch(mode)
+            {
+            case FileMode.CreateNew:
+                if(!canWrite)
+                    throw new ArgumentOutOfRangeException("mode",
+                        "CreateNew requires write access");
+                break;
+            case FileMode.Create:
+                if(!canWrite)
+                    throw new ArgumentOutOfRangeException("mode",
+                        "Create requires write access");
+                break;
+            case FileMode.Open:
+                break;
+            case FileMode.OpenOrCreate:
+                if(!canWrite)
+                    throw new ArgumentOutOfRangeException("mode",
+                        "OpenOrCreate requires write access");
+                break;
+            case FileMode.Truncate:
+                if(!canWrite)
+                    throw new ArgumentOutOfRangeException("mode",
+                        "Truncate requires write access");
+                break;
+            case FileMode.Append:
+                if(!canWrite)
+                    throw new ArgumentOutOfRangeException("mode",
+                        "Append requires write access");
+                break;
+            default:
+                throw new ArgumentOutOfRangeException("mode");
+            }
+            
+            // Store the file options.
+            this.mode = mode;
+            this.access = access;
+            this.share = share;
+            this.async = async;
+      
+            // Create the read buffer.
+            if(access == FileAccess.Read || access == FileAccess.ReadWrite)
+            {
+                this.readBuffer = new byte[bufferSize];
+                this.readBufferPosition = bufferSize;
+            }   
+                  
+            unsafe
+            {
+                // Open the file.
+                this.file = _Chela_IO_Open(filename.Length, filename.RawData, (int)mode, (int)access,
+                                          (int)share, async ? 1 : 0);
+                 
+                // Make sure it was opened.
+                if(file == _Chela_IO_InvalidFile())
+                {
+                    // Check for the error.
+                    int error = _Chela_IO_ErrorNo();
+                    if(error == _Chela_IO_TransError(IOErrorCode.NameTooLong))
+                        throw new PathTooLongException("Path " + filename + " is too long.");
+                    else if(error == _Chela_IO_TransError(IOErrorCode.NotFound))
+                        throw new FileNotFoundException("File not found.", filename);
+                    else if(error == _Chela_IO_TransError(IOErrorCode.NotDir))
+                        throw new DirectoryNotFoundException("A directory component in the path is not a directory.");
+                    //else if(error == _Chela_IO_TransError(IOErrorCode.Access))
+                    //    throw new SecurityException;
+                    else                    
+                        throw new IOException(new string(_Chela_IO_ErrorStr(error)));
+                }
+            }
+            
+            // Create the read buffer.
+            if(access == FileAccess.Read || access == FileAccess.ReadWrite)
+            {
+                this.readBuffer = new byte[bufferSize];
+                this.readBufferPosition = bufferSize;
+            }   
+            
+            // Create the writting buffer.
+            if(access == FileAccess.Write || access == FileAccess.ReadWrite)
+            {
+                this.writeBuffer = new byte[bufferSize];
+                this.writeBufferPosition = bufferSize;
+            }
+        }
+        
+        protected override void Dispose(bool disposing)
+        {
+            Close();
+        }
+        
+        ///<summary>
+        ///Closes the file.
+        ///</summary>
+        public override void Close()
+        {
+            unsafe {
+                if(file != null)
+                {
+                    _Chela_IO_Close(file);
+                    file = null;
+                }
+            }
+        }
+
+		///<summary>
+		///Flushes the stream bffer.
+		///</summary>	
+        public override void Flush()
+        {
+            unsafe
+            {
+                _Chela_IO_Flush(file);
+            }
+        }
+        
+		///<summary>
+		///Reads data from the stream.
+		///</summary>
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            unsafe {
+                if(!CanRead)
+                    throw new NotSupportedException("The stream doesn't support read operations.");
+                return (int)_Chela_IO_Read(&buffer[offset], 1, (size_t)count, file);
+            }
+        }
+
+		///<summary>
+		///Moves the stream cursor.
+		///</summary>
+        public override long Seek(long offset, SeekOrigin origin)
+        {
+            unsafe {
+                if(!CanSeek)
+                    throw new NotSupportedException("The stream is not seekable.");
+                _Chela_IO_Seek(file, (size_t)offset, (int)origin);
+                return (long)_Chela_IO_Tell(file);
+            }
+        }
+        
+		///<summary>
+		///Sets the length of the current stream.
+		///</summary>
+		public override void SetLength(long value)
+		{
+		    // The stream must support write.
+		    if(!CanWrite)
+		        throw new NotSupportedException("Cannot use SetLength in a stream without writing.");
+
+            unsafe {		        
+                // Set the stream length.
+                _Chela_IO_SetLength(file, (size_t)value);
+            }
+		}
+
+		///<summary>
+		///Writes data into the stream.
+		///</summary>
+        public override void Write(byte [] buffer, int offset, int count)
+        {
+            if(!CanWrite)
+                throw new NotSupportedException("The stream doesn't support write operations.");
+                
+            unsafe {
+                _Chela_IO_Write(&buffer[offset], 1, (size_t)count, file);
+            }
+        }
+        		
+		///<summary>
+		///Is the stream readable?.
+		///<summary>
+		public override bool CanRead {
+		    get {
+		        return access == FileAccess.Read ||
+		               access == FileAccess.ReadWrite;
+		    }
+		}
+		
+		///<summary>
+		///Is the stream seekable?.
+		///<summary>
+		public override bool CanSeek {
+		    get {
+		        return true;
+		    }
+		}
+		
+		///<summary>
+		///Is the stream writable?.
+		///<summary>
+		public override bool CanWrite {
+		    get {
+		        return access == FileAccess.Read ||
+		               access == FileAccess.ReadWrite;
+		    }
+		}
+		
+		///<summary>
+		///Retrieves the stream length.
+		///</summary>
+        public override long Length {
+            get {
+                // Find the length moving to the end.
+                long oldPos = Position;
+                Seek(0, SeekOrigin.End);
+                long length = Position;
+                
+                Seek(oldPos, SeekOrigin.Begin);
+                return length;
+            }
+        }
+		
+		///<summary>
+		///Retrieves the current position in the stream.
+		///</summary>
+        public override long Position {
+            get {
+                unsafe {
+                    return (long)_Chela_IO_Tell(file);
+                }
+            }
+            set {
+                Seek(value, SeekOrigin.Begin);
+            }
+        }
+    };
+}
+

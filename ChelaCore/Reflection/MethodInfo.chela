@@ -1,0 +1,28 @@
+using Chela.Lang;
+
+namespace Chela.Reflection
+{
+    public abstract class MethodInfo: MethodBase
+    {
+        protected Type returnType;
+        
+        ///<summary>
+        ///Returns the member type.
+        ///</summary>
+        public override MemberTypes MemberType {
+            get {
+                return MemberTypes.Method;
+            }
+        }
+
+        ///<summary>
+        ///The method return type.
+        ///</summary>        
+        public virtual Type ReturnType {
+            get {
+                return returnType;
+            }
+        }
+    }
+}
+

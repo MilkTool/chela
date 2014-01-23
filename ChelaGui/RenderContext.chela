@@ -1,0 +1,35 @@
+namespace Chela.Gui
+{
+    ///<summary>
+    ///This class represents a generic canvas
+    ///rendering API context. (such as OpenGL)
+    ///</summary>
+    public abstract class RenderContext
+    {
+        ///<summary>
+        ///Makes this the current rendering context.
+        ///</summary>
+        public abstract bool MakeCurrent(WindowContext window);
+
+        ///<summary>
+        ///Makes this the current rendering context.
+        ///</summary>
+        public bool MakeCurrent(Window window)
+        {
+            return MakeCurrent(window.Context);
+        }
+
+        ///<summary>
+        ///Swaps the current window buffers.
+        ///</summary>
+        public abstract void SwapBuffers();
+
+        ///<summary>
+        ///The display that owns the context.
+        ///</summary>
+        public abstract Display Display {
+            get;
+        }
+    }
+}
+

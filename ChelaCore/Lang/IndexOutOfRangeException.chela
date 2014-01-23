@@ -1,0 +1,27 @@
+namespace Chela.Lang
+{
+    public class IndexOutOfRangeException: SystemException
+    {
+        public IndexOutOfRangeException()
+            : base("The index is out of range.")
+        {
+        }
+
+        public IndexOutOfRangeException(string message)
+            : base(message)
+        {
+        }
+
+        public IndexOutOfRangeException(string message, Exception innerException)
+            : base(message, innerException)
+        {
+        }
+    }
+}
+
+// This function is required by the runtime.
+public __cdecl void __chela_throw_bound__()
+{
+    throw new Chela.Lang.IndexOutOfRangeException();
+}
+

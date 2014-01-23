@@ -1,0 +1,201 @@
+using Chela.Lang;
+using Chela.Graphics;
+using Chela.Graphics.GL2;
+using Chela.Gui;
+using Chela.IO;
+using Chela.Reflection;
+
+namespace NeHeDemo
+{
+    public sealed class Lesson6: Lesson
+    {
+        int[] textures;
+        int filter;
+        vec3 position;
+        vec3 rotation;
+        vec3 rotationSpeed;
+        bool leftPressed, rightPressed, upPressed, downPressed;
+        bool priorPressed, nextPressed;
+        bool lighting;
+        
+        protected override void Initialize()
+        {
+            // Perform standard initialization.
+            base.Initialize();
+            
+            // Load the texture image.
+            Assembly assembly = typeof(Lesson5).Assembly;
+            Stream imageStream = assembly.GetManifestResourceStream("Crate.bmp");
+            Image image = ImageFormatProvider.LoadByExt(imageStream, ".bmp");
+            
+            // Set the camera position.
+            position = vec3(0.0f, 0.0f, 5.0f);
+            
+            // Enable textures.
+            GL.Enable(EnableCap.Texture2D);
+            
+            // Nice perspective correction.
+            GL.Hint(HintTarget.PerspectiveCorrectionHint, HintMode.Nicest);
+            
+            // Create the texture names.
+            textures = new int[3];
+            GL.GenTextures(3, textures);
+            
+            // Create the nearest filtered one.
+            GL.BindTexture(TextureTarget.Texture2D, textures[0]);
+            GL.TexImage2D<byte>(TextureTarget.Texture2D, 0, PixelInternalFormat.Three,
+                image.Width, image.Height, 0, GL2.PixelFormat.Rgb, PixelType.UnsignedByte, image.Pixels);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter,
+                        (int)TextureMinFilter.Nearest);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter,
+                        (int)TextureMagFilter.Nearest);
+                        
+            // Create the linear filtered.
+            GL.BindTexture(TextureTarget.Texture2D, textures[1]);
+            GL.TexImage2D<byte>(TextureTarget.Texture2D, 0, PixelInternalFormat.Three,
+                image.Width, image.Height, 0, GL2.PixelFormat.Rgb, PixelType.UnsignedByte, image.Pixels);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter,
+                        (int)TextureMinFilter.Linear);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter,
+                        (int)TextureMagFilter.Linear);
+
+            // Create the mipmapped.
+            GL.BindTexture(TextureTarget.Texture2D, textures[2]);
+            GL.TexImage2D<byte>(TextureTarget.Texture2D, 0, PixelInternalFormat.Three,
+                image.Width, image.Height, 0, GL2.PixelFormat.Rgb, PixelType.UnsignedByte, image.Pixels);
+            GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter,
+                        (int)TextureMinFilter.LinearMipmapLinear);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter,
+                        (int)TextureMagFilter.Linear);
+
+            GL.Color3(1.0f, 1.0f, 1.0f);
+            
+            // Set a light.
+            float[] lightAmbient = new float[]{0.5f, 0.5f, 0.5f, 1.0f};
+            float[] lightDiffuse = new float[]{1.0f, 1.0f, 1.0f, 1.0f};
+            float[] lightPosition = new float[]{0.0f, 0.0f, 2.0f, 1.0f};
+            GL.Light(LightName.Light0, LightParameter.Ambient, lightAmbient);
+            GL.Light(LightName.Light0, LightParameter.Diffuse, lightDiffuse);
+            GL.Light(LightName.Light0, LightParameter.Position, lightPosition);
+            GL.Enable(EnableCap.Light0);
+        }
+        
+        protected override void Render()
+        {
+            // Clear the screen and the depth buffer.
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+
+            // Reset the screen.            
+            GL.MatrixMode(MatrixMode.Modelview);
+            GL.LoadIdentity();
+            
+            // Move the camera.
+            GL.Translate(-position.x, -position.y, -position.z); 
+            
+            // Perform rotations
+            GL.Rotate(rotation.x, 1.0f, 0.0f, 0.0f);
+            GL.Rotate(rotation.y, 0.0f, 1.0f, 0.0f);
+            GL.Rotate(rotation.z, 0.0f, 0.0f, 1.0f);
+            
+            GL.BindTexture(TextureTarget.Texture2D, textures[filter]);
+            GL.Begin(BeginMode.Quads);
+                // Front Face
+                GL.TexCoord2(0.0f, 0.0f); GL.Vertex3(-1.0f, -1.0f,  1.0f);  // Bottom Left Of The Texture and Quad
+                GL.TexCoord2(1.0f, 0.0f); GL.Vertex3( 1.0f, -1.0f,  1.0f);  // Bottom Right Of The Texture and Quad
+                GL.TexCoord2(1.0f, 1.0f); GL.Vertex3( 1.0f,  1.0f,  1.0f);  // Top Right Of The Texture and Quad
+                GL.TexCoord2(0.0f, 1.0f); GL.Vertex3(-1.0f,  1.0f,  1.0f);  // Top Left Of The Texture and Quad
+                // Back Face
+                GL.TexCoord2(1.0f, 0.0f); GL.Vertex3(-1.0f, -1.0f, -1.0f);  // Bottom Right Of The Texture and Quad
+                GL.TexCoord2(1.0f, 1.0f); GL.Vertex3(-1.0f,  1.0f, -1.0f);  // Top Right Of The Texture and Quad
+                GL.TexCoord2(0.0f, 1.0f); GL.Vertex3( 1.0f,  1.0f, -1.0f);  // Top Left Of The Texture and Quad
+                GL.TexCoord2(0.0f, 0.0f); GL.Vertex3( 1.0f, -1.0f, -1.0f);  // Bottom Left Of The Texture and Quad
+                // Top Face
+                GL.TexCoord2(0.0f, 1.0f); GL.Vertex3(-1.0f,  1.0f, -1.0f);  // Top Left Of The Texture and Quad
+                GL.TexCoord2(0.0f, 0.0f); GL.Vertex3(-1.0f,  1.0f,  1.0f);  // Bottom Left Of The Texture and Quad
+                GL.TexCoord2(1.0f, 0.0f); GL.Vertex3( 1.0f,  1.0f,  1.0f);  // Bottom Right Of The Texture and Quad
+                GL.TexCoord2(1.0f, 1.0f); GL.Vertex3( 1.0f,  1.0f, -1.0f);  // Top Right Of The Texture and Quad
+                // Bottom Face
+                GL.TexCoord2(1.0f, 1.0f); GL.Vertex3(-1.0f, -1.0f, -1.0f);  // Top Right Of The Texture and Quad
+                GL.TexCoord2(0.0f, 1.0f); GL.Vertex3( 1.0f, -1.0f, -1.0f);  // Top Left Of The Texture and Quad
+                GL.TexCoord2(0.0f, 0.0f); GL.Vertex3( 1.0f, -1.0f,  1.0f);  // Bottom Left Of The Texture and Quad
+                GL.TexCoord2(1.0f, 0.0f); GL.Vertex3(-1.0f, -1.0f,  1.0f);  // Bottom Right Of The Texture and Quad
+                // Right face
+                GL.TexCoord2(1.0f, 0.0f); GL.Vertex3( 1.0f, -1.0f, -1.0f);  // Bottom Right Of The Texture and Quad
+                GL.TexCoord2(1.0f, 1.0f); GL.Vertex3( 1.0f,  1.0f, -1.0f);  // Top Right Of The Texture and Quad
+                GL.TexCoord2(0.0f, 1.0f); GL.Vertex3( 1.0f,  1.0f,  1.0f);  // Top Left Of The Texture and Quad
+                GL.TexCoord2(0.0f, 0.0f); GL.Vertex3( 1.0f, -1.0f,  1.0f);  // Bottom Left Of The Texture and Quad
+                // Left Face
+                GL.TexCoord2(0.0f, 0.0f); GL.Vertex3(-1.0f, -1.0f, -1.0f);  // Bottom Left Of The Texture and Quad
+                GL.TexCoord2(1.0f, 0.0f); GL.Vertex3(-1.0f, -1.0f,  1.0f);  // Bottom Right Of The Texture and Quad
+                GL.TexCoord2(1.0f, 1.0f); GL.Vertex3(-1.0f,  1.0f,  1.0f);  // Top Right Of The Texture and Quad
+                GL.TexCoord2(0.0f, 1.0f); GL.Vertex3(-1.0f,  1.0f, -1.0f);  // Top Left Of The Texture and Quad
+            GL.End();
+
+            // Swap the buffers.
+            SwapBuffers();
+        }
+        
+        protected override void KeyChanged(int keyCode, int modifiers, bool pressed)
+        {
+            switch(keyCode)
+            {
+            case KeyCode.F:
+                if(pressed)
+                {
+                    ++filter;
+                    if(filter > 2)
+                        filter = 0;
+                }
+                break;
+            case KeyCode.L:
+                if(pressed)
+                {
+                    lighting = !lighting;
+                    if(lighting)
+                        GL.Enable(EnableCap.Lighting);
+                    else
+                        GL.Disable(EnableCap.Lighting);
+                }
+                break;
+            case KeyCode.Left:
+                leftPressed = pressed;
+                break;
+            case KeyCode.Right:
+                rightPressed = pressed;
+                break;
+            case KeyCode.Up:
+                upPressed = pressed;
+                break;
+            case KeyCode.Down:
+                downPressed = pressed;
+                break;
+            case KeyCode.Prior:
+                priorPressed = pressed;
+                break;
+            case KeyCode.Next:
+                nextPressed = pressed;
+                break;
+            }
+        }
+        
+        protected override void Frame(float delta)
+        {
+            if(leftPressed)
+                rotationSpeed += vec3(0.0f, -0.01f, 0.0f);
+            if(rightPressed)
+                rotationSpeed += vec3(0.0f, 0.01f, 0.0f);
+            if(upPressed)
+                rotationSpeed += vec3(-0.01f, 0.0f, 0.0f);
+            if(downPressed)
+                rotationSpeed += vec3(0.01f, 0.0f, 0.0f);
+            if(priorPressed)
+                position += vec3(0.0f, 0.0f, -2.f)*delta;
+            if(nextPressed)
+                position += vec3(0.0f, 0.0f, 2.f)*delta;
+            
+            rotation += rotationSpeed*delta;
+        }
+    }
+}
+

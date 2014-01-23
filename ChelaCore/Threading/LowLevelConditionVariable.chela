@@ -1,0 +1,74 @@
+using Chela.Lang;
+
+namespace Chela.Threading
+{
+    // Condition variable system api.
+    unsafe extern __cdecl void *_Chela_CreateCondition();
+    unsafe extern __cdecl void _Chela_DestroyCondition(void *condition);
+    unsafe extern __cdecl void _Chela_WaitCondition(void *condition, void *mutex);
+    unsafe extern __cdecl void _Chela_TimedWaitCondition(void *condition, void *mutex, int milliseconds);
+    unsafe extern __cdecl void _Chela_NotifyCondition(void *condition);
+    unsafe extern __cdecl void _Chela_NotifyAllCondition(void *condition);
+
+    ///<summary>
+    ///Operating system thin condition variable layer.
+    ///</summary>
+    internal unsafe struct LowLevelConditionVariable
+    {
+        private void *handle;
+
+        ///<summary>
+        ///Creates the low level condition variable handle.
+        ///</summary>
+        public void Initialize()
+        {
+            if(handle != null)
+                throw new InvalidOperationException("low level mutex already initialized.");
+            handle = _Chela_CreateCondition();
+        }
+
+        ///<summary>
+        ///Destroys the low level condition variable handle.
+        ///</summary>
+        public void Destroy()
+        {
+            if(handle == null)
+                throw new InvalidOperationException("low level mutex is not initialized.");
+            _Chela_DestroyCondition(handle);
+            handle = null;
+        }
+
+        ///<summary>
+        ///Waits until the condition is notified.
+        ///</summary>
+        public void Wait(LowLevelMutex *mutex)
+        {
+            _Chela_WaitCondition(handle, mutex->handle);
+        }
+
+        ///<summary>
+        ///Waits until the condition is notified or the time has expired.
+        ///</summary>
+        public void TimedWait(LowLevelMutex *mutex, int milliseconds)
+        {
+            _Chela_TimedWaitCondition(handle, mutex->handle, milliseconds);
+        }
+
+        ///<summary>
+        ///Destroys the low level condition variable handle.
+        ///</summary>
+        public void Notify()
+        {
+            _Chela_NotifyCondition(handle);
+        }
+
+        ///<summary>
+        ///Destroys the low level condition variable handle.
+        ///</summary>
+        public void NotifyAll()
+        {
+            _Chela_NotifyAllCondition(handle);
+        }
+    }
+}
+

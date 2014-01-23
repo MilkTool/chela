@@ -1,0 +1,339 @@
+// THIS CODE IS AUTOMATICALLY GENERATED, DO NOT MODIFY
+
+namespace Chela.Reflection.Emition
+{
+    public enum OpCode
+    {
+        Nop = 0, //<nop> 
+        LoadArg = 1, //<ldarg,u8> 
+        LoadLocal = 2, //<ldloc,u8> 
+        LoadLocalS = 3, //<ldlocs,u16> 
+        StoreLocal = 4, //<stloc,u8> 
+        StoreLocalS = 5, //<stlocs,u16> 
+        LoadField = 6, //<ldfld,fldid> 
+        StoreField = 7, //<stfld,fldid> 
+        LoadValue = 8, //<ldval> 
+        StoreValue = 9, //<stval> 
+        LoadArraySlot = 10, //<ldaslt,tyid> 
+        StoreArraySlot = 11, //<staslt,tyid> 
+        LoadGlobal = 12, //<ldgbl,gblid> 
+        StoreGlobal = 13, //<stgbl,gblid> 
+        LoadSwizzle = 14, //<ldswi,u8,u8> 
+        StoreSwizzle = 15, //<stswi,u8,u8> 
+        LoadLocalAddr = 16, //<ldloca,u16> 
+        LoadLocalRef = 17, //<ldlocr,u16> 
+        LoadFieldAddr = 18, //<ldflda,fldid> 
+        LoadFieldRef = 19, //<ldfldr,fldid> 
+        LoadGlobalAddr = 20, //<ldgbla,gblid> 
+        LoadGlobalRef = 21, //<ldgblr,gblid> 
+        LoadArraySlotAddr = 22, //<ldaslta,tyid> 
+        LoadArraySlotRef = 23, //<ldasltr,tyid> 
+        LoadFunctionAddr = 24, //<ldfna,fnid> 
+        LoadBool = 25, //<ldbool,u8> 
+        LoadChar = 26, //<ldchar,u16> 
+        LoadInt8 = 27, //<ldint8,i8> 
+        LoadUInt8 = 28, //<lduint8,u8> 
+        LoadInt16 = 29, //<ldint16,i16> 
+        LoadUInt16 = 30, //<lduint16,u16> 
+        LoadInt32 = 31, //<ldint32,i32> 
+        LoadUInt32 = 32, //<lduint32,u32> 
+        LoadInt64 = 33, //<ldint64,i64> 
+        LoadUInt64 = 34, //<lduint64,u64> 
+        LoadFp32 = 35, //<ldfp32,fp32> 
+        LoadFp64 = 36, //<ldfp64,fp64> 
+        LoadNull = 37, //<ldnull> 
+        LoadCString = 38, //<ldstr,sid> 
+        LoadString = 39, //<ldstr,sid> 
+        LoadDefault = 40, //<lddef,tyid> 
+        Add = 41, //<add> 
+        Sub = 42, //<sub> 
+        Mul = 43, //<mul> 
+        Div = 44, //<div> 
+        Mod = 45, //<mod> 
+        Neg = 46, //<neg> 
+        ACos = 47, //<acos> 
+        ASin = 48, //<asin> 
+        ATan = 49, //<atan> 
+        ATan2 = 50, //<atan2> 
+        Cos = 51, //<cos> 
+        Ln = 52, //<ln> 
+        Exp = 53, //<exp> 
+        Sqrt = 54, //<sqrt> 
+        Sin = 55, //<sin> 
+        Tan = 56, //<tan> 
+        Dot = 57, //<dot> 
+        Cross = 58, //<cross> 
+        MatMul = 59, //<mmul> 
+        MatInv = 60, //<minv> 
+        Transpose = 61, //<trans> 
+        Not = 62, //<not> 
+        And = 63, //<and> 
+        Or = 64, //<or> 
+        Xor = 65, //<xor> 
+        ShLeft = 66, //<shl> 
+        ShRight = 67, //<shr> 
+        CmpZ = 68, //<cmp.z> 
+        CmpNZ = 69, //<cmp.nz> 
+        CmpEQ = 70, //<cmp.eq> 
+        CmpNE = 71, //<cmp.ne> 
+        CmpLT = 72, //<cmp.lt> 
+        CmpLE = 73, //<cmp.le> 
+        CmpGT = 74, //<cmp.gt> 
+        CmpGE = 75, //<cmp.ge> 
+        IntCast = 76, //<intcast,i8> 
+        IntToFP = 77, //<int2fp,u8> 
+        FPToInt = 78, //<fp2int,i8> 
+        FPCast = 79, //<fpcast,u8> 
+        PtrToSize = 80, //<ptr2sz> 
+        SizeToPtr = 81, //<sz2ptr,tyid> 
+        SizeToRef = 82, //<sz2ref,tyid> 
+        RefToSize = 83, //<ref2sz> 
+        RefToPtr = 84, //<ref2ptr,tyid> 
+        PtrToRef = 85, //<ptr2ref,tyid> 
+        PtrCast = 86, //<ptrcast,tyid> 
+        RefCast = 87, //<refcast,tyid> 
+        BitCast = 88, //<bitcast,tyid> 
+        Cast = 89, //<cast,tyid> 
+        GCast = 90, //<gcast,tyid> 
+        IsA = 91, //<isa,tyid> 
+        NewObject = 92, //<newobj,tyid,fnid,u8> 
+        NewStruct = 93, //<newstr,tyid,fnid,u8> 
+        NewVector = 94, //<newvec,tyid> 
+        NewMatrix = 95, //<newvec,tyid> 
+        NewDelegate = 96, //<newdel,tyid,fnid> 
+        NewArray = 97, //<newarray,tyid> 
+        NewStackObject = 98, //<newskobj,tyid,fnid,u8> 
+        NewStackArray = 99, //<newskrarray,tyid> 
+        NewRawObject = 100, //<newraobj,tyid,fnid,u8> 
+        NewRawArray = 101, //<newrarray,tyid> 
+        DeleteObject = 102, //<delobj> 
+        DeleteRawArray = 103, //<delrarray> 
+        Box = 104, //<box,tyid> 
+        Unbox = 105, //<unbox,tyid> 
+        PrimBox = 106, //<pribox,tyid> 
+        ExtractPrim = 107, //<extpri> 
+        SizeOf = 108, //<sizeof,tyid> 
+        TypeOf = 109, //<typeof,tyid> 
+        Throw = 110, //<throw> 
+        Jmp = 111, //<jmp,bblid> 
+        Br = 112, //<br,bblid,bblid> 
+        JumpResume = 113, //<jmprs,bblid> 
+        Switch = 114, //<switch,jmptbl> 
+        Call = 115, //<call,fnid,u8> 
+        CallVirtual = 116, //<vcall,fnid,u8> 
+        CallIface = 117, //<vcall,tyid,u16,u8> 
+        CallIndirect = 118, //<icall,u8> 
+        CallDynamic = 119, //<dcall,u8> 
+        BindKernel = 120, //<bindk,tyid,fnid> 
+        Ret = 121, //<ret> 
+        RetVoid = 122, //<retv> 
+        Checked = 123, //<checked> 
+        Push = 124, //<push,u8> 
+        Pop = 125, //<pop> 
+        Dup = 126, //<dup,u8> 
+        Dup1 = 127, //<dup1> 
+        Dup2 = 128, //<dup2> 
+        Remove = 129, //<rm,u8> 
+        Invalid = 130, //<invalid> 
+    }
+    
+    public enum InstructionArgumentType
+    {
+        UInt8 = 0,
+        UInt8V = 1,
+        Int8 = 2,
+        Int8V = 3,
+        UInt16 = 4,
+        UInt16V = 5,
+        Int16 = 6,
+        Int16V = 7,
+        UInt32 = 8,
+        UInt32V = 9,
+        Int32 = 10,
+        Int32V = 11,
+        UInt64 = 12,
+        UInt64V = 13,
+        Int64 = 14,
+        Int64V = 15,
+        Fp32 = 16,
+        Fp32V = 17,
+        Fp64 = 18,
+        Fp64V = 19,
+        TypeID = 20,
+        GlobalID = 21,
+        FieldID = 22,
+        FunctionID = 23,
+        StringID = 24,
+        BasicBlockID = 25,
+        JumpTable = 26
+    }
+
+    public sealed class InstructionDescription
+    {
+        private string mnemonic;
+        private InstructionArgumentType[] args;
+        private string description;
+
+        public InstructionDescription(string mnemonic, InstructionArgumentType[] args, string description)
+        {
+            this.mnemonic = mnemonic;
+            this.args = args;
+            this.description = description;
+        }
+
+        public string GetMnemonic()
+        {
+            return this.mnemonic;
+        }
+
+        public InstructionArgumentType[] GetArguments()
+        {
+            return this.args;
+        }
+
+        public string GetDescription()
+        {
+            return this.description;
+        }
+
+        private static InstructionDescription[] instructionTable = new InstructionDescription[]
+        {
+            new InstructionDescription("nop", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("ldarg", new InstructionArgumentType[] {InstructionArgumentType.UInt8}, ""),
+            new InstructionDescription("ldloc", new InstructionArgumentType[] {InstructionArgumentType.UInt8}, ""),
+            new InstructionDescription("ldlocs", new InstructionArgumentType[] {InstructionArgumentType.UInt16}, ""),
+            new InstructionDescription("stloc", new InstructionArgumentType[] {InstructionArgumentType.UInt8}, ""),
+            new InstructionDescription("stlocs", new InstructionArgumentType[] {InstructionArgumentType.UInt16}, ""),
+            new InstructionDescription("ldfld", new InstructionArgumentType[] {InstructionArgumentType.FieldID}, ""),
+            new InstructionDescription("stfld", new InstructionArgumentType[] {InstructionArgumentType.FieldID}, ""),
+            new InstructionDescription("ldval", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("stval", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("ldaslt", new InstructionArgumentType[] {InstructionArgumentType.TypeID}, ""),
+            new InstructionDescription("staslt", new InstructionArgumentType[] {InstructionArgumentType.TypeID}, ""),
+            new InstructionDescription("ldgbl", new InstructionArgumentType[] {InstructionArgumentType.GlobalID}, ""),
+            new InstructionDescription("stgbl", new InstructionArgumentType[] {InstructionArgumentType.GlobalID}, ""),
+            new InstructionDescription("ldswi", new InstructionArgumentType[] {InstructionArgumentType.UInt8, InstructionArgumentType.UInt8}, ""),
+            new InstructionDescription("stswi", new InstructionArgumentType[] {InstructionArgumentType.UInt8, InstructionArgumentType.UInt8}, ""),
+            new InstructionDescription("ldloca", new InstructionArgumentType[] {InstructionArgumentType.UInt16}, ""),
+            new InstructionDescription("ldlocr", new InstructionArgumentType[] {InstructionArgumentType.UInt16}, ""),
+            new InstructionDescription("ldflda", new InstructionArgumentType[] {InstructionArgumentType.FieldID}, ""),
+            new InstructionDescription("ldfldr", new InstructionArgumentType[] {InstructionArgumentType.FieldID}, ""),
+            new InstructionDescription("ldgbla", new InstructionArgumentType[] {InstructionArgumentType.GlobalID}, ""),
+            new InstructionDescription("ldgblr", new InstructionArgumentType[] {InstructionArgumentType.GlobalID}, ""),
+            new InstructionDescription("ldaslta", new InstructionArgumentType[] {InstructionArgumentType.TypeID}, ""),
+            new InstructionDescription("ldasltr", new InstructionArgumentType[] {InstructionArgumentType.TypeID}, ""),
+            new InstructionDescription("ldfna", new InstructionArgumentType[] {InstructionArgumentType.FunctionID}, ""),
+            new InstructionDescription("ldbool", new InstructionArgumentType[] {InstructionArgumentType.UInt8}, ""),
+            new InstructionDescription("ldchar", new InstructionArgumentType[] {InstructionArgumentType.UInt16}, ""),
+            new InstructionDescription("ldint8", new InstructionArgumentType[] {InstructionArgumentType.Int8}, ""),
+            new InstructionDescription("lduint8", new InstructionArgumentType[] {InstructionArgumentType.UInt8}, ""),
+            new InstructionDescription("ldint16", new InstructionArgumentType[] {InstructionArgumentType.Int16}, ""),
+            new InstructionDescription("lduint16", new InstructionArgumentType[] {InstructionArgumentType.UInt16}, ""),
+            new InstructionDescription("ldint32", new InstructionArgumentType[] {InstructionArgumentType.Int32}, ""),
+            new InstructionDescription("lduint32", new InstructionArgumentType[] {InstructionArgumentType.UInt32}, ""),
+            new InstructionDescription("ldint64", new InstructionArgumentType[] {InstructionArgumentType.Int64}, ""),
+            new InstructionDescription("lduint64", new InstructionArgumentType[] {InstructionArgumentType.UInt64}, ""),
+            new InstructionDescription("ldfp32", new InstructionArgumentType[] {InstructionArgumentType.Fp32}, ""),
+            new InstructionDescription("ldfp64", new InstructionArgumentType[] {InstructionArgumentType.Fp64}, ""),
+            new InstructionDescription("ldnull", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("ldstr", new InstructionArgumentType[] {InstructionArgumentType.StringID}, ""),
+            new InstructionDescription("ldstr", new InstructionArgumentType[] {InstructionArgumentType.StringID}, ""),
+            new InstructionDescription("lddef", new InstructionArgumentType[] {InstructionArgumentType.TypeID}, ""),
+            new InstructionDescription("add", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("sub", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("mul", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("div", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("mod", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("neg", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("acos", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("asin", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("atan", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("atan2", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("cos", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("ln", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("exp", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("sqrt", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("sin", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("tan", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("dot", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("cross", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("mmul", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("minv", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("trans", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("not", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("and", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("or", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("xor", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("shl", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("shr", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("cmp.z", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("cmp.nz", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("cmp.eq", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("cmp.ne", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("cmp.lt", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("cmp.le", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("cmp.gt", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("cmp.ge", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("intcast", new InstructionArgumentType[] {InstructionArgumentType.Int8}, ""),
+            new InstructionDescription("int2fp", new InstructionArgumentType[] {InstructionArgumentType.UInt8}, ""),
+            new InstructionDescription("fp2int", new InstructionArgumentType[] {InstructionArgumentType.Int8}, ""),
+            new InstructionDescription("fpcast", new InstructionArgumentType[] {InstructionArgumentType.UInt8}, ""),
+            new InstructionDescription("ptr2sz", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("sz2ptr", new InstructionArgumentType[] {InstructionArgumentType.TypeID}, ""),
+            new InstructionDescription("sz2ref", new InstructionArgumentType[] {InstructionArgumentType.TypeID}, ""),
+            new InstructionDescription("ref2sz", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("ref2ptr", new InstructionArgumentType[] {InstructionArgumentType.TypeID}, ""),
+            new InstructionDescription("ptr2ref", new InstructionArgumentType[] {InstructionArgumentType.TypeID}, ""),
+            new InstructionDescription("ptrcast", new InstructionArgumentType[] {InstructionArgumentType.TypeID}, ""),
+            new InstructionDescription("refcast", new InstructionArgumentType[] {InstructionArgumentType.TypeID}, ""),
+            new InstructionDescription("bitcast", new InstructionArgumentType[] {InstructionArgumentType.TypeID}, ""),
+            new InstructionDescription("cast", new InstructionArgumentType[] {InstructionArgumentType.TypeID}, ""),
+            new InstructionDescription("gcast", new InstructionArgumentType[] {InstructionArgumentType.TypeID}, ""),
+            new InstructionDescription("isa", new InstructionArgumentType[] {InstructionArgumentType.TypeID}, ""),
+            new InstructionDescription("newobj", new InstructionArgumentType[] {InstructionArgumentType.TypeID, InstructionArgumentType.FunctionID, InstructionArgumentType.UInt8}, ""),
+            new InstructionDescription("newstr", new InstructionArgumentType[] {InstructionArgumentType.TypeID, InstructionArgumentType.FunctionID, InstructionArgumentType.UInt8}, ""),
+            new InstructionDescription("newvec", new InstructionArgumentType[] {InstructionArgumentType.TypeID}, ""),
+            new InstructionDescription("newvec", new InstructionArgumentType[] {InstructionArgumentType.TypeID}, ""),
+            new InstructionDescription("newdel", new InstructionArgumentType[] {InstructionArgumentType.TypeID, InstructionArgumentType.FunctionID}, ""),
+            new InstructionDescription("newarray", new InstructionArgumentType[] {InstructionArgumentType.TypeID}, ""),
+            new InstructionDescription("newskobj", new InstructionArgumentType[] {InstructionArgumentType.TypeID, InstructionArgumentType.FunctionID, InstructionArgumentType.UInt8}, ""),
+            new InstructionDescription("newskrarray", new InstructionArgumentType[] {InstructionArgumentType.TypeID}, ""),
+            new InstructionDescription("newraobj", new InstructionArgumentType[] {InstructionArgumentType.TypeID, InstructionArgumentType.FunctionID, InstructionArgumentType.UInt8}, ""),
+            new InstructionDescription("newrarray", new InstructionArgumentType[] {InstructionArgumentType.TypeID}, ""),
+            new InstructionDescription("delobj", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("delrarray", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("box", new InstructionArgumentType[] {InstructionArgumentType.TypeID}, ""),
+            new InstructionDescription("unbox", new InstructionArgumentType[] {InstructionArgumentType.TypeID}, ""),
+            new InstructionDescription("pribox", new InstructionArgumentType[] {InstructionArgumentType.TypeID}, ""),
+            new InstructionDescription("extpri", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("sizeof", new InstructionArgumentType[] {InstructionArgumentType.TypeID}, ""),
+            new InstructionDescription("typeof", new InstructionArgumentType[] {InstructionArgumentType.TypeID}, ""),
+            new InstructionDescription("throw", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("jmp", new InstructionArgumentType[] {InstructionArgumentType.BasicBlockID}, ""),
+            new InstructionDescription("br", new InstructionArgumentType[] {InstructionArgumentType.BasicBlockID, InstructionArgumentType.BasicBlockID}, ""),
+            new InstructionDescription("jmprs", new InstructionArgumentType[] {InstructionArgumentType.BasicBlockID}, ""),
+            new InstructionDescription("switch", new InstructionArgumentType[] {InstructionArgumentType.JumpTable}, ""),
+            new InstructionDescription("call", new InstructionArgumentType[] {InstructionArgumentType.FunctionID, InstructionArgumentType.UInt8}, ""),
+            new InstructionDescription("vcall", new InstructionArgumentType[] {InstructionArgumentType.FunctionID, InstructionArgumentType.UInt8}, ""),
+            new InstructionDescription("vcall", new InstructionArgumentType[] {InstructionArgumentType.TypeID, InstructionArgumentType.UInt16, InstructionArgumentType.UInt8}, ""),
+            new InstructionDescription("icall", new InstructionArgumentType[] {InstructionArgumentType.UInt8}, ""),
+            new InstructionDescription("dcall", new InstructionArgumentType[] {InstructionArgumentType.UInt8}, ""),
+            new InstructionDescription("bindk", new InstructionArgumentType[] {InstructionArgumentType.TypeID, InstructionArgumentType.FunctionID}, ""),
+            new InstructionDescription("ret", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("retv", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("checked", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("push", new InstructionArgumentType[] {InstructionArgumentType.UInt8}, ""),
+            new InstructionDescription("pop", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("dup", new InstructionArgumentType[] {InstructionArgumentType.UInt8}, ""),
+            new InstructionDescription("dup1", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("dup2", new InstructionArgumentType[] {}, ""),
+            new InstructionDescription("rm", new InstructionArgumentType[] {InstructionArgumentType.UInt8}, ""),
+            new InstructionDescription("invalid", new InstructionArgumentType[] {}, "")
+        };
+
+        public static InstructionDescription[] GetInstructionTable()
+        {
+            return instructionTable;
+        }
+    }
+}

@@ -1,0 +1,21 @@
+namespace Chela.Lang
+{
+    public class InvalidCastException: SystemException
+    {
+        public InvalidCastException()
+            : base("Tried to perform an invalid cast.")
+        {
+        }
+
+        public InvalidCastException(string message)
+            : base(message)
+        {
+        }
+
+        public InvalidCastException(string message, Exception innerException)
+            : base(message, innerException)
+        {
+        }
+    }
+}
+

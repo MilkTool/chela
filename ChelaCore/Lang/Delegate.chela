@@ -1,0 +1,33 @@
+namespace Chela.Lang
+{
+    public abstract class Delegate
+    {
+        internal object instance;
+        internal unsafe void *function;
+        internal Delegate next;
+
+        public static Delegate Combine(Delegate a, Delegate b)
+        {
+            if(a == null)
+                return b;
+            else if(b == null)
+                return a;
+
+            // Make sure they have the same type.
+            Type typeA = a.GetType();
+            Type typeB = b.GetType();
+            if(typeA != typeB)
+                throw new ArgumentException("a and b are not null and not of the same type.");
+
+            // Build the function set.
+            
+            return null;
+        }
+
+        public static Delegate Remove(Delegate a, Delegate b)
+        {
+            return null;
+        }
+    }
+}
+

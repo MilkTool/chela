@@ -1,0 +1,13 @@
+namespace Chela.Lang
+{
+    ///<summary>
+    ///Implemented by classes supposed to be copied.
+    ///</summary>
+    public interface ICloneable
+    {
+        ///<summary>
+        ///Creates a copy of the class.
+        ///</summary>
+        object Clone();
+    }
+}

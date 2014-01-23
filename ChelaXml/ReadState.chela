@@ -1,0 +1,17 @@
+using Chela.Lang;
+
+namespace Chela.Xml
+{
+    /// <summary>
+    /// The read state of a xml reader.
+    /// </summary>
+    public enum ReadState
+    {
+        Closed = 4,
+        EndOfFile = 3,
+        Error = 2,
+        Initial = 0,
+        Interactive = 1,
+    }
+}
+

@@ -1,0 +1,14 @@
+namespace Chela.TestModule
+{
+    [Test("Strings", Description="String handling tests")]
+    public static class StringTest
+    {
+        [Test("Concat")]
+        public void Concat()
+        {
+            string content = "This is a test text.";
+            //Result("a+b = ab", a+b == res);
+        }
+    }
+}
+

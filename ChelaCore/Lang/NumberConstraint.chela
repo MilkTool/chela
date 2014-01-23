@@ -1,0 +1,10 @@
+namespace Chela.Lang
+{
+    ///<summary>
+    ///A generic constraint used to indicate an integer parameter.
+    ///</summary>
+    public interface NumberConstraint
+    {
+    }
+}
+

@@ -1,0 +1,12 @@
+namespace Chela.Collections
+{
+    ///<summary>
+    ///Compares two object for equality.
+    ///</summary>
+    public interface IEqualityComparer
+    {
+        bool Equals(object a, object b);
+        int GetHashCode(object a);
+    }
+}
+

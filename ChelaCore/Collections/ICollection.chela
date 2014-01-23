@@ -1,0 +1,34 @@
+using Chela.Lang;
+
+namespace Chela.Collections
+{
+    public interface ICollection: IEnumerable
+    {
+        ///<summary>
+        ///Copies the elements from the starting index into the array.
+        ///</summary>
+        void CopyTo(Array array, int index);
+        
+        ///<summary>
+        ///The number of elements in this collection.
+        ///</summary>
+        int Count {
+            get;
+        }
+        
+        ///<summary>
+        ///True if this collection is thread-safe.
+        ///</summary>
+        bool IsSynchronized {
+            get;
+        }
+        
+        ///<summary>
+        ///An object to synchronize the access to this collection.
+        ///</summary>
+        object SyncRoot {
+            get;
+        }
+    }
+}
+

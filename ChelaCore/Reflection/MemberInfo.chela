@@ -1,0 +1,126 @@
+using Chela.Lang;
+
+namespace Chela.Reflection
+{
+    ///<summary>
+    ///The base class for all reflection member.
+    ///</summary>
+    public abstract class MemberInfo
+    {
+        internal MemberInfo parent;
+        internal Type declaringType;
+        internal int attributes;
+        internal int numCustomAttributes;
+        internal unsafe StandardObject **customAttributes;
+        internal unsafe const sbyte *name;
+
+        ///<summary>
+        ///Member name.
+        ///</summary>
+        public string Name {
+            get {
+                unsafe
+                {
+                    return new string(name);
+                }
+            }
+        }
+        
+        ///<summary>
+        ///Member declaring type.
+        ///</summary>
+        public Type DeclaringType {
+            get {
+                return declaringType;
+            }
+        }
+
+        ///<summary>
+        ///The member type. In some member this property could not be present.
+        ///</summary>
+        public abstract MemberTypes MemberType {
+            get;
+        }
+        
+        ///<summary>
+        ///Retrieves the custom attributes.
+        ///</summary>
+        public virtual object[] GetCustomAttributes(bool inherit)
+        {
+            object[] ret = new object[numCustomAttributes];
+            unsafe
+            {
+                for(int i = 0; i < numCustomAttributes; ++i)
+                    ret[i] = reinterpret_cast<object> (customAttributes[i]);
+            }
+            return ret;
+        }
+
+        ///<summary>
+        ///Retrieves the custom attributes.
+        ///</summary>
+        public virtual object[] GetCustomAttributes(Type type, bool inherit)
+        {
+            unsafe
+            {
+                // First count the objects.
+                TypeInformation *typeinfo = reinterpret_cast<TypeInformation*> (type);
+                int count = 0;
+                for(int i = 0; i < numCustomAttributes; ++i)
+                {
+                    StandardObject *attr = customAttributes[i];
+                    if(IsObjectBasedIn(attr, typeinfo))
+                        ++count;
+                }
+
+                // Store the attributes.
+                object[] ret = new object[count];
+                int dest = 0;
+                for(int i = 0; i < numCustomAttributes; ++i)
+                {
+                    StandardObject *attr = customAttributes[i];
+                    if(IsObjectBasedIn(attr, typeinfo))
+                        ret[dest++] = reinterpret_cast<object> (attr);
+                }
+
+                if(inherit)
+                    throw new NotImplementedException("inherit");
+
+                return ret;
+            }
+        }
+        
+        ///<summary>
+        ///Check if a member contains some attributes for reflection.
+        ///</summary>
+        internal static bool CheckMemberAttributes(MemberInfo member, MemberTypes types, BindingFlags flags)
+        {
+            // First check the member type.
+            if((member.MemberType & types) == (MemberTypes)0)
+                return false;
+
+            // Now check the member attributes.
+            CommonAttributes attributes = (CommonAttributes)member.attributes;
+            bool isPublic = (attributes & CommonAttributes.AccessMask) == CommonAttributes.Public;
+            bool isStatic = (attributes & CommonAttributes.Static) != CommonAttributes.None;
+            
+            // Check for the access part.
+            if(isPublic && (flags & BindingFlags.Public) == BindingFlags.Default)
+                return false;
+            else if(!isPublic && (flags & BindingFlags.NonPublic) == BindingFlags.Default)
+                return false;
+                
+            // TODO: Check reflection permissions for non-public access.
+            
+            // Check for static.
+            if(isStatic && (flags & BindingFlags.Static) == BindingFlags.Default)
+                return false;
+            else if(!isStatic && (flags & BindingFlags.Instance) == BindingFlags.Default)
+                return false;
+                
+            // Passed all of the checks.
+            return true;
+        }
+    }
+}
+

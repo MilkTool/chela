@@ -1,0 +1,141 @@
+using Chela.Gui;
+
+namespace Chela.Gui.SystemDriver
+{
+    internal class SystemGraphicContext: GraphicContext
+    {
+        private unsafe GC *gc;
+        private Drawable drawable;
+
+        public unsafe SystemGraphicContext(GC *gc, Drawable drawable)
+        {
+            this.gc = gc;
+            this.drawable = drawable;
+        }
+
+        // Notify the driver that drawing has begun.
+        public override void BeginDrawing()
+        {
+            unsafe {
+                _ChGui_GC_BeginDrawing(gc);
+            }
+        }
+
+        // Notify the driver that drawing has ended.
+        public override void EndDrawing()
+        {
+            unsafe {
+                _ChGui_GC_EndDrawing(gc);
+            }
+        }
+
+        // Background color wrapper.
+        public override Color Background {
+            get {
+                unsafe {
+                    return Color(_ChGui_GC_GetBackground(gc));
+                }
+            }
+            set {
+                unsafe {
+                    _ChGui_GC_SetBackground(gc, value.ToInt());
+                }
+            }
+        }
+
+        // Foreground color wrapper.
+        public override Color Foreground {
+            get {
+                unsafe {
+                    return Color(_ChGui_GC_GetForeground(gc));
+                }
+            }
+            set {
+                unsafe {
+                    _ChGui_GC_SetForeground(gc, value.ToInt());
+                }
+            }
+        }
+
+        // Send clear all window command.
+        public override void Clear()
+        {
+            unsafe {
+                _ChGui_GC_Clear(gc);
+            }
+        }
+
+        // Send clear react command.
+        public override void ClearRect(int x0, int y0, int x1, int y1)
+        {
+            unsafe {
+                _ChGui_GC_ClearRect(gc, x0, y0, x1, y1);
+            }
+        }
+
+        // Send draw point command.
+        public override void DrawPoint(int x, int y)
+        {
+            unsafe {
+                _ChGui_GC_DrawPoint(gc, x, y);
+            }
+        }
+
+        // Send draw line command.
+        public override void DrawLine(int x0, int y0, int x1, int y1)
+        {
+            unsafe {
+                _ChGui_GC_DrawLine(gc, x0, y0, x1, y1);
+            }
+        }
+
+        // Send a draw rectangle command.
+        public override void DrawRectangle(int x0, int y0, int x1, int y1)
+        {
+            unsafe {
+                _ChGui_GC_DrawRectangle(gc, x0, y0, x1, y1);
+            }
+        }
+
+        // Send a draw fill rectangle command.
+        public override void DrawFillRectangle(int x0, int y0, int x1, int y1)
+        {
+            unsafe {
+                _ChGui_GC_DrawFillRectangle(gc, x0, y0, x1, y1);
+            }
+        }
+
+        // Send a draw triangle command.
+        public override void DrawTriangle(int x0, int y0, int x1, int y1, int x2, int y2)
+        {
+            unsafe {
+                _ChGui_GC_DrawTriangle(gc, x0, y0, x1, y1, x2, y2);
+            }
+        }
+
+        // Send a draw fill triangle command.
+        public override void DrawFillTriangle(int x0, int y0, int x1, int y1, int x2, int y2)
+        {
+            unsafe {
+                _ChGui_GC_DrawFillTriangle(gc, x0, y0, x1, y1, x2, y2);
+            }
+        }
+
+        // Send a draw horizontal gradient command.
+        public override void DrawHorizGradient(int x0, int y0, int x1, int y1, Color startColor, Color endColor)
+        {
+            unsafe {
+                _ChGui_GC_DrawHorizGradient(gc, x0, y0, x1, y1, startColor.ToInt(), endColor.ToInt());
+            }
+        }
+
+        // Send a draw horizontal gradient command.
+        public override void DrawVertGradient(int x0, int y0, int x1, int y1, Color startColor, Color endColor)
+        {
+            unsafe {
+                _ChGui_GC_DrawVertGradient(gc, x0, y0, x1, y1, startColor.ToInt(), endColor.ToInt());
+            }
+        }
+    }
+}
+

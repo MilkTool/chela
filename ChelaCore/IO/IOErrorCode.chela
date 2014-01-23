@@ -1,0 +1,11 @@
+namespace Chela.IO
+{
+    internal enum IOErrorCode
+    {
+        NameTooLong = 0,
+        NotFound,
+        NotDir,
+        Access,
+    }
+}
+

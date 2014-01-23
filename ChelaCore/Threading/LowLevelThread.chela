@@ -1,0 +1,67 @@
+using Chela.Lang;
+
+namespace Chela.Threading
+{
+    // Thread system api.
+    unsafe extern __cdecl void* _Chela_CreateThread();
+    unsafe extern __cdecl void _Chela_DestroyThread(void* thread);
+    unsafe extern __cdecl void _Chela_StartThread(void* thread, void *entry, void *arg);
+    unsafe extern __cdecl void _Chela_JoinThread(void* thread);
+    unsafe extern __cdecl void _Chela_AbortThread(void* thread);
+
+    ///<summary>
+    ///Operating system thin thread layer.
+    ///</summary>
+    internal unsafe struct LowLevelThread
+    {
+        private void *handle;
+
+        ///<summary>
+        ///Creates the low level thread handle.
+        ///</summary>
+        public void Initialize()
+        {
+            if(handle != null)
+                throw new InvalidOperationException("low level thread already initialized.");
+
+            handle = _Chela_CreateThread();
+        }
+
+        ///<summary>
+        ///Destroys the low level thread handle
+        ///</summary>
+        public void Destroy()
+        {
+            if(handle == null)
+                throw new InvalidOperationException("low level thread is not initialized.");
+
+            _Chela_DestroyThread(handle);
+            handle = null;
+        }
+
+        ///<summary>
+        ///Starts the low level thread
+        ///</summary>
+        public void Start(void (*)(void *arg) entry, void *arg)
+        {
+            _Chela_StartThread(handle, (void*)entry, arg);
+        }
+
+        ///<summary>
+        ///Waits the thread to finish.
+        ///</summary>
+        public void Join()
+        {
+            _Chela_JoinThread(handle);
+        }
+
+        ///<summary>
+        ///Aborts the thread.
+        ///</summary>
+        public void Abort()
+        {
+            _Chela_AbortThread(handle);
+        }
+    }
+}
+

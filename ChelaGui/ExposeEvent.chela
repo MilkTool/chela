@@ -1,0 +1,28 @@
+namespace Chela.Gui
+{
+    /// <summary>
+    /// Expose event arguments.
+    /// </summary>
+    public class ExposeEvent: GuiEvent
+    {
+        public int Count = 0; // The remaining exposes under a series
+        public Rect ExposedRect;
+
+        public ExposeEvent(WindowContext context, GuiEventType type)
+            : base(context, type)
+        {
+        }
+        
+        public ExposeEvent(Window window, GuiEventType type)
+            : base(window, type)
+        {
+        }
+
+    }
+
+    /// <summary>
+    /// Draw event handler.
+    /// </summary>
+    public delegate void ExposeEventHandler(object sender, ExposeEvent args);
+}
+

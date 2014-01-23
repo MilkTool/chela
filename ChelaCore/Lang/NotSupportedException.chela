@@ -1,0 +1,21 @@
+namespace Chela.Lang
+{
+    public class NotSupportedException: SystemException
+    {
+        public NotSupportedException()
+            : base("The feature is not supported.")
+        {
+        }
+
+        public NotSupportedException(string message)
+            : base(message)
+        {
+        }
+
+        public NotSupportedException(string message, Exception innerException)
+            : base(message, innerException)
+        {
+        }
+    }
+}
+

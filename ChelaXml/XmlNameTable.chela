@@ -1,0 +1,30 @@
+using Chela.Lang;
+
+namespace Chela.Xml
+{
+    /// <summary>
+    /// A table that stores uniques strings.
+    /// </summary>
+    public abstract class XmlNameTable
+    {
+        protected XmlNameTable()
+        {
+        }
+        
+        /// <summary>
+        /// Adds the specified string if it doesn't exist in the table.
+        /// </summary>
+        public abstract string Add(string array);
+        
+        /// <summary>
+        /// Looks up the string in the table.
+        /// </summary>
+        public abstract string Get(string array);
+        
+        /// <summary>
+        /// Looks up the string in the table.
+        /// </summary>
+        public abstract string Get(char[] array, int offset, int length);
+    }
+}
+

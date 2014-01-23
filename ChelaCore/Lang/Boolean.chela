@@ -1,0 +1,18 @@
+namespace Chela.Lang
+{
+    public struct Boolean
+    {
+        internal bool __value;
+
+        public override string ToString()
+        {
+            return __value ? "true" : "false";
+        }
+
+        public override int GetHashCode()
+        {
+            return __value ? (int)0xFFFFFFFFu : 0;
+        }
+    }
+}
+

@@ -1,0 +1,32 @@
+using Chela.Lang;
+
+namespace Chela.Reflection
+{
+    ///<summary>
+    ///Field related attributes.
+    ///<summary>
+    [Flags]
+    public enum FieldAttributes
+    {
+        FieldAccessMask = 7,	//FieldAccessMask
+        PrivateScope = 0,	//PrivateScope
+        Private = 1,	//Private
+        FamANDAssem = 2,	//FamANDAssem
+        Assembly = 3,	//Assembly
+        Family = 4,	//Family
+        FamORAssem = 5,	//FamORAssem
+        Public = 6,	//Public
+        Static = 16,	//Static
+        InitOnly = 32,	//InitOnly
+        Literal = 64,	//Literal
+        NotSerialized = 128,	//NotSerialized
+        HasFieldRVA = 256,	//HasFieldRVA
+        SpecialName = 512,	//SpecialName
+        RTSpecialName = 1024,	//RTSpecialName
+        HasFieldMarshal = 4096,	//HasFieldMarshal
+        PinvokeImpl = 8192,	//PinvokeImpl
+        HasDefault = 32768,	//HasDefault
+        ReservedMask = 38144,	//ReservedMask
+    }
+}
+

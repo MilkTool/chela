@@ -1,0 +1,39 @@
+using Chela.Lang;
+
+namespace Chela.Xml
+{
+    /// <summary>
+    /// A table that stores uniques strings.
+    /// </summary>
+    public class NameTable: XmlNameTable
+    {
+        protected NameTable()
+        {
+        }
+        
+        /// <summary>
+        /// Adds the specified string if it doesn't exist in the table.
+        /// </summary>
+        public override string Add(string array)
+        {
+            return null;
+        }
+        
+        /// <summary>
+        /// Looks up the string in the table.
+        /// </summary>
+        public override string Get(string array)
+        {
+            return null;
+        }
+        
+        /// <summary>
+        /// Looks up the string in the table.
+        /// </summary>
+        public override string Get(char[] array, int offset, int length)
+        {
+            return Get(new string(array, offset, length));
+        }
+    }
+}
+

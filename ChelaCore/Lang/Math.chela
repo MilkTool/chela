@@ -1,0 +1,189 @@
+namespace Chela.Lang
+{
+    // API functions
+    internal extern __cdecl double _Chela_Math_Cos(double angle);
+    internal extern __cdecl double _Chela_Math_Sin(double angle);
+    internal extern __cdecl double _Chela_Math_Tan(double angle);
+
+    // Inverse trigonometric functions.
+    internal extern __cdecl double _Chela_Math_ACos(double value);
+    internal extern __cdecl double _Chela_Math_ASin(double value);
+    internal extern __cdecl double _Chela_Math_ATan(double value);
+    internal extern __cdecl double _Chela_Math_ATan2(double y, double x);
+
+    // Exponential, logarithm.
+    internal extern __cdecl double _Chela_Math_Exp(double x);
+    internal extern __cdecl double _Chela_Math_Log(double x);
+    internal extern __cdecl double _Chela_Math_Log10(double x);
+    internal extern __cdecl double _Chela_Math_Sqrt(double x);
+    internal extern __cdecl double _Chela_Math_Pow(double x);
+
+    // Hiperbolic functions
+    internal extern __cdecl double _Chela_Math_Cosh(double angle);
+    internal extern __cdecl double _Chela_Math_Sinh(double angle);
+    internal extern __cdecl double _Chela_Math_Tanh(double angle);
+
+    ///<summary>
+    ///Common mathematical functions.
+    ///</summary>
+	public static class Math
+	{
+		public const double E = 2.71828182845905;
+		public const double PI = 3.14159265358979;
+
+		public kernel sbyte Abs (sbyte x)
+		{
+		    return x >= 0 ? x : -x; 
+		}
+
+		public kernel short Abs (short x)
+		{
+		    return x >= 0 ? x : -x; 
+		}
+
+		public kernel int Abs (int x)
+		{
+		    return x >= 0 ? x : -x; 
+		}
+
+		public kernel long Abs (long x)
+		{
+		    return x >= 0 ? x : -x; 
+		}
+		
+		public kernel float Abs (float x)
+		{
+		    return x >= 0 ? x : -x; 
+		}
+
+		public kernel double Abs (double x)
+		{
+		    return x >= 0 ? x : -x; 
+		}
+				
+		public kernel T Abs<T> (T x)
+		    where T: NumberConstraint		
+		{
+		    return x >= default(T) ? x : -x; 
+		}
+		
+		public kernel uint Max(uint a, uint b)
+		{
+			return a > b ? a : b;
+		}
+		
+		public kernel int Max(int a, int b)
+		{
+			return a > b ? a : b;
+		}
+		
+		public kernel ulong Max(ulong a, ulong b)
+		{
+			return a > b ? a : b;
+		}
+
+		public kernel long Max(long a, long b)
+		{
+			return a > b ? a : b;
+		}
+
+        public kernel size_t Max(size_t a, size_t b)
+        {
+            return a > b ? a : b;
+        }
+		
+		public kernel float Max(float a, float b)
+		{
+			return a > b ? a : b;
+		}
+		
+		public kernel double Max(double a, double b)
+		{
+			return a > b ? a : b;
+		}
+		
+		public kernel T Max<T> (T a, T b)
+		    where T: NumberConstraint
+		{
+		    return a > b ? a : b;
+		}
+		
+		public kernel uint Min(uint a, uint b)
+		{
+			return a < b ? a : b;
+		}
+		
+		public kernel int Min(int a, int b)
+		{
+			return a < b ? a : b;
+		}
+		
+		public kernel ulong Min(ulong a, ulong b)
+		{
+			return a < b ? a : b;
+		}
+		
+		public kernel long Min(long a, long b)
+		{
+			return a < b ? a : b;
+		}
+		
+        public kernel size_t Min(size_t a, size_t b)
+        {
+            return a < b ? a : b;
+        }
+
+		public kernel float Min(float a, float b)
+		{
+			return a < b ? a : b;
+		}
+		
+		public kernel double Min(double a, double b)
+		{
+			return a < b ? a : b;
+		}
+		
+		public kernel T Min<T> (T a, T b)
+		    where T: NumberConstraint
+		{
+		    return a > b ? a : b;
+		}
+		
+		[ChelaIntrinsic("cos")]
+        public double Cos(double angle)
+        {
+            return _Chela_Math_Cos(angle);
+        }
+        
+        [ChelaIntrinsic("cos")]
+        public float Cos(float angle)
+        {
+            return (float)Cos((double)angle);
+        }
+        
+        [ChelaIntrinsic("sin")]
+        public double Sin(double angle)
+        {
+            return _Chela_Math_Sin(angle);
+        }
+        
+        [ChelaIntrinsic("sin")]
+        public float Sin(float angle)
+        {
+            return (float)Sin((double)angle);
+        }
+        
+        [ChelaIntrinsic("tan")]
+        public double Tan(double angle)
+        {
+            return _Chela_Math_Tan(angle);
+        }
+        
+        [ChelaIntrinsic("tan")]
+        public float Tan(float angle)
+        {
+            return (float)Tan((double)angle);
+        }
+	}
+}
+

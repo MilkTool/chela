@@ -1,0 +1,91 @@
+using Chela.Lang;
+
+namespace Chela.Collections.Generic
+{
+    ///<summary>
+    ///Performs basic equality comparison
+    ///</summary>
+    public abstract class EqualityComparer<T>: IEqualityComparer<T>
+    {
+        protected EqualityComparer()
+        {
+        }
+        
+        public abstract int GetHashCode(T a);
+        public abstract bool Equals(T a, T b);
+        
+        public int IEqualityComparer.GetHashCode(object a)
+        {
+            return GetHashCode((T)a);
+        }
+        
+        public bool IEqualityComparer.Equals(object a, object b)
+        {
+            return Equals((T)a, (T)b);
+        }
+        
+        ///<summary>
+        ///Checks equality using the IEquatable implementation of the object.
+        ///</summary>
+        internal class EquatableEquality: EqualityComparer<T>
+        {
+            public EquatableEquality()
+            {
+            }
+            
+            public override int GetHashCode(T a)
+            {
+                return a.GetHashCode();
+            }
+            
+            public override bool Equals(T a, T b)
+            {
+                return ((IEquatable<T>)a).Equals(b);
+            }
+        }
+        
+        ///<summary>
+        ///Checks equality using the IEquatable implementation of the object.
+        ///</summary>
+        internal class ObjectEquality: EqualityComparer<T>
+        {
+            public ObjectEquality()
+            {
+            }
+            
+            public override int GetHashCode(T a)
+            {
+                return a.GetHashCode();
+            }
+            
+            public override bool Equals(T a, T b)
+            {
+                return a.Equals(b);
+            }
+        }
+        
+        // The default comparer.
+        [ThreadStatic]
+        private static EqualityComparer<T> comparer;
+        
+        ///<summary>
+        ///The default equality comparer.
+        ///</summary>
+        public static EqualityComparer<T> Default {
+            get {
+            
+                if(comparer == null)
+                {
+                    if(default(T) is IEquatable<T>)
+                        comparer = new EquatableEquality();
+                    else
+                        comparer = new ObjectEquality();
+                }
+                
+                return comparer;
+            }
+        }
+    }
+    
+}
+

@@ -1,0 +1,25 @@
+namespace Chela.Lang
+{
+    public class ArgumentNullException: ArgumentException
+    {
+        public ArgumentNullException()
+        {
+        }
+
+        public ArgumentNullException(string paramName)
+            : base("Parameter cannot be null", paramName)
+        {
+        }
+
+        public ArgumentNullException(string message, Exception innerException)
+            : base(message, innerException)
+        {
+        }
+
+        public ArgumentNullException(string paramName, string message)
+            : base(message, paramName)
+        {
+        }
+    }
+}
+

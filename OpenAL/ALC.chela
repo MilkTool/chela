@@ -1,0 +1,53 @@
+using Chela.Lang;
+
+namespace Chela.OpenAL
+{
+    // Typedefs used for the pointers.
+    public typedef void ALCdevice;
+    public typedef void ALCcontext;
+    public typedef byte ALCboolean;
+    public typedef sbyte ALCchar;
+    public typedef sbyte ALCbyte;
+    public typedef byte ALCubyte;
+    public typedef short ALCshort;
+    public typedef ushort ALCushort;
+    public typedef int ALCint;
+    public typedef uint ALCuint;
+    public typedef int ALCsizei;
+    public typedef float ALCfloat;
+    public typedef double ALCdouble;
+    public typedef void ALCvoid;
+
+    /// <summary>
+    /// OpenAL bindings.
+    /// </summary>
+    public partial class ALC
+    {
+        /// <summary>
+        /// Loads all of the entry points.
+        /// </summary>
+        public static void LoadAll()
+        {
+            unsafe {
+                Pointers.LoadEntryPoints();
+            }
+        }
+        
+        /// <summary>
+        /// Gets an entry point address.
+        /// </summary>
+        public static unsafe void *GetEntryPoint(const sbyte *entryPointName)
+        {
+            return AL.GetEntryPoint(entryPointName);
+        }
+        
+        /// <summary>
+        /// Gets an entry point address.
+        /// </summary>
+        public static unsafe void *GetEntryPoint(string entryPointName)
+        {
+            return AL.GetEntryPoint(entryPointName);
+        }
+    }
+}
+

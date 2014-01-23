@@ -1,0 +1,351 @@
+namespace Chela.Lang
+{
+    ///<summary>
+    ///A time interval representation.
+    ///</summary>
+    public struct TimeSpan: IComparable, IComparable<TimeSpan>, IEquatable<TimeSpan>
+    {
+        public static readonly TimeSpan MinValue = new TimeSpan(long.MinValue);
+        public static readonly TimeSpan MaxValue = new TimeSpan(long.MaxValue);
+        public static const long TicksPerMillisecond = 10000;
+        public static const long TicksPerSecond = TicksPerMillisecond*1000;
+        public static const long TicksPerMinute = TicksPerSecond*60;
+        public static const long TicksPerHour = TicksPerMinute*60;
+        public static const long TicksPerDay = TicksPerHour*24;
+        public static readonly TimeSpan Zero = new TimeSpan(0);
+
+        internal readonly long ticks;
+
+        ///<summary>
+        ///Construct the time span from a number of ticks.
+        ///</summary>
+        public TimeSpan(long ticks)
+        {
+            this.ticks = ticks;
+        }
+
+        ///<summary>
+        ///Adds another time span.
+        ///</summary>
+        public TimeSpan Add(TimeSpan t)
+        {
+            return new TimeSpan(ticks + t.ticks);
+        }
+
+        ///<summary>
+        ///Compare this time span with another one. If value is null return a positive integer.
+        ///</summary>
+        public int CompareTo(object value)
+        {
+            // Positive integer for null.
+            if(value == null)
+                return 1;
+
+            // Raise an exception if value is not a time span.
+            if(!(value is TimeSpan))
+                throw new ArgumentException("value", "value is not null and is not a TimeSpan");
+
+            // Perform the comparison
+            TimeSpan t = (TimeSpan)value;
+            return (int) ((ticks - t.ticks) >> 32);
+        }
+
+        ///<summary>
+        ///Compare this time span with another one. If value is null return a positive integer.
+        ///</summary>
+        public int CompareTo(TimeSpan value)
+        {
+            // Perform the comparison
+            return (int) ((ticks - value.ticks) >> 32);
+        }
+
+        ///<summary>
+        ///Returns a time span with my absolute value.
+        ///</summary>
+        public TimeSpan Duration()
+        {
+            if(ticks >= 0)
+                return this;
+            return new TimeSpan(-ticks);
+        }
+
+        ///<summary>
+        ///Checks if this time span is equal to another.
+        ///Returns false if obj is null or is not a TimeSpan
+        ///</summary>
+        public override bool Equals(object obj)
+        {
+            if(obj == null || !(obj is TimeSpan))
+                return false;
+            return ticks == ((TimeSpan)obj).ticks;
+        }
+
+        ///<summary>
+        ///Checks if this time span is equal to another.
+        ///</summary>
+        public bool Equals(TimeSpan obj)
+        {
+            return ticks == obj.ticks;
+        }
+
+        ///<summary>
+        ///Checks if a time span is equal to another.
+        ///</summary>
+        public static bool Equals(TimeSpan t1, TimeSpan t2)
+        {
+            return t1.ticks == t2.ticks;
+        }
+
+        ///<summary>
+        ///Gets the hash code of this time span.
+        ///</summary>
+        public override int GetHashCode()
+        {
+            return ticks.GetHashCode();
+        }
+
+        ///<summary>
+        ///Construct a time span with precision to the nearest millsecond.
+        ///</summary>
+        public static TimeSpan FromDays(double days)
+        {
+            return FromTicks((long)(days * TicksPerDay));
+        }
+
+        ///<summary>
+        ///Construct a time span with precision to the nearest millsecond.
+        ///</summary>
+        public static TimeSpan FromHours(double hours)
+        {
+            return FromTicks((long)(hours * TicksPerHour));
+        }
+
+        ///<summary>
+        ///Construct a time span with precision to the nearest millsecond.
+        ///</summary>
+        public static TimeSpan FromMinutes(double minutes)
+        {
+            return FromTicks((long)(minutes * TicksPerMinute));
+        }
+
+        ///<summary>
+        ///Construct a time span with precision to the nearest millsecond.
+        ///</summary>
+        public static TimeSpan FromSeconds(double seconds)
+        {
+            return FromTicks((long)(seconds * TicksPerSecond));
+        }
+
+        ///<summary>
+        ///Construct a time span with precision to the nearest millsecond.
+        ///</summary>
+        public static TimeSpan FromMilliseconds(double milliseconds)
+        {
+            return FromTicks((long)(milliseconds * TicksPerMillisecond));
+        }
+
+        ///<summary>
+        ///Construct a time span with an specified number of ticks
+        ///</summary>
+        public static TimeSpan FromTicks(long ticks)
+        {
+            return new TimeSpan(ticks);
+        }
+
+        ///<summary>
+        ///Returns a negative version of this time span.
+        ///</summary>
+        public TimeSpan Negate()
+        {
+            return new TimeSpan(-ticks);
+        }
+
+        ///<summary>
+        ///Subtracts from me another time span.
+        ///</summary>
+        public TimeSpan Subtract(TimeSpan t)
+        {
+            return new TimeSpan(ticks - t.ticks);
+        }
+
+        ///<summary>
+        ///The number of days in this time span.
+        ///<summary>
+        public int Days {
+            get {
+                return (int) (ticks / TicksPerDay);
+            }
+        }
+
+        ///<summary>
+        ///The number of hours in this time span.
+        ///<summary>
+        public int Hours {
+            get {
+                return (int) (ticks / TicksPerHour);
+            }
+        }
+
+        ///<summary>
+        ///The number of minutes in this time span.
+        ///<summary>
+        public int Minutes {
+            get {
+                return (int) (ticks / TicksPerMinute);
+            }
+        }
+
+        ///<summary>
+        ///The number of seconds in this time span.
+        ///<summary>
+        public int Seconds {
+            get {
+                return (int) (ticks / TicksPerSecond);
+            }
+        }
+
+        ///<summary>
+        ///The number of milliseconds in this time span.
+        ///<summary>
+        public int Milliseconds {
+            get {
+                return (int) (ticks / TicksPerMillisecond);
+            }
+        }
+
+        ///<summary>
+        ///The number of ticks in this time span.
+        ///<summary>
+        public long Ticks {
+            get {
+                return ticks;
+            }
+        }
+
+        ///<summary>
+        ///The total number of days, including fractions.
+        ///<summary>
+        public double TotalDays {
+            get {
+                return (double)ticks / (double)TicksPerDay;
+            }
+        }
+
+        ///<summary>
+        ///The total number of hours, including fractions.
+        ///<summary>
+        public double TotalHours {
+            get {
+                return (double)ticks / (double)TicksPerHour;
+            }
+        }
+
+        ///<summary>
+        ///The total number of minutes, including fractions.
+        ///<summary>
+        public double TotalMinutes {
+            get {
+                return (double)ticks / (double)TicksPerMinute;
+            }
+        }
+
+        ///<summary>
+        ///The total number of seconds, including fractions.
+        ///<summary>
+        public double TotalSeconds {
+            get {
+                return (double)ticks / (double)TicksPerSecond;
+            }
+        }
+
+        ///<summary>
+        ///The total number of milliseconds, including fractions.
+        ///<summary>
+        public double TotalMilliseconds {
+            get {
+                return (double)ticks / (double)TicksPerMillisecond;
+            }
+        }
+
+        ///<summary>
+        ///Adds two time spans.
+        ///</summary>
+        public static TimeSpan operator+(TimeSpan t1, TimeSpan t2)
+        {
+            return new TimeSpan(t1.ticks + t2.ticks);
+        }
+
+        ///<summary>
+        ///Subtract two time spans.
+        ///</summary>
+        public static TimeSpan operator-(TimeSpan t1, TimeSpan t2)
+        {
+            return new TimeSpan(t1.ticks - t2.ticks);
+        }
+
+        ///<summary>
+        ///Returns the negation of the specified time span.
+        ///</summary>
+        public static TimeSpan operator-(TimeSpan t)
+        {
+            return new TimeSpan(-t.ticks);
+        }
+
+        ///<summary>
+        ///Returns the the specified time span.
+        ///</summary>
+        public static TimeSpan operator+(TimeSpan t)
+        {
+            return new TimeSpan(t.ticks);
+        }
+
+        ///<summary>
+        ///Check if a time span is greater than other.
+        ///</summary>
+        public static bool operator>(TimeSpan t1, TimeSpan t2)
+        {
+            return t1.ticks > t2.ticks;
+        }
+
+        ///<summary>
+        ///Check if a time span is greater or equal than other.
+        ///</summary>
+        public static bool operator>=(TimeSpan t1, TimeSpan t2)
+        {
+            return t1.ticks >= t2.ticks;
+        }
+
+        ///<summary>
+        ///Check if a time span is equal to other.
+        ///</summary>
+        public static bool operator==(TimeSpan t1, TimeSpan t2)
+        {
+            return t1.ticks == t2.ticks;
+        }
+
+        ///<summary>
+        ///Check if a time span is not equal to other.
+        ///</summary>
+        public static bool operator!=(TimeSpan t1, TimeSpan t2)
+        {
+            return t1.ticks != t2.ticks;
+        }
+
+        ///<summary>
+        ///Check if a time span is smaller than other.
+        ///</summary>
+        public static bool operator<(TimeSpan t1, TimeSpan t2)
+        {
+            return t1.ticks < t2.ticks;
+        }
+
+        ///<summary>
+        ///Check if a time span is smaller or equal than other.
+        ///</summary>
+        public static bool operator<=(TimeSpan t1, TimeSpan t2)
+        {
+            return t1.ticks <= t2.ticks;
+        }
+    }
+}
+

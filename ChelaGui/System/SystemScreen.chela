@@ -1,0 +1,74 @@
+using Chela.Gui;
+
+namespace Chela.Gui.SystemDriver
+{
+    internal class SystemScreen: Screen
+    {
+        private unsafe SCREEN *screen;
+        private SystemDisplay display;
+        private SystemWindowContext rootWindow;
+
+        internal unsafe SystemScreen(SystemDisplay display, SCREEN *screen)
+        {
+            this.screen = screen;
+            this.display = display;
+            this.rootWindow = new SystemWindowContext(display, _ChGui_Screen_GetRootWindow(screen));
+        }
+
+        public override int Width {
+            get {
+                unsafe {
+                    return _ChGui_Screen_GetWidth(screen);
+                }
+            }
+        }
+
+        public override int Height {
+            get {
+                unsafe {
+                    return _ChGui_Screen_GetHeight(screen);
+                }
+            }
+        }
+
+        public override WindowContext RootWindowContext {
+            get {
+                return rootWindow;
+            }
+        }
+
+        public override RenderContext CreateRenderContext(string type, int[] attributes)
+        {
+            unsafe
+            {
+                // Get the C-String for type context type.
+                sbyte *cstr = type.C_Str();
+                RenderContext res = null;
+                
+                try
+                {
+                    // Get the attributes pointer.
+                    int *attrs = null;
+                    int numattrs = 0;
+                    if(attributes != null)
+                    {
+                        attrs = &attributes[0];
+                        numattrs = attributes.Length;
+                    }
+
+                    // Create the render context.
+                    RENDER_CTX *ctx = _ChGui_Display_CreateRenderContext(display.Handle,
+                                                cstr, screen, numattrs, attrs);
+                    res = new SystemRenderContext(display, ctx);
+                }
+                finally
+                {
+                    delete [] cstr;
+                }
+            
+                return res;
+            }
+        }
+    }
+}
+

@@ -1,0 +1,60 @@
+using Chela.Lang;
+
+namespace Chela.Xml
+{
+    /// <summary>
+    /// Represents an error from a xml document.
+    /// </summary>
+    public class XmlException: SystemException
+    {
+        private int lineNumber, linePosition;
+        
+        public XmlException(string message, Exception innerException)
+         : base(message, innerException)
+        {
+        }
+
+        internal XmlException(string message)
+         : base(message)
+        {
+        }
+
+        internal XmlException(string message, int line, int position, Exception innerException)
+         : base(message, innerException)
+        {
+            lineNumber = line;
+            linePosition = position;
+        }
+        
+        /// <summary>
+        /// The line in which the error occurred.
+        /// </summary>
+        public int LineNumber {
+            get {
+                return lineNumber;
+            }
+        }
+        
+        /// <summary>
+        /// The position in which the error occurred.
+        /// </summary>
+        public int LinePosition {
+            get {
+                return linePosition;
+            }
+        }
+        
+        /// <summary>
+        /// The error message.
+        /// </summary>
+        public override string Message {
+            get {
+                string baseMessage = base.Message;
+                if(lineNumber != 0)
+                    return string.Format("{0}:{1}:{2}", lineNumber, linePosition, baseMessage);
+                return baseMessage;
+            }
+        }
+    }
+}
+

@@ -1,0 +1,23 @@
+using Chela.Lang;
+
+namespace Chela.Text
+{
+    public class UTF8Encoding: ASCIIEncoding
+    {
+        public UTF8Encoding()
+        {
+        }
+        
+        // TODO: Implement this.
+        
+        /// <summary>
+        /// Returns the sequence used to identify a particular encoding.
+        /// </summary>
+        public override byte[] GetPreamble()
+        {
+            return new byte[]{0xEF, 0xBB, 0xBF};
+        }
+        
+    }
+}
+

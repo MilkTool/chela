@@ -1,0 +1,259 @@
+using Chela.Collections;
+using Chela.Lang;
+using Chela.Gui;
+
+namespace Chela.Gui.SystemDriver
+{
+    internal class SystemDisplay: Display
+    {
+        private unsafe DISPLAY *display;
+        private SystemScreen[] screens;
+        private int defaultScreen;
+        private Hashtable windowMap;
+        private FontManager fontManager;
+
+        internal unsafe SystemDisplay(DISPLAY *display)
+        {
+            // Store the display.
+            this.display = display;
+
+            // Allocate the window map.
+            windowMap = new Hashtable();
+
+            // Read the screens.
+            int numScreens = _ChGui_Display_GetScreenCount(display);
+            this.screens = new SystemScreen[numScreens];
+            for(int i = 0; i < numScreens; ++i)
+                this.screens[i] = new SystemScreen(this, _ChGui_Display_GetScreen(display, i));
+
+            // Store the default screen index.
+            this.defaultScreen = _ChGui_Display_GetDefaultScreenIndex(display);
+
+            // Create the system font manager.
+            fontManager = new SystemFontManager(this);
+        }
+
+        internal void RegisterWindow(SystemWindowContext ctx)
+        {
+            unsafe {
+                size_t handle = reinterpret_cast<size_t> (ctx.Handle);
+                windowMap.Add(handle, ctx);
+            }
+        }
+
+        public unsafe DISPLAY *Handle {
+            get {
+                return display;
+            }
+        }
+
+        public override FontManager FontManager {
+            get {
+                return fontManager;
+            }
+        }
+
+        public override int ScreenCount {
+            get {
+                return screens.Length;
+            }
+        }
+
+        public override Screen GetScreen(int index)
+        {
+            return screens[index];
+        }
+
+        public override Screen DefaultScreen {
+            get {
+                return screens[defaultScreen];
+            }
+        }
+
+        public override WindowContext CreateSimpleWindowContext(WindowContext parent, ivec2 position,
+                                                                ivec2 size, int borderWidth, Color border,
+                                                                Color background)
+        {
+            unsafe {
+                // Extract the parent window handle.
+                SystemWindowContext sysParent = (SystemWindowContext)parent;
+                WINDOW *parentWindow = sysParent.Handle;
+
+                // Create the window.
+                WINDOW *window = _ChGui_Display_CreateSimpleWindow
+                    (display, parentWindow, position.x, position.y,
+                     size.x, size.y, borderWidth, border.ToInt(), background.ToInt());
+
+                // Wrap it.
+                return new SystemWindowContext(this, window);
+            }
+        }
+
+        public override WindowContext CreateRenderWindowContext(RenderContext renderContext, WindowContext parent,
+                                                                ivec2 position, ivec2 size, int borderWidth,
+                                                                Color border, Color background)
+        {
+            unsafe {
+                // Extract the render context handle.
+                SystemRenderContext sysRender = (SystemRenderContext)renderContext;
+                RENDER_CTX *renderHandle = sysRender.Handle;
+
+                // Extract the parent window handle.
+                SystemWindowContext sysParent = (SystemWindowContext)parent;
+                WINDOW *parentWindow = sysParent.Handle;
+
+                // Create the window.
+                WINDOW *window = _ChGui_Display_CreateRenderWindow
+                    (display, renderHandle, parentWindow, position.x, position.y,
+                     size.x, size.y, borderWidth, border.ToInt(), background.ToInt());
+
+                // Wrap it.
+                return new SystemWindowContext(this, window);
+            }
+        }
+        
+        private unsafe GuiEvent PollEventImpl()
+        {
+            // Poll the system event.
+            EVENT rawEv;
+            if(!_ChGui_Display_PollEvent(display, &rawEv))
+                return null;
+
+            // Get the associated window context.
+            size_t handle = reinterpret_cast<size_t> (rawEv.window);
+            SystemWindowContext context = null;
+            if(handle != (size_t)0)
+                context = (SystemWindowContext)windowMap[handle];
+
+            // Create the event.
+            GuiEvent ev;
+            //Console.WriteLine("got event " + rawEv.type);
+            switch(rawEv.type)
+            {
+            case GuiEventType.Show:
+            case GuiEventType.Hide:
+            case GuiEventType.Size:
+            case GuiEventType.Close:
+            case GuiEventType.Destroy:
+                ev = new GuiEvent(context, (GuiEventType)rawEv.type);
+                break;
+            case GuiEventType.Expose:
+                {
+                    // Cast the raw event.
+                    EXPOSE_EVENT *rawExpose = (EXPOSE_EVENT*)&rawEv;
+
+                    // Create the expose event
+                    ExposeEvent exposeEv = new ExposeEvent(context, GuiEventType.Expose);
+                    ev = exposeEv;
+
+                    // Fill the attributes.
+                    exposeEv.ExposedRect = Rect(rawExpose->x, rawExpose->y, rawExpose->width, rawExpose->height);
+                    exposeEv.Count = rawExpose->count;
+                }
+                break;
+            case GuiEventType.GotFocus:
+                ev = new GuiEvent(context, GuiEventType.GotFocus);
+                break;
+            case GuiEventType.LostFocus:
+                ev = new GuiEvent(context, GuiEventType.LostFocus);
+                break;
+            case GuiEventType.MouseEnter:
+                ev = new GuiEvent(context, GuiEventType.MouseEnter);
+                break;
+            case GuiEventType.MouseLeave:
+                ev = new GuiEvent(context, GuiEventType.MouseLeave);
+                break;
+            case GuiEventType.ButtonPressed:
+                {
+                    // Cast the raw event.
+                    BUTTON_EVENT *rawButton = (BUTTON_EVENT*)&rawEv;
+
+                    // Create the button event.
+                    ButtonEvent buttonEv = new ButtonEvent(context, GuiEventType.ButtonPressed);
+                    ev = buttonEv;
+
+                    // Read the event attributes.
+                    buttonEv.Position = ivec2(rawButton->x, rawButton->y);
+                    buttonEv.Modifiers = rawButton->modifiers;
+                    buttonEv.Button = (MouseButton)rawButton->button;            
+                }
+                break;
+            case GuiEventType.ButtonReleased:
+                {
+                    // Cast the raw event.
+                    BUTTON_EVENT *rawButton = (BUTTON_EVENT*)&rawEv;
+
+                    // Create the button event.
+                    ButtonEvent buttonEv = new ButtonEvent(context, GuiEventType.ButtonReleased);
+                    ev = buttonEv;
+
+                    // Read the event attributes.
+                    buttonEv.Position = ivec2(rawButton->x, rawButton->y);
+                    buttonEv.Modifiers = rawButton->modifiers;
+                    buttonEv.Button = (MouseButton)rawButton->button;
+                }
+                break;
+            case GuiEventType.MouseMotion:
+                {
+                    // Cast the raw event.
+                    MOTION_EVENT *rawMotion = (MOTION_EVENT*)&rawEv;
+
+                    // Create the button event.
+                    MotionEvent motionEv = new MotionEvent(context, GuiEventType.MouseMotion);
+                    ev = motionEv;
+
+                    // Read the event attributes.
+                    motionEv.Position = ivec2(rawMotion->x, rawMotion->y);
+                    motionEv.Modifiers = rawMotion->modifiers;
+                }
+                break;
+            case GuiEventType.KeyPressed:
+                {
+                    // Cast the raw event.
+                    KEY_EVENT *rawKey = (KEY_EVENT*)&rawEv;
+
+                    // Create the button event.
+                    KeyEvent keyEv = new KeyEvent(context, GuiEventType.KeyPressed);
+                    ev = keyEv;
+
+                    // Read the event attributes.
+                    keyEv.KeySymbol = (KeyCode)rawKey->keySym;
+                    keyEv.UnicodeChar = rawKey->unicode;
+                    keyEv.Modifiers = rawKey->modifiers;
+                }
+                break;
+            case GuiEventType.KeyReleased:
+                {
+                    // Cast the raw event.
+                    KEY_EVENT *rawKey = (KEY_EVENT*)&rawEv;
+
+                    // Create the button event.
+                    KeyEvent keyEv = new KeyEvent(context, GuiEventType.KeyReleased);
+                    ev = keyEv;
+
+                    // Read the event attributes.
+                    keyEv.KeySymbol = (KeyCode)rawKey->keySym;
+                    keyEv.UnicodeChar = rawKey->unicode;
+                    keyEv.Modifiers = rawKey->modifiers;
+                }
+                break;
+            case GuiEventType.Idle:
+                ev = new GuiEvent(context, GuiEventType.Idle);
+                break;
+            default:
+                ev = new GuiEvent(context, GuiEventType.Unknown);
+                break;
+            } 
+
+            // Return the event
+            return ev;
+        }
+        
+        public override GuiEvent PollEvent()
+        {
+            unsafe {
+                return PollEventImpl();
+            }
+        }
+    }
+}

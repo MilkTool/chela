@@ -1,0 +1,189 @@
+using Chela.Lang;
+using Chela.Gui;
+using Chela.Graphics.GL2;
+using Chela.Text;
+
+namespace NeHeDemo
+{
+    public abstract class Lesson
+    {
+        private static int[] glContextAttrs = new int [] {
+            RenderAttribute.DoubleBuffer,
+            RenderAttribute.Window,
+            RenderAttribute.RGBA,
+            RenderAttribute.RedSize, 8,
+            RenderAttribute.BlueSize, 8,
+            RenderAttribute.GreenSize, 8,
+            RenderAttribute.AlphaSize, 8,
+            RenderAttribute.DepthSize, 24,
+        };
+
+        protected RenderContext glContext;
+        protected Canvas glCanvas;
+        protected DateTime lastTime;
+        
+        protected virtual void Initialize()
+        {
+            // Setup the viewport.
+            int w = glCanvas.Width;
+            int h = glCanvas.Height;
+            GL.Viewport(0, 0, w, h);
+  
+            // Set the perspective matrix.
+            GL.MatrixMode(MatrixMode.Projection);
+            GL.LoadIdentity();
+            LoadPerspective(45.0f, (float)w/(float)h, 0.1f, 100.0f);
+                      
+            // Set the model view matrix.
+            GL.MatrixMode(MatrixMode.Modelview);
+            GL.LoadIdentity();
+
+            // Enable depth testing.
+            GL.ClearDepth(1.0f);
+            GL.Enable(EnableCap.DepthTest);
+            GL.DepthFunc(DepthFunction.Lequal);
+            
+            // Nice perspective correction.
+            GL.Hint(HintTarget.PerspectiveCorrectionHint, HintMode.Nicest);
+        }
+        
+        protected virtual void Render()
+        {
+        }
+        
+        protected virtual void Frame(float delta)
+        {
+        }
+        
+        protected virtual void KeyChanged(int keyCode, int modifiers, bool pressed)
+        {
+        }
+    
+        private void OnExpose(object sender, ExposeEvent ev)
+        {
+            // Start drawing.
+            glCanvas.PaintGC.BeginDrawing();
+
+            // Set the current context.
+            if(!glContext.MakeCurrent(glCanvas))
+            {
+                System.Console.WriteLine("Failed to set current context.");
+                return;
+            }
+            
+            // Render.
+            Render();
+
+            // End drawing.
+            glCanvas.PaintGC.EndDrawing();
+        }
+        
+        private void OnIdle(object sender, GuiEvent ev)
+        {
+            // Set the current context.
+            if(!glContext.MakeCurrent(glCanvas))
+            {
+                System.Console.WriteLine("Failed to set current context.");
+                return;
+            }
+
+            // Update the frame data.
+            DateTime newTime = DateTime.Now;
+            Frame((float) (newTime - lastTime).TotalSeconds);
+            
+            // Render.
+            Render();
+
+            // Store the time of the last frame.
+            lastTime = newTime;
+        }
+        
+        private void OnClose(object sender, GuiEvent ev)
+        {
+            Display.Current.Quit();
+        }
+        
+        private void OnKeyPressed(object sender, KeyEvent ev)
+        {
+            KeyChanged(ev.KeySymbol, ev.Modifiers, true);
+        }
+
+        private void OnKeyReleased(object sender, KeyEvent ev)
+        {
+            KeyChanged(ev.KeySymbol, ev.Modifiers, false);
+        }
+        
+        protected void SwapBuffers()
+        {
+            glContext.SwapBuffers();
+        }
+        
+        public int Main(string[] args)
+        {
+            // Get the current display.
+            Display disp = Display.Current;
+
+            // Get the default screen.
+            Screen screen = disp.DefaultScreen;
+
+            // Create a simple window.
+            Frame frame = new Frame(null, ivec2(0,0), ivec2(640,480));
+            frame.Title = "NeHe " + this.GetType();
+            frame.KeyPressed += OnKeyPressed;
+            frame.KeyReleased += OnKeyReleased;
+            frame.Closed += OnClose;
+
+            // Create the opengl context.
+            glContext = screen.CreateRenderContext("OpenGL", glContextAttrs);
+
+            // Create the opengl canvas.
+            glCanvas = new Canvas(glContext, frame, ivec2(0, 0), ivec2(640, 480));
+            glCanvas.Exposed += OnExpose;
+            glCanvas.KeyPressed += OnKeyPressed;
+            glCanvas.KeyReleased += OnKeyReleased;
+
+            // Show the frame.
+            frame.Show();
+            glCanvas.Show();
+
+            // Use the context.
+            if(!glContext.MakeCurrent(glCanvas))
+            {
+                System.Console.WriteLine("Failed to set current context.");
+                return -1;
+            }
+            
+            // Load the OpenGL entry points.
+            GL.LoadAll();
+            Console.WriteLine("OpenGL version " + GL.GetString(StringName.Version));
+            //Console.WriteLine("Extensions: ");
+            //Console.WriteLine(GL.GetString(StringName.Extensions));
+            
+            // Initialize the OpenGL data.
+            Initialize();
+            
+            // Register idle event.
+            lastTime = DateTime.Now;
+            disp.Idle += OnIdle;
+            
+            // Enter into the main loop.
+            disp.MainLoop();
+
+            return 0;
+        }
+        
+        public static void LoadPerspective(float fov, float aspect, float near, float far)
+        {
+            float angle = fov*(float)Math.PI/360.0f;
+            float f = Math.Cos(angle)/Math.Sin(angle);
+            float den = near - far;
+            mat4 projection = 
+                mat4(f/aspect, 0, 0, 0,
+                    0, f, 0, 0,
+                    0, 0, (far + near)/den, 2*far*near/den,
+                    0, 0, -1, 0);
+            GL.LoadTransposeMatrix(ref projection);
+        }
+    }
+}
+

@@ -1,0 +1,26 @@
+using Chela.Lang;
+using Chela.IO;
+using Chela.Reflection;
+using Chela.Text;
+
+namespace Chela.TestModule
+{
+    [Test("Resources", Description="Embedded resources testing.")]
+    public static class ResourceTest
+    {
+        [Test("TestText", Description="Prints the content of an embedded text.")]
+        public void TestText()
+        {
+            Assembly assembly = typeof(ResourceTest).Assembly;
+            Stream text = assembly.GetManifestResourceStream("TestText.txt");
+            long length = text.Length;
+            Console.WriteLine("Text length: {0}", length);
+            StringBuilder sb = new StringBuilder();
+            for(int i = 0; i < length; ++i)
+                sb.Append((char)text.ReadByte());
+            Console.WriteLine(sb.ToString());
+            //Result();
+        }
+    }
+}
+

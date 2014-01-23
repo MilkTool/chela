@@ -1,0 +1,30 @@
+namespace Chela.Collections.Generic
+{
+    public interface IList<T>: ICollection<T>
+    {
+        ///<summary>
+        ///Retrieves the index of a element in the list.
+        ///Returns -1 if the item is not found.
+        ///</summary>
+        int IndexOf(T item);
+        
+        ///<summary>
+        ///Inserts an item in the specified position.
+        ///</summary>
+        void Insert(T item, int index);
+        
+        ///<summary>
+        ///Removes the element in a position.
+        ///</summary>
+        void RemoveAt(int index);
+        
+        ///<summary>
+        ///Provides access to an element in the list.
+        ///</summary>
+        T this[int index] {
+            get;
+            set;
+        }
+    }
+}
+

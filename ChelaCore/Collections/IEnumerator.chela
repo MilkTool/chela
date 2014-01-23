@@ -1,0 +1,27 @@
+namespace Chela.Collections
+{
+    ///<summary>
+    ///An iterator of a collection.
+    ///</summary>
+	public interface IEnumerator
+	{
+	    ///<summary>
+	    ///Moves the iterator to the next element in the collection.
+	    ///</summary>
+		bool MoveNext();
+		
+		///<summary>
+		///Resets the iterator placing it before the first element
+		///in the collection.
+		///</summary>
+		void Reset();
+		
+		///<summary>
+		///The current element pointed by the iterator.
+		///</summary>
+		object Current {
+			get;
+		}
+	}
+}
+

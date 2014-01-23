@@ -1,0 +1,18 @@
+namespace Chela.Lang
+{
+    public struct Single4x4
+    {
+        internal mat4 __value;
+
+        public override string ToString()
+        {
+            return "unimplemented";
+        }
+
+        public override int GetHashCode()
+        {
+            return 0;
+        }
+    }
+}
+

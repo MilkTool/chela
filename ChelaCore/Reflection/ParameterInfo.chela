@@ -1,0 +1,58 @@
+using Chela.Lang;
+
+namespace Chela.Reflection
+{
+    ///<summary>
+    ///Method parameter info.
+    ///</summary>
+    public class ParameterInfo
+    {
+        protected string name;
+        protected Type parameterType;
+        protected int position;
+        protected int attributes;
+        protected int numcustomAttributes;
+        protected unsafe void **customAttributes;
+        
+        protected ParameterInfo()
+        {
+        }
+        
+        ///<summary>
+        ///The parameter name.
+        ///</summary>
+        public string Name {
+            get {
+                return name;
+            }
+        }
+        
+        ///<summary>
+        ///The parameter type.
+        ///</summary>
+        public Type ParameterType {
+            get {
+                return parameterType;
+            }
+        }
+        
+        ///<summary>
+        ///The parameter position in the function prototype.
+        ///</summary>
+        public int Position {
+            get {
+                return position;
+            }
+        }
+        
+        ///<summary>
+        ///The parameter attributes.
+        ///</summary>
+        public ParameterAttributes Attributes {
+            get {
+                return (ParameterAttributes)attributes;
+            }
+        }
+    }
+}
+

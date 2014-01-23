@@ -1,0 +1,271 @@
+using Chela.Lang;
+
+namespace Chela.Collections
+{
+	public class ArrayList: IList, ICloneable
+	{
+		private const int ReducePercent = 60;
+		private int size;
+		private object[] data;
+
+		private class Iterator: IEnumerator
+		{
+			private ArrayList parent;
+			private int index;
+			
+			public Iterator(ArrayList parent)
+			{
+				this.parent = parent;
+				this.index = -1;
+			}
+			
+			public bool MoveNext()
+			{
+ 				if(this.index < this.parent.size) // Avoid overflow.
+					this.index++;
+				return this.index < this.parent.size;
+			}
+			
+			public void Reset()
+			{
+				this.index = -1;
+			}
+			
+			public object Current {
+				get	{
+					return this.parent.data[this.index];
+				}
+			}
+		}
+		
+		public ArrayList ()
+		{
+			this.size = 0;
+			this.data = null;
+		}
+		
+		public ArrayList (ArrayList copy)
+		{
+			this.size = copy.size;
+			
+			// Copy the elements.
+			this.data = new object[size];
+			for(int i = 0; i < size; ++i)
+			    this.data[i] = copy.data[i];
+		}
+		
+		// ICloneable implementation.
+		public virtual object Clone()
+		{
+		    // Clone my data.
+		    ArrayList cloned = (ArrayList)MemberwiseClone();
+		    
+		    // Copy the array elements.
+		    cloned.data = new object[Capacity];
+       	    for(int i = 0; i < size; ++i)
+       	        cloned.data[i] = data[i];
+		    
+		    return cloned;
+		}
+		
+		// ICollection implementation.
+		public virtual void CopyTo(Array dest, int index)
+		{
+		    throw new NotImplementedException();
+		}
+		
+		public virtual int Count {
+    		get {
+    			return this.size;
+    		}
+		}
+		
+		public virtual bool IsSynchronized {
+		    get {
+		        return false;
+		    }
+		}
+		
+		public virtual object SyncRoot {
+		    get {
+		        return this;
+		    }
+		}
+		
+		// IList implementation.
+		public virtual int Add(object obj)
+		{
+		    // Increase the capacity if needed.
+			if(size >= Capacity)
+				IncreaseCapacity();
+			
+			// Store the object.
+			int index = size++;
+			data[index] = obj;
+			
+			// Return the object index.
+			return index;
+		}
+		
+		public virtual void Clear()
+		{
+		    // Destroy the data store.
+		    data = null;
+		    size = 0;		    
+		}
+		
+		public virtual bool Contains(object value)
+		{
+		    for(int i = 0; i < size; ++i)
+		    {
+		        // Found the object?
+		        if(data[i] == value)
+		            return true;
+		    }
+		    
+		    // Not found		    
+		    return false;
+		}
+		
+		public virtual int IndexOf(object value)
+		{
+		    for(int i = 0; i < size; ++i)
+		    {
+		        // Found the object?
+		        if(data[i] == value)
+		            return i;
+		    }
+		    
+		    // Not found.
+		    return -1;
+		}
+		
+		public virtual void Insert(int index, object value)
+		{
+		    // Check the index range.
+		    if(index < 0 || index > Count)
+		        throw new ArgumentOutOfRangeException("index", index,
+		            "index must be between 0 and Count.");
+		            
+            // Increase the capacity.
+            if(size == Capacity)
+                IncreaseCapacity();
+
+            // Move upward the elements from the index.
+            for(int i = size; i > index; ++i)
+                data[i] = data[i-1];
+                
+            // Store the inserted element.
+            data[index] = value;
+		}
+		
+		public virtual void Remove(object value)
+		{
+		    // Find the index of the element.
+		    int index = IndexOf(value);
+		    
+		    // Remove if found.
+		    if(index >= 0)
+		        RemoveAt(index);
+		}
+		
+		public virtual void RemoveAt(int index)
+		{
+			if(index < 0 || index >= size)
+				throw new IndexOutOfRangeException();
+			
+			// Move lower the elements above the index.
+			for(int i = index; i < this.size-1; i++)
+				this.data[i] = this.data[i+1];
+			
+			// Remove the last element of the list.
+			this.data[--this.size] = null;
+			ReduceCapacity();
+		}
+		
+		public virtual bool IsFixedSize {
+		    get {
+		        return false;
+		    }
+		}
+		
+		public virtual bool IsReadOnly {
+		    get {
+		        return false;
+		    }
+		}
+		
+        public virtual object this[int index] {
+            get {
+			    if(index < 0 || index >= size)
+				    throw new IndexOutOfRangeException();
+			    return this.data[index];
+            }
+            set {
+                if(index < 0 || index >= size)
+                    throw new IndexOutOfRangeException();
+                this.data[index] = value;
+            }
+        }
+
+        // IEnumerable implementation
+		public virtual IEnumerator GetEnumerator()
+		{
+			return new Iterator(this);
+		}
+		
+		// ArrayList specific members.
+        public virtual int Capacity {
+            get {
+                return data != null ? data.Length: 0;
+            }
+            set {
+                if(value < Count)
+                    throw new ArgumentOutOfRangeException("The new capacity is less than current count.");
+
+                // Avoid nop.
+                if(data != null && value == data.Length)
+                    return;
+                    
+                // Create the new store.
+                object[] newData = new object[value];
+                
+                // Copy the data.
+                for(int i = 0; i < size; ++i)
+                    newData[i] = data[i];
+            
+                // Use the new data store.
+                data = newData;                
+            }
+        }
+        
+		// Helper methods.		
+		private void IncreaseCapacity()
+		{
+			// Calculate the new capacity.
+			int newCapacity = Capacity <<1;
+			if(newCapacity == 0)
+				newCapacity = 4;
+
+            // Set the new capacity.
+            Capacity = newCapacity;
+		}
+		
+		private void ReduceCapacity()
+		{
+		    int capacity = Capacity;
+			if(capacity == 0 ||
+			   (capacity>>1)*100 / size > ReducePercent)
+				return;
+			
+			// Calculate the new capacity.
+			int newCapacity = data.Length >>1;
+			if(newCapacity < 4)
+				newCapacity = 4;
+				
+            // Set the new capacity.
+            Capacity = newCapacity;
+		}
+	}
+}
+

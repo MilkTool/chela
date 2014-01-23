@@ -1,0 +1,54 @@
+using Chela.Runtime.Core;
+
+// Standard formatting output.
+namespace Chela.Lang
+{
+    // The base class for all of the object.
+    public class Object
+    {
+        internal uint refdata; // This one is setted up by the runtime.
+
+        public Object()
+        {
+        }
+
+        protected virtual void Finalize()
+        {
+        }
+
+        public virtual int GetHashCode()
+        {
+            unsafe {
+                return (int)reinterpret_cast<size_t> (this);
+            }
+        }
+
+        public virtual string ToString()
+        {
+            return GetType().Name;
+        }
+
+        public virtual bool Equals(object o)
+        {
+            return this == o;
+        }
+        
+        protected object MemberwiseClone()
+        {
+            unsafe {
+                StandardObject *self = reinterpret_cast<StandardObject*> (this);
+                StandardObject *ret = MemoryManager.CloneObject(self);
+                return reinterpret_cast<object> (ret);
+            }
+        }
+
+        public Type GetType()
+        {
+            unsafe {
+                StandardObject *self = reinterpret_cast<StandardObject*> (this);
+                return reinterpret_cast<Type> (self->vtable->type);
+            }
+        }
+    }
+};
+

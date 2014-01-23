@@ -1,0 +1,28 @@
+namespace Chela.Xml
+{
+    /// <summary>
+    /// The type of a xml node.
+    /// </summary>
+    public enum XmlNodeType
+    {
+        Attribute = 2,
+        CDATA = 4,
+        Comment = 8,
+        Document = 9,
+        DocumentFragment = 11,
+        DocumentType = 10,
+        Element = 1,
+        EndElement = 15,
+        EndEntity = 16,
+        Entity = 6,
+        EntityReference = 5,
+        None = 0,
+        Notation = 12,
+        ProcessingInstruction = 7,
+        SignificantWhitespace = 14,
+        Text = 3,
+        Whitespace = 13,
+        XmlDeclaration = 17,
+    }
+}
+

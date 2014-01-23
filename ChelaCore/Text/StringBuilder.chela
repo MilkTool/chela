@@ -1,0 +1,212 @@
+using Chela.Lang;
+
+namespace Chela.Text
+{
+	public class StringBuilder
+	{
+		private const int ReducePercent = 60;
+		private int size;
+		private int capacity;
+		private char[] data;
+
+		public StringBuilder ()
+		{
+			this.size = 0;
+			this.capacity = 0;
+			this.data = null;
+		}
+
+        public StringBuilder(int capacity)
+        {
+            this.size = 0;
+            this.capacity = capacity;
+            this.data = new char[capacity];
+        }
+
+        public StringBuilder(string value)
+        {
+            size = value.Length;
+            capacity = size;
+            data = new char[capacity];
+            for(int i = 0; i < size; ++i)
+                data[i] = value[i];
+        }
+
+		public char this [int index] {
+            get {
+			    if(index < 0 || index >= capacity)
+				    throw new IndexOutOfRangeException();
+			    return this.data[index];
+            }
+            set {
+			    if(index < 0 || index >= capacity)
+				    throw new IndexOutOfRangeException();
+			    this.data[index] = value;
+            }
+		}
+
+		public int Length {
+            get {
+    			return this.size;
+            }
+            set {
+                if(value < 0)
+                    throw new ArgumentOutOfRangeException("Length is less than 0.");
+
+                // Increase the size.
+                if(value > size)
+                {
+                    // Increase the capacity.
+                    if(value > capacity)
+                        Capacity = value;
+
+                    // Pad with spaces.
+                    for(int i = size; i< value; ++i)
+                        data[i] = ' ';
+                }
+            
+                // Store the new size.
+                this.size = value;
+            }
+		}
+
+        public int Capacity {
+            get {
+                return this.capacity;
+            }
+            set {
+                if(value > size)
+                {
+                    // Find smallest power of two that contains the value.
+                    int newcap = 1;
+                    while(newcap < value)
+                        newcap <<= 1;
+
+                    // Allocate the new data.
+                    char[] newData = new char[newcap];
+                    for(int i = 0; i < size; ++i)
+                        newData[i] = data[i];
+
+                    // Store the new data and capacity.
+                    this.data = newData;
+                    this.capacity = newcap;
+                }
+            }
+        }
+
+		public void Append(char c)
+		{
+			if(this.size >= capacity)
+				IncreaseCapacity();
+			this.data[this.size++] = c;
+		}
+		
+		public void Append(string s)
+		{
+            if(s == null)
+                return;
+            
+			while(this.size + s.Length > this.capacity)
+				IncreaseCapacity();
+			
+			for(int i = 0; i < s.Length; i++)
+				this.data[this.size++] = s[i];
+		}
+
+        public void AppendLine()
+        {
+            Append('\n');
+        }
+
+        public void AppendLine(string s)
+        {
+            // Increase the capacity before.
+            if(this.size + s.Length + 1 >= this.capacity)
+                IncreaseCapacity();
+
+            // Append the string and the new line.
+            Append(s);
+            Append('\n');
+        }
+
+		public void Remove(int startIndex, int length)
+		{
+			if(startIndex < 0 || length < 0 || startIndex + length > size)
+				throw new ArgumentOutOfRangeException();
+			
+			// Move lower the elements above the index.
+			for(int i = startIndex; i < startIndex + length; i++)
+				this.data[i] = this.data[i+length];
+			
+			// Shorten the size
+            this.size -= length;
+			ReduceCapacity();
+		}
+		
+		public override string ToString()
+		{
+            if(this.data == null || this.size == 0)
+                return "";
+			return new string(this.data, 0, this.size);
+		}
+
+		public string ToString(int startIndex, int length)
+		{
+            if(startIndex < 0 || length + startIndex > size)
+				throw new ArgumentOutOfRangeException();
+
+            // Use the empty string.
+            if(this.data == null || this.size == 0)
+                return string.Empty;
+
+			return new string(this.data, startIndex, length);
+		}
+		
+		private void IncreaseCapacity()
+		{
+			// Calculate the new capacity.
+			int newCapacity = this.capacity<<1;
+			if(newCapacity < 16)
+				newCapacity = 16;
+			
+			// Create the new array.
+			char[] newData = new char[newCapacity];
+			
+			// Copy the old objects.
+			for(int i = 0; i < this.size; i++)
+				newData[i] = this.data[i];
+			
+			// Set the new store.
+			this.capacity = newCapacity;
+			this.data = newData;
+		}
+		
+		private void ReduceCapacity()
+		{
+			if(this.capacity == 0 ||
+			   (this.capacity>>1)*100/this.size > ReducePercent)
+				return;
+			
+			// Calculate the new capacity.
+			int newCapacity = this.capacity>>1;
+			if(newCapacity < 16)
+				newCapacity = 16;
+			
+			// Make sure we are actually reducng the capacity.
+			if(this.capacity == newCapacity)
+				return;
+			
+			// Create the new array.
+			char[] newData = new char[newCapacity];
+			
+			// Copy the old objects.
+			for(int i = 0; i < size; i++)
+				newData[i] = this.data[i];
+			
+			// Set the new store.
+			this.capacity = newCapacity;
+			this.data = newData;
+		}
+	}
+}
+

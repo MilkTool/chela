@@ -1,0 +1,263 @@
+using Chela.Lang;
+
+namespace Chela.Xml
+{
+    /// <summary>
+    /// A writer that is non-cached, forwards only for generating XML data.
+    /// </summary>
+    public abstract class XmlWriter
+    {
+        protected XmlWriter()
+        {
+        }
+        
+        /// <summary>
+        /// Closes the writer.
+        /// </summary>        
+        public abstract void Close();
+        
+        /// <summary>
+        /// Clears all buffers and make sure the data is written to streams.
+        /// </summary>
+        public abstract void Flush();
+        
+        /// <summary>
+        /// The prefix in the current scope for the given namespace URI.
+        /// </summary>
+        public abstract string LookupPrefix(string ns);
+        
+        /// <summary>
+        /// Writes the attributes in the current position of an XmlReader.
+        /// </summary>
+        public virtual void WriteAttributes(XmlReader reader, bool defattr)
+        {
+        }
+        
+        /// <summary>
+        /// Writes a new attribute.
+        /// </summary>
+        public void WriteAttributeString(string prefix, string localName, string ns, string value)
+        {
+            if(localName == null || localName == string.Empty)
+                throw new ArgumentException("localName");
+            if(WriteState != WriteState.Element)
+                throw new InvalidOperationException("The current write state is not a element.");
+            WriteStartAttribute(prefix, localName, ns);
+            WriteString(value);
+            WriteEndAttribute();
+        }
+        
+        /// <summary>
+        /// Writes a new attribute.
+        /// </summary>
+        public void WriteAttributeString(string localName, string value)
+        {
+            WriteAttributeString(null, localName, null, value);
+        }
+        
+        /// <summary>
+        /// Writes a new attribute.
+        /// </summary>
+        public void WriteAttributeString(string localName, string ns, string value)
+        {
+            WriteAttributeString(null, localName, ns, value);
+        }
+
+        /// <summary>
+        /// Encodes the specified bytes as Base64 and write them.
+        /// </summary>
+        public abstract void WriteBase64(byte[] buffer, int index, int count);
+        
+
+        /// <summary>
+        /// Encodes the specified bytes as BinHex and write them.
+        /// </summary>
+        public abstract void WriteBinHex(byte[] buffer, int index, int count);
+
+        /// <summary>
+        /// Writes a CDATA with the specified text.
+        /// </summary>
+        public abstract void WriteCDATA(string text);
+
+        /// <summary>
+        /// Writes a char entity for the unicode character.
+        /// </summary>
+        public abstract void WriteCharEntity(string text);
+
+        /// <summary>
+        /// Writes a text buffer.
+        /// </summary>
+        public abstract void WriteChars(char[] buffer, int index, int count);
+        
+        /// <summary>
+        /// Writes a comment.
+        /// </summary>
+        public abstract void WriteComment(string text);
+
+        /// <summary>
+        /// Writes a document type declaration.
+        /// </summary>
+        public abstract void WriteDocType(string name, string pubid, string sysid,
+                                string subset);
+
+        /// <summary>
+        /// Writes the specified element string.
+        /// </summary>
+        public void WriteElementString(string localName, string ns, string value)
+        {
+            WriteStartElement(localName, ns);
+            WriteString(value);
+            WriteEndElement();
+        }
+        
+        /// <summary>
+        /// Writes the specified element string.
+        /// </summary>
+        public void WriteElementString(string localName, string value)
+        {
+            WriteElementString(localName, null, value);
+        }
+        
+        /// <summary>
+        /// Closes the attribute started.
+        /// </summary>
+        public abstract void WriteEndAttribute();
+        
+        /// <summary>
+        /// Closes open elements.
+        /// </summary>
+        public abstract void WriteEndDocument();
+
+        /// <summary>
+        /// Closes an open and pops his namespace of the scope.
+        /// </summary>
+        public abstract void WriteEndElement();
+        
+        /// <summary>
+        /// Writes an entity reference.
+        /// </summary>
+        public abstract void WriteEntityRef(string name);
+        
+        /// <summary>
+        /// Closes an open and pops his namespace of the scope.
+        /// </summary>
+        public abstract void WriteFullEndElement();
+        
+        /// <summary>
+        /// Writes the specified name.
+        /// </summary>
+        public abstract void WriteName(string name);
+
+        /// <summary>
+        /// Writes the specified name token.
+        /// </summary>
+        public abstract void WriteNmToken(string name);
+        
+        /// <summary>
+        /// Writes the node found at the current position of the reader and
+        /// all of his sub nodes.
+        /// </summary>
+        public virtual void WriteNode(XmlReader reader, bool defattr)
+        {
+        }
+        
+        /// <summary>
+        /// Writes a processing instruction.
+        /// </summary>
+        public abstract void WriteProcessingInstruction(string name, string text);
+
+        /// <summary>
+        /// Writes a qualified name
+        /// </summary>
+        public abstract void WriteQualifiedName(string localName, string ns);
+
+        /// <summary>
+        /// Writes raw text from a character array.
+        /// </summary>
+        public abstract void WriteRawText(char[] buffer, int index, int count);
+
+        /// <summary>
+        /// Writes raw text.
+        /// </summary>
+        public abstract void WriteRawText(string text);
+
+        /// <summary>
+        /// Writes the start of an attribute.
+        /// </summary>
+        public abstract void WriteStartAttribute(string prefix, string localName,
+            string ns);
+
+        /// <summary>
+        /// Writes the start of an attribute.
+        /// </summary>
+        public void WriteStartAttribute(string localName, string ns)
+        {
+            WriteStartAttribute(null, localName, ns);
+        }
+        
+        /// <summary>
+        /// Writes the XML declaration, version 1.0.
+        /// </summary>
+        public abstract void WriteStartDocument(bool standalone);
+        
+        /// <summary>
+        /// Writes the XML declaration, version 1.0.
+        /// </summary>
+        public abstract void WriteStartDocument();
+        
+        /// <summary>
+        /// Writes a start element with the specified name.
+        /// </summary>
+        public void WriteStartElement(string localName)
+        {
+            WriteStartElement(null, localName, null);
+        }
+
+        /// <summary>
+        /// Writes a start element with the specified name.
+        /// </summary>
+        public void WriteStartElement(string localName, string ns)
+        {
+            WriteStartElement(null, localName, ns);
+        }
+
+        /// <summary>
+        /// Writes a start element with the specified name.
+        /// </summary>
+        public abstract void WriteStartElement(string prefix, string localName, string ns);
+        
+        /// <summary>
+        /// Writes the specified text.
+        /// </summary>
+        public abstract void WriteString(string text);
+        
+        /// <summary>
+        /// Generates a character entity for a surrogate pair.
+        /// </summary>
+        public abstract void WriteSurrogateCharEntity(char lowChar, char highChar);
+        
+        /// <summary>
+        /// Writes the given white space.
+        /// </summary>
+        public abstract void WriteWhitespace(string ws);
+        
+        /// <summary>
+        /// The writer state.
+        /// </summary>
+        public abstract WriteState WriteState {
+            get;
+        }
+        
+        /// <summary>
+        /// The language attribute.
+        /// </summary>
+        public abstract string XmlLang {
+            get;
+        }
+        
+        /// <summary>
+        /// The white space attribute.
+        /// </summary>
+    }
+}
+

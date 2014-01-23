@@ -1,0 +1,77 @@
+using Chela.Lang;
+
+namespace Chela.Reflection
+{
+    unsafe extern __cdecl void *_Chela_Module_Load(int pathSize, const char *name);
+    unsafe extern __cdecl void _Chela_Module_Unload(void *module);
+    unsafe extern __cdecl void *_Chela_Module_GetSymbol(void *module, const sbyte *name);
+    unsafe extern __cdecl const sbyte *_Chela_Module_Error(void *module);
+
+    ///<summary>
+    ///This class represents a native dynamic loaded module(e.g: dll, shared-objects).
+    ///</summary>
+    public unsafe sealed class NativeModule: IDisposable
+    {
+        private void *handle;
+
+        private NativeModule(void *handle)
+        {
+            this.handle = handle;
+        }
+
+        ~NativeModule()
+        {
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+
+        private void Dispose(bool disposing)
+        {
+            // Unload the module.
+            if(handle != null)
+            {
+                _Chela_Module_Unload(handle);
+                handle = null;
+            }
+
+            // TODO: Suppress GC.
+        }
+
+        ///<summary>
+        ///Retrives the address of a symbol.
+        ///</summary>
+        public void *GetSymbolValue(const sbyte *symbol)
+        {
+            if(handle == null)
+                throw new InvalidOperationException("Disposed module.");
+            return _Chela_Module_GetSymbol(handle, symbol);
+        }
+
+        ///<summary>
+        ///Retrives the address of a symbol.
+        ///</summary>
+        public void *GetSymbolValue(string symbol)
+        {
+            sbyte *cstr = symbol.C_Str();
+            try
+                return GetSymbolValue(cstr);
+            finally
+                delete [] cstr;
+        }
+
+        ///<summary>
+        ///Loads a native module.
+        ///</summary>
+        public static NativeModule LoadModule(string moduleName)
+        {
+            void *handle = _Chela_Module_Load(moduleName.Length, moduleName.RawData);
+            if(handle != null)
+                return new NativeModule(handle);
+            return null;
+        }
+    }
+}

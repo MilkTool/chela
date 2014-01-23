@@ -1,0 +1,41 @@
+using Chela.Lang;
+
+namespace Chela.Collections.Generic
+{
+    ///<summary>
+    ///A key-value pair.
+    ///</summary>
+    public struct KeyValuePair<TKey, TValue>
+    {
+        private TKey key;
+        private TValue value;
+        
+        ///<summary>
+        ///Constructs a key value pair.
+        ///</summary>
+        public KeyValuePair(TKey key, TValue value)
+        {
+            this.key = key;
+            this.value = value;
+        }
+
+        ///<summary>
+        ///Provides access to the key.
+        ///</summary>
+        public TKey Key {
+            get {
+                return key;
+            }
+        }
+        
+        ///<summary>
+        ///Provides access to the value.
+        ///</summary>
+        public TValue Value {
+            get {
+                return value;
+            }
+        }
+    }
+}
+

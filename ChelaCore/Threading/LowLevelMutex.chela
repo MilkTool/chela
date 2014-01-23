@@ -1,0 +1,65 @@
+using Chela.Lang;
+
+namespace Chela.Threading
+{
+    // Mutex system api.
+    unsafe extern __cdecl void* _Chela_CreateMutex();
+    unsafe extern __cdecl void _Chela_DestroyMutex(void* mutex);
+    unsafe extern __cdecl void _Chela_EnterMutex(void* mutex);
+    unsafe extern __cdecl bool _Chela_TryEnterMutex(void* mutex);
+    unsafe extern __cdecl void _Chela_LeaveMutex(void* mutex);
+
+    ///<summary>
+    ///Operating system thin mutex layer.
+    ///</summary>
+    internal unsafe struct LowLevelMutex
+    {
+        internal void *handle;
+
+        ///<summary>
+        ///Creates the low level mutex handle.
+        ///</summary>
+        public void Initialize()
+        {
+            if(handle != null)
+                throw new InvalidOperationException("low level mutex already initialized.");
+            handle = _Chela_CreateMutex();
+        }
+
+        ///<summary>
+        ///Destroys the low level mutex handle.
+        ///</summary>
+        public void Destroy()
+        {
+            if(handle == null)
+                throw new InvalidOperationException("low level mutex is not initialized.");
+            _Chela_DestroyMutex(handle);
+            handle = null;
+        }
+
+        ///<summary>
+        ///Locks the mutex.
+        ///</summary>
+        public void Lock()
+        {
+            _Chela_EnterMutex(handle);
+        }
+
+        ///<summary>
+        ///Tries to lock the mutex.
+        ///</summary>
+        public bool TryLock()
+        {
+            return _Chela_TryEnterMutex(handle);
+        }
+
+        ///<summary>
+        ///Unlocks the mutex.
+        ///</summary>
+        public void Unlock()
+        {
+            _Chela_LeaveMutex(handle);
+        }
+    }
+}
+

@@ -1,0 +1,359 @@
+using Chela.Lang;
+using Chela.Text;
+
+namespace Chela.IO
+{
+    ///<summary>
+    ///A binary data writer.
+    ///</summary>
+    ///<remarks>
+    ///Everything is written using a little-endian encoding.
+    ///</remarks>
+    public class BinaryWriter: IDisposable
+    {
+        protected Stream OutStream;
+        private Encoding encoding;
+        private Encoder encoder;
+        private byte[] stringBuffer;
+        private char[] charBuffer;
+
+        public BinaryWriter(Stream outStream, Encoding enconding)
+        {
+            this.OutStream = outStream;
+            this.encoding = encoding;
+            this.encoder = encoding.GetEncoder();
+            this.stringBuffer = null;
+        }
+
+        public BinaryWriter(Stream outStream)
+            : this(outStream, Encoding.UTF8)
+        {
+        }
+
+        ~BinaryWriter()
+        {
+            Dispose(false);
+        }
+        
+        ///<summary>
+        ///The stream associated with the binary writer.
+        ///</summary>
+        public virtual Stream BaseStream {
+            get {
+                return OutStream;
+            }
+        }
+        
+        ///<summary>
+        ///Closes the binary writer and his stream.
+        ///</summary>
+        public virtual void Close()
+        {
+            Dispose(true);
+        }
+    
+        void IDisposable.Dispose()
+        {
+            Dispose(true);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            Flush();
+            
+            // Close the stream.
+            if(disposing)
+                OutStream.Close();
+            OutStream = null;
+        }
+        
+        ///<summary>
+        ///Writes the buffered data.
+        ///</summary>
+        public virtual void Flush()
+        {
+            OutStream.Flush();
+        }
+        
+        ///<summary>
+        ///Moves the stream position.
+        ///</summary>
+        public virtual long Seek(int offset, SeekOrigin origin)
+        {
+            return OutStream.Seek(offset, origin);
+        }
+        
+        ///<summary>
+        ///Make sure the string buffer can be used.
+        ///</summary>
+        private void PrepareStringBuffer(int length)
+        {
+            int minLength = encoding.GetMaxByteCount(length);
+            if(stringBuffer == null || stringBuffer.Length < minLength)
+                stringBuffer = new byte[minLength];
+        }
+
+        ///<summary>
+        ///Writes a little endian encoded byte.
+        ///</summary>
+        private void WriteByte(byte value)
+        {
+            OutStream.WriteByte(value);
+        }
+        
+        ///<summary>
+        ///Writes a little endian encoded word.
+        ///</summary>
+        private void WriteWord(ushort value)
+        {
+            WriteByte((byte) (value & 0xFF));
+            WriteByte((byte) ((value >> 8) & 0xFF));
+        }
+
+        ///<summary>
+        ///Writes a little endian encoded double word.
+        ///</summary>
+        private void WriteDWord(uint value)
+        {
+            WriteByte((byte) (value & 0xFF));
+            WriteByte((byte) ((value >> 8) & 0xFF));
+            WriteByte((byte) ((value >> 16) & 0xFF));
+            WriteByte((byte) ((value >> 24) & 0xFF));
+        }
+
+        ///<summary>
+        ///Writes a little endian encoded quad word.
+        ///</summary>
+        private void WriteQWord(ulong value)
+        {
+            WriteByte((byte) (value & 0xFF));
+            WriteByte((byte) ((value >> 8ul) & 0xFFul));
+            WriteByte((byte) ((value >> 16ul) & 0xFFul));
+            WriteByte((byte) ((value >> 24ul) & 0xFFul));
+            WriteByte((byte) ((value >> 32ul) & 0xFFul));
+            WriteByte((byte) ((value >> 40ul) & 0xFFul));
+            WriteByte((byte) ((value >> 48ul) & 0xFFul));
+            WriteByte((byte) ((value >> 56ul) & 0xFFul));
+        }
+        
+        ///<summary>
+        ///Writes a one byte with 1 for true and zero for false.
+        ///</summary>
+        public virtual void Write(bool value)
+        {
+            Write((byte)(value ? 1 : 0));
+        }
+        
+        ///<summary>
+        ///Writes a one byte value.
+        ///</summary>
+        public virtual void Write(byte value)
+        {
+            WriteByte(value);
+        }
+
+        ///<summary>
+        ///Writes a byte array into the stream.
+        ///</summary>
+        public virtual void Write(byte[] buffer)
+        {
+            if(buffer == null)
+                throw new ArgumentNullException("buffer");
+            Write(buffer, 0, buffer.Length);
+        }
+        
+        ///<summary>
+        ///Writes a byte array into the stream.
+        ///</summary>
+        public virtual void Write(byte[] buffer, int index, int count)
+        {
+            if(buffer == null)
+                throw new ArgumentNullException("buffer");
+            else if(index < 0 || index + count > buffer.Length)
+                throw new ArgumentOutOfRangeException("index or count");
+            OutStream.Write(buffer, index, count);
+        }
+
+        ///<summary>
+        ///Writes a one signed byte value.
+        ///</summary>
+        public virtual void Write(sbyte value)
+        {
+            WriteByte(reinterpret_cast<byte> (value));
+        }
+        
+        ///<summary>
+        ///Writes a unicode character.
+        ///</summary>
+        public virtual void Write(char value)
+        {
+            // Prepare the buffers to encode the character.
+            PrepareStringBuffer(1);
+            if(charBuffer == null)
+                charBuffer = new char[1];
+            charBuffer[0] = value;
+            
+            // Encode the string.
+            int length = encoder.GetBytes(charBuffer, 0, 1, stringBuffer, 0, false);
+            Write(stringBuffer, 0, length);
+        }
+
+        ///<summary>
+        ///Writes a unicode character array.
+        ///</summary>
+        public virtual void Write(char[] chars)
+        {
+            if(chars == null)
+                throw new ArgumentNullException("chars");
+                
+            // Prepare the buffer to encode the character.
+            int numchars = chars.Length;
+            PrepareStringBuffer(numchars);
+            
+            // Encode the string.
+            int length = encoder.GetBytes(chars, 0, numchars, stringBuffer, 0, false);
+            Write(stringBuffer, 0, length);
+        }
+        
+        ///<summary>
+        ///Writes a char array into the stream.
+        ///</summary>
+        public virtual void Write(char[] buffer, int index, int count)
+        {
+            if(buffer == null)
+                throw new ArgumentNullException("buffer");
+            else if(index < 0 || index + count > buffer.Length)
+                throw new ArgumentOutOfRangeException("index or count");
+
+            // Prepare the buffer to encode the character.
+            PrepareStringBuffer(count);
+            
+            // Encode the string.
+            int length = encoder.GetBytes(buffer, index, count, stringBuffer, 0, false);
+            Write(stringBuffer, 0, length);
+        }
+        
+        ///<summary>
+        ///Writes a double precision IEEE 754 floating point.
+        ///</summary>
+        public virtual void Write(double value)
+        {
+            WriteQWord(reinterpret_cast<ulong> (value));
+        }
+
+        ///<summary>
+        ///Writes a single precision IEEE 754 floating point.
+        ///</summary>
+        public virtual void Write(float value)
+        {
+            WriteDWord(reinterpret_cast<uint> (value));
+        }
+        
+        ///<summary>
+        ///Writes an unsigned short value.
+        ///</summary>
+        public virtual void Write(ushort value)
+        {
+            WriteWord(value);                    
+        }
+
+        ///<summary>
+        ///Writes a signed short value.
+        ///</summary>
+        public virtual void Write(short value)
+        {
+            WriteWord(reinterpret_cast<ushort> (value));
+        }
+
+        ///<summary>
+        ///Writes an unsigned int value.
+        ///</summary>
+        public virtual void Write(uint value)
+        {
+            WriteDWord(value);
+        }
+
+        ///<summary>
+        ///Writes a signed int value.
+        ///</summary>
+        public virtual void Write(int value)
+        {
+            WriteDWord(reinterpret_cast<uint> (value));
+        }
+
+        ///<summary>
+        ///Writes an unsigned long value.
+        ///</summary>
+        public virtual void Write(ulong value)
+        {
+            WriteQWord(value);
+        }
+
+        ///<summary>
+        ///Writes a signed int value.
+        ///</summary>
+        public virtual void Write(long value)
+        {
+            WriteQWord(reinterpret_cast<ulong> (value));
+        }
+        
+        ///<summary>
+        ///Writes a length prefixed string
+        ///</summary>
+        ///<remarks>
+        ///The length is encoded using SLEB128
+        ///</remarks>
+        public virtual void Write(string value)
+        {
+            if(value == null)
+                throw new ArgumentNullException("value");
+
+            // Prepare the buffer to encode the character.
+            int numchars = value.Length;
+            PrepareStringBuffer(numchars);
+            
+            // Encode the string.
+            int length = encoder.GetBytes(value.ToCharArray(), 0, numchars, stringBuffer, 0, false);
+
+            // Write the length and the encoded string.
+            Write7BitEncodedInt(length);
+            Write(stringBuffer, 0, length);
+        }
+
+        // Count the number of bits in the value.
+        private int CountBits(int value)
+        {
+            int count = 0;
+            while(value != 0)
+            {
+                ++count;
+                value >>= 1;
+            }
+            return count;
+        }
+        
+        ///<summary>
+        ///Writes a SLEB128 integer.
+        ///</summary>
+        protected void Write7BitEncodedInt(int value)
+        {
+            bool more = true;
+            bool negative = value < 0;
+            int size = CountBits(value);
+            while(more)
+            {
+                int b = value & 0x7F;
+                value >>= 7; // Use arithmetic right shifting.
+                
+                // Check for more.
+                bool signBit = (b & 0x40) != 0;
+                if((value == 0 && !signBit) || (value == -1 && signBit))
+                    more = false;
+                else
+                    b |= 0x80;
+                WriteByte((byte)b);
+            }
+        }
+    }
+}
+

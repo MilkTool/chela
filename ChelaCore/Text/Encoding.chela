@@ -1,0 +1,410 @@
+using Chela.Lang;
+
+namespace Chela.Text
+{
+    /// <summary>
+    /// A character set encoding.
+    /// </summary>
+    public abstract class Encoding
+    {
+        /// <summary>
+        /// Default encoder that delegates the work into the encoding.
+        /// </summary>
+        internal sealed class DefaultEncoder: Encoder
+        {
+            private Encoding encoding;
+            
+            public DefaultEncoder(Encoding encoding)
+            {
+                this.encoding = encoding;
+            }
+
+            public override int GetByteCount(char[] chars, int index, int count, bool flush)
+            {
+                return encoding.GetByteCount(chars, index, count);
+            }
+            
+            public override int GetBytes(char[] chars, int charIndex, int charCount,
+                                         byte[] bytes, int byteIndex, bool flush)
+            {
+                return encoding.GetBytes(chars, charIndex, charCount, bytes, byteIndex);
+            }
+        }
+
+        /// <summary>
+        /// Default encoder that delegates the work into the encoding.
+        /// </summary>
+        internal sealed class DefaultDecoder: Decoder
+        {
+            private Encoding encoding;
+            
+            public DefaultDecoder(Encoding encoding)
+            {
+                this.encoding = encoding;
+            }
+
+            public override int GetCharCount(byte[] bytes, int index, int count)
+            {
+                return encoding.GetCharCount(bytes, index, count);
+            }
+            
+            public override int GetChars(byte[] bytes, int byteIndex, int byteCount,
+                                    char[] chars, int charIndex)
+            {
+                return encoding.GetChars(bytes, byteIndex, byteCount, chars, charIndex);
+            }
+
+        }
+        
+        // Some encodings
+        private static Encoding asciiEncoding = new ASCIIEncoding();
+        private static Encoding bigEndianUnicodeEncoding = null;
+        private static Encoding unicodeEncoding = null;
+        private static Encoding utf8Encoding = new UTF8Encoding();
+        private static Encoding utf32Encoding = null;
+        
+        private int codePage;
+
+        // Default constructor.
+        protected Encoding()
+        {
+        }
+        
+        /// <summary>
+        /// Converts a string from the one encoding into another.
+        /// </summary>
+        public static byte[] Convert(Encoding srcEncoding, Encoding dstEncoding, byte[] bytes)
+        {
+            if(bytes == null)
+                throw new ArgumentNullException("bytes");
+            return Convert(srcEncoding, dstEncoding, bytes, 0, bytes.Length);
+        }
+
+        /// <summary>
+        /// Converts a string from the one encoding into another.
+        /// </summary>
+        public static byte[] Convert(Encoding srcEncoding, Encoding dstEncoding,
+            byte[] bytes, int index, int count)
+        {
+            // Make sure the parameters aren't null.
+            if(srcEncoding == null)
+                throw new ArgumentNullException("srcEncoding");
+            else if(dstEncoding == null)
+                throw new ArgumentNullException("dstEncoding");
+            else if(bytes == null)
+                throw new ArgumentNullException("bytes");
+
+            char[] decoded = srcEncoding.GetChars(bytes);
+            return dstEncoding.GetBytes(decoded);
+        }
+        
+        /// <summary>
+        /// Determines if two instances are equals.
+        /// </summary>
+        public override bool Equals(object o)
+        {
+            // Check the encoding and his type.
+            Encoding enc = o as Encoding;
+            if(enc == null || o.GetType() != GetType())
+                return false;
+                
+            return codePage == enc.codePage;
+        }
+        
+        /// <summary>
+        /// Gets a the exact amount of bytes used by a encoded string.
+        /// </summary>
+        public unsafe virtual int GetByteCount(char *chars, int count)
+        {
+            // Copy the buffer into a managed array.
+            char[] array = new char[count];
+            for(int i = 0; i < count; ++i)
+                array[i] = chars[i];
+                
+            return GetByteCount(array, 0, count);
+        }
+        
+        /// <summary>
+        /// Gets a the exact amount of bytes used by a encoded string.
+        /// </summary>
+        public virtual int GetByteCount(char[] chars)
+        {
+            if(chars == null)
+                throw new ArgumentNullException("chars");
+            return GetByteCount(chars, 0, chars.Length);
+        }
+        
+        /// <summary>
+        /// Gets a the exact amount of bytes used by a encoded string.
+        /// </summary>
+        public virtual int GetByteCount(string s)
+        {
+            if(s == null)
+                throw new ArgumentNullException("s");
+            return GetByteCount(s.ToCharArray());
+        }
+
+        /// <summary>
+        /// Gets a the exact amount of bytes used by a encoded string.
+        /// </summary>
+        public abstract int GetByteCount(char[] chars, int index, int count);
+        
+        /// <summary>
+        /// Encodes the specified characters.
+        /// </summary>
+        public unsafe virtual int GetBytes(char *chars, int charCount, byte *bytes, int byteCount)
+        {
+            // Copy the chars.
+            char[] src = new char[charCount];
+            for(int i = 0; i < charCount; ++i)
+                src[i] = chars[i];
+                
+            // Allocate the managed buffer and get the bytes.
+            byte[] dest = new byte[byteCount];
+            int count = GetBytes(src, 0, charCount, dest, 0);
+            
+            // Copy the encoded bytes.
+            for(int i = 0; i < count; ++i)
+                bytes[i] = dest[i];
+            return count;            
+        }
+
+        /// <summary>
+        /// Encodes the specified characters.
+        /// </summary>
+        public virtual byte[] GetBytes(char[] chars)
+        {
+            if(chars == null)
+                throw new ArgumentNullException("chars");
+            return GetBytes(chars, 0, chars.Length);
+        }
+        
+        /// <summary>
+        /// Encodes the specified characters.
+        /// </summary>
+        public virtual byte[] GetBytes(char[] chars, int index, int count)
+        {
+            byte[] bytes = new byte[GetByteCount(chars, index, count)];
+            GetBytes(chars, index, count, bytes, 0);
+            return bytes;
+        }
+
+        /// <summary>
+        /// Encodes the specified characters.
+        /// </summary>
+        public virtual byte[] GetBytes(string s)
+        {
+            if(s == null)
+                throw new ArgumentNullException("s");
+            return GetBytes(s.ToCharArray());
+        }
+
+        /// <summary>
+        /// Encodes the specified characters.
+        /// </summary>
+        public virtual int GetBytes(string s, int charIndex, int charCount, byte[] bytes, int byteIndex)
+        {
+            if(s == null)
+                throw new ArgumentNullException("s");
+            return GetBytes(s.ToCharArray(), charIndex, charCount, bytes, byteIndex);
+        }
+        
+        /// <summary>
+        /// Encodes the specified characters.
+        /// </summary>
+        public abstract int GetBytes(char[] chars, int charIndex, int charCount, byte[] bytes, int byteIndex);
+
+        /// <summary>
+        /// Gets the exact number of characters represented by a bytes sequence.
+        /// </summary>
+        public unsafe virtual int GetCharCount(byte *bytes, int count)
+        {
+            byte[] array = new byte[count];
+            for(int i = 0; i < count; ++i)
+                array[i] = bytes[i];
+            return GetCharCount(array, 0, count);
+        }
+
+        /// <summary>
+        /// Gets the exact number of characters represented by a bytes sequence.
+        /// </summary>
+        public virtual int GetCharCount(byte[] bytes)
+        {
+            if(bytes == null)
+                throw new ArgumentNullException("bytes");
+            return GetCharCount(bytes, 0, bytes.Length);
+        }
+        
+        /// <summary>
+        /// Gets the exact number of characters represented by a bytes sequence.
+        /// </summary>
+        public abstract int GetCharCount(byte[] bytes, int index, int count);        
+
+        /// <summary>
+        /// Decodes a byte sequence representing an encoded string.
+        /// </summary>
+        public unsafe virtual int GetChars(byte *bytes, int byteCount, char *chars, int charCount)
+        {
+            // Copy the bytes into a array.
+            byte[] bytesArray = new byte[byteCount];
+            for(int i = 0; i < byteCount; ++i)
+                bytesArray[i] = bytes[i];
+                
+            // Allocate a temporary buffer for the characters.
+            char[] buffer = new char[charCount];
+            int decodedChars = GetChars(bytesArray, 0, byteCount, buffer, 0);
+            
+            // Copy back the decoded characters.
+            for(int i = 0; i < decodedChars; ++i)
+                chars[i] = buffer[i];
+
+            return decodedChars;
+        }
+
+        /// <summary>
+        /// Decodes a byte sequence representing an encoded string.
+        /// </summary>
+        public virtual char[] GetChars(byte[] bytes)
+        {
+            if(bytes == null)
+                throw new ArgumentNullException("bytes");
+            return GetChars(bytes, 0, bytes.Length);
+        }
+
+        /// <summary>
+        /// Decodes a byte sequence representing an encoded string.
+        /// </summary>
+        public virtual char[] GetChars(byte[] bytes, int index, int count)
+        {
+            // Check the arguments.
+            if(bytes == null)
+                throw new ArgumentNullException("bytes");
+            else if(index >= bytes.Length || index + count > bytes.Length)
+                throw new ArgumentOutOfRangeException("index or count");
+
+            // Allocate the return value.
+            char[] decoded = new char[GetCharCount(bytes, index, count)];
+            
+            // Decode and return the string.
+            GetChars(bytes, index, count, decoded, 0);
+            return decoded;
+        }
+        
+        /// <summary>
+        /// Decodes a byte sequence representing an encoded string.
+        /// </summary>
+        public abstract int GetChars(byte[] bytes, int byteIndex, int byteCount, char[] chars, int charIndex);
+        
+        /// <summary>
+        /// Creates a decoder.
+        /// </summary>
+        public virtual Decoder GetDecoder()
+        {
+            return new DefaultDecoder(this);
+        }
+
+        /// <summary>
+        /// Creates an encoder.
+        /// </summary>
+        public virtual Encoder GetEncoder()
+        {
+            return new DefaultEncoder(this);
+        }
+        
+        public override int GetHashCode()
+        {
+            return GetType().GetHashCode() ^ codePage;
+        }
+        
+        /// <summary>
+        /// Computes the maximal amount of bytes used by a encoded string.
+        /// </summary>
+        public abstract int GetMaxByteCount(int charCount);
+
+        /// <summary>
+        /// Computes the maximal amount of chars used by a decoded string.
+        /// </summary>
+        public abstract int GetMaxCharCount(int byteCount);
+        
+        /// <summary>
+        /// Returns the sequence used to identify a particular encoding.
+        /// </summary>
+        public virtual byte[] GetPreamble()
+        {
+            return new byte[]{};
+        }
+        
+        /// <summary>
+        /// Decodes the specified string.
+        /// </summary>
+        public virtual string GetString(byte[] bytes)
+        {
+            if(bytes == null)
+                throw new ArgumentNullException("bytes");
+            return GetString(bytes, 0, bytes.Length);
+        }
+
+        /// <summary>
+        /// Decodes the specified string.
+        /// </summary>
+        public virtual string GetString(byte[] bytes, int index, int count)
+        {
+            return new string(GetChars(bytes, index, count));
+        }
+        
+        /// <summary>
+        /// Gets a encoding for the ASCII characters (7-bit).
+        /// </summary>
+        public static Encoding ASCII {
+            get {
+                return asciiEncoding;
+            }
+        }
+
+        /// <summary>
+        /// Gets a encoding for UTF16 unicode in big endian mode.
+        /// </summary>
+        public static Encoding BigEndianUnicode {
+            get {
+                return bigEndianUnicodeEncoding;
+            }
+        }
+        
+        /// <summary>
+        /// An encoding for the ANSI code page of the system.
+        /// </summary>
+        public static Encoding Default {
+            get {
+                return ASCII;
+            }
+        }
+       
+        /// <summary>
+        /// Gets a encoding for UTF16 unicode in little endian mode.
+        /// </summary>
+        public static Encoding Unicode {
+            get {
+                return unicodeEncoding;
+            }
+        }
+
+        /// <summary>
+        /// Gets a encoding for the UTF8 character set.
+        /// </summary>
+        public static Encoding UTF8 {
+            get {
+                return utf8Encoding;
+            }
+        }
+
+        /// <summary>
+        /// Gets a encoding for the UTF32 character set.
+        /// </summary>
+        public static Encoding UTF32 {
+            get {
+                return utf32Encoding;
+            }
+        }
+    }
+}
+

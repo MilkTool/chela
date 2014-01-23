@@ -1,0 +1,698 @@
+using Chela.Lang;
+
+namespace Chela.Collections.Generic
+{
+    /// <summary>
+    /// A dictionary implementation.
+    /// </summary>
+    public class Dictionary<TKey, TValue>: IDictionary<TKey, TValue>, IDictionary
+    {
+        // Default initial capacity.
+        private const int DefaultCapacity = 16;
+        
+        /// <summary>
+        /// Dictionary element entry.
+        /// </summary>
+        private struct Entry
+        {
+            public const int UsedFlag = (int)0x80000000;
+            public const int NextMask = 0x7FFFFFFF;
+
+            public TKey key;
+            public TValue value;
+            public int nextAndUsed;
+
+            /// <summary>
+            /// The next element pointer.
+            /// </summary>
+            public int Next {
+                get {
+                    return nextAndUsed & NextMask;
+                }
+                set {
+                    nextAndUsed = (nextAndUsed & UsedFlag) | value;
+                }
+            }
+
+            /// <summary>
+            /// Tells if this element has a value.
+            /// </summary>
+            public bool Used {
+                get {
+                    return (nextAndUsed & UsedFlag) != 0;
+                }
+                set {
+                    if(value)
+                        nextAndUsed |= UsedFlag;
+                    else
+                        nextAndUsed &= ~UsedFlag;
+                }
+            }
+        }
+
+        // The dictionary entries.
+        private Entry[] entries;
+
+        // The used hash buckets.
+        private int[] buckets;
+
+        // The next free element pointer.
+        private int nextFree;
+
+        // The current dictionary capacity.
+        private int capacity;
+
+        // The number of elements in the dictionary.
+        private int count;
+
+        // The equality comparer used.
+        private IEqualityComparer comparer;
+
+        /// <summary>
+        /// Constructs a new empty dictionary.
+        /// </summary>
+        public Dictionary()
+            : this(DefaultCapacity, null)
+        {
+        }
+        
+        /// <summary>
+        /// Constructs a new dictionary.
+        /// </summary>
+        public Dictionary(IEqualityComparer<TKey> comparer)
+            : this(DefaultCapacity, comparer)
+        {
+        }
+
+        /// <summary>
+        /// Constructs a new dictionary.
+        /// </summary>
+        public Dictionary(int capacity, IEqualityComparer<TKey> comparer)
+        {
+            // The capacity must be positive.
+            if(capacity < 0)
+                throw new ArgumentOutOfRangeException("capacity");
+
+            // Store the comparer or use the default one.
+            if(comparer != null)
+                this.comparer = comparer;
+            else
+                this.comparer = EqualityComparer<TKey>.Default;
+
+            // Create the initial storage.
+            this.capacity = capacity;
+            if(capacity != 0)
+            {
+                //this.entries = new Entry[capacity];
+                this.buckets = new int[capacity];
+            }
+        }
+
+        /// <summary>
+        /// Constructs a new dictionary.
+        /// </summary>
+        public Dictionary(IDictionary<TKey, TValue> dictionary)
+            : this(dictionary, null)
+        {
+        }
+
+        /// <summary>
+        /// Constructs a new dictionary.
+        /// </summary>
+        public Dictionary(IDictionary<TKey, TValue> dictionary, IEqualityComparer<TKey> comparer)
+        {
+            if(dictionary == null)
+                throw new ArgumentNullException("dictionary");
+
+            // Store the comparer or use the default one.
+            if(comparer != null)
+                this.comparer = comparer;
+            else
+                this.comparer = EqualityComparer<TKey>.Default;
+
+            // Prefer a power of two to hold the dictionary.
+            int newCount = dictionary.Count;
+            capacity = DefaultCapacity;
+            while(capacity < newCount && capacity != 0)
+                capacity <<= 1;
+
+            // If overflowing with the prefered capacity, use the raw new count.
+            if(capacity == 0)
+                capacity = newCount;
+
+            // Create the initial storage.
+            if(capacity != 0)
+            {
+                //this.entries = new Entry[capacity];
+                this.buckets = new int[capacity];
+            }
+
+            // Add the entries.
+            foreach(KeyValuePair<TKey, TValue> entry in dictionary)
+                AddImpl(entry.Key, entry.Value);
+        }
+        
+        /// <summary>
+        /// Constructs a new dictionary.
+        /// </summary>
+        public Dictionary(int capacity)
+            : this(capacity, null)
+        {
+        }
+
+        /// <summary>
+        /// Adds a map between the key and the value, don't checks the capacity.
+        /// </summary>
+        public void AddImpl(TKey key, TValue value)
+        {
+            // Compute the hash.
+            int hash = comparer.GetHashCode(key) % capacity;
+
+            // Check for duplicates and find the previous index.
+            int prev = 0;
+            int next = buckets[hash];
+            while(next != 0)
+            {
+                int entryIndex = next - 1;
+                if(comparer.Equals(entries[entryIndex].key, key))
+                    throw new ArgumentException("key");
+
+                prev = next;
+                next = entries[entryIndex].Next;                
+            }
+
+            // Store entry bucket.
+            if(prev == 0)
+                buckets[hash] = nextFree + 1;
+            else
+                entries[prev].Next = nextFree + 1;
+
+            // Use the node pointed in the next free element.
+            int newElement = nextFree;
+            entries[newElement].key = key;
+            entries[newElement].value = value;
+
+            // Get the next free element.
+            if(entries[nextFree].Next == 0)
+            {
+                nextFree = count;
+                entries[nextFree].nextAndUsed = 0;
+            }
+            else
+            {
+                // Used the next free slot.
+                nextFree = entries[nextFree].Next - 1;
+            }
+
+            // Clear the next pointer in the new element.
+            entries[newElement].nextAndUsed = Entry.UsedFlag;
+
+            // Increase the count.
+            ++this.count;
+        }
+
+        /// <summary>
+        /// Adds a map between the key and the value.
+        /// </summary>
+        public void Add(TKey key, TValue value)
+        {
+            // Make sure there's enough capacity.
+            if(count == capacity)
+                IncreaseCapacity();
+
+            // Add the element.
+            AddImpl(key, value);
+        }
+
+        /// <summary>
+        /// Clears the dictionary.
+        /// </summary>
+        public void Clear()
+        {
+            this.count = 0;
+            this.nextFree = 0;
+            this.entries[0].nextAndUsed = 0;
+            for(int i = 0; i < capacity; ++i)
+                this.buckets[i] = 0;
+        }
+            
+        /// <summary>
+        /// Checks if a key its present in the dictionary.
+        /// </summary>
+        public virtual bool ContainsKey(TKey key)
+        {
+            // Compute the hash.
+            int hash = comparer.GetHashCode(key) % capacity;
+
+            // Check for duplicates and find the previous index.
+            int next = buckets[hash];
+            while(next != 0)
+            {
+                int entryIndex = next - 1;
+                if(comparer.Equals(entries[entryIndex].key, key))
+                    return true;
+
+                next = entries[entryIndex].Next;                
+            }
+
+            // Couldn't find the key.
+            return false;
+        }
+
+        /// <summary>
+        /// Checks if a value its present in the dictionary.
+        /// </summary>
+        public virtual bool ContainsValue(TValue value)
+        {
+            // Linear search of the value.
+            for(int i = 0; i < capacity; ++i)
+            {
+                if(entries[i].Used && entries[i].value == value)
+                    return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Gets the dictionary enumerator.
+        /// </summary>
+        public Enumerator GetEnumerator()
+        {
+            //return new Enumerator(this);
+            throw new NotImplementedException();
+        }
+        
+        /// <summary>
+        /// Removes a mapping from the dictionary.
+        /// </summary>
+        public bool Remove(TKey key)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Increases the dictionary capacity.
+        /// </summary>
+        private void IncreaseCapacity()
+        {
+            // Compute the new capacity making sure it doesn't overflow.
+            int newCapacity = capacity != 0 ? capacity<<1 : DefaultCapacity;
+            if(newCapacity <= 0)
+                throw new NotSupportedException();
+
+            // Store the old entries.
+            int oldCapacity = this.capacity;
+            Entry[] oldEntries = entries;
+
+            // Create the new capacity.
+            this.capacity = newCapacity;
+            this.count = 0;
+            this.buckets = new int[capacity];
+            //this.entries = new Entry[capacity];
+            this.nextFree = 0;
+
+            // Insert the old entries.
+            for(int i = 0; i < oldCapacity; ++i)
+            {
+                if(oldEntries[i].Used)
+                    AddImpl(oldEntries[i].key, oldEntries[i].value);
+            }
+        }
+
+        /// <summary>
+        /// Adds an element to the collection.
+        /// </summary>
+        public void ICollection<KeyValuePair<TKey, TValue> >.Add(KeyValuePair<TKey, TValue> element)
+        {
+            throw new NotImplementedException();
+        }
+        
+        /// <summary>
+        /// Does the collection contain a element?.
+        /// </summary>
+        public bool ICollection<KeyValuePair<TKey, TValue> >.Contains(KeyValuePair<TKey, TValue> element)
+        {
+            throw new NotImplementedException();
+        }
+        
+        /// <summary>
+        /// Copies the elements of the collection into an array.
+        /// </summary>
+        public void ICollection<KeyValuePair<TKey, TValue> >.CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Removes an item from the collection.
+        /// </summary>
+        public bool ICollection<KeyValuePair<TKey, TValue> >.Remove(KeyValuePair<TKey, TValue> item)
+        {
+            throw new NotImplementedException();
+        }
+        
+        /// <summary>
+        /// Retrieves an enumerator for the entries.
+        /// </summary>
+        public IEnumerator<KeyValuePair<TKey, TValue> > ICollection<KeyValuePair<TKey, TValue> >.
+            GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+        
+        /// <summary>
+        /// Retrives an enumerator for the entries.
+        /// </summary>
+        public IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        /// <summary>
+        /// Copies the dictionary elements into an array.
+        /// </summary>
+        public void ICollection.CopyTo(Array array, int index)
+        {
+            throw new NotImplementedException();
+        }
+        
+        /// <summary>
+        /// Adds an element into the dictionary.
+        /// </summary>
+        public void IDictionary.Add(object key, object value)
+        {
+            Add((TKey)key, (TValue)value);
+        }
+
+        /// <summary>
+        /// Checks if a key is in the dictionary.
+        /// </summary>
+        public bool IDictionary.Contains(object key)
+        {
+            return ContainsKey((TKey)key);
+        }
+
+        /// <summary>
+        /// Gets the dictionary enumerator.
+        /// </summary>
+        public IDictionaryEnumerator IDictionary.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+        
+        /// <summary>
+        /// Removes an entry from the dictionary.
+        /// </summary>
+        public void IDictionary.Remove(object key)
+        {
+            Remove((TKey)key);
+        }
+        
+        /// <summary>
+        /// Tries to get a value from the mapping.
+        /// </summary>
+        public bool TryGetValue(TKey key, out TValue value)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// The number of entries in the dictionary.
+        /// </summary>
+        public int Count {
+            get {
+                throw new NotImplementedException();
+            }
+        }
+
+        /// <summary>
+        /// Provides access to the mappings
+        /// </summary>
+        public TValue this[TKey key] {
+            get {
+                throw new NotImplementedException();
+            }
+            set {
+                throw new NotImplementedException();
+            }
+        }
+
+        /// <summary>
+        /// A collection with all of the keys.
+        /// </summary>
+        public ICollection<TKey> Keys {
+            get {
+                throw new NotImplementedException();
+            }
+        }
+
+        /// <summary>
+        /// Is this collection read-only?
+        /// </summary>
+        public bool ICollection<KeyValuePair<TKey, TValue> >.IsReadOnly {
+            get {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Is this collection thread safe.
+        /// </summary>
+        public bool ICollection.IsSynchronized {
+            get {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Is this collection thread safe.
+        /// </summary>
+        public object ICollection.SyncRoot {
+            get {
+                return this;
+            }
+        }
+        
+        /// <summary>
+        /// Tells if this dictionary has a fixed capacity.
+        /// </summary>
+        public bool IDictionary.IsFixedSize {
+            get {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Tells if this dictionary is read-only
+        /// </summary>
+        public bool IDictionary.IsReadOnly {
+            get {
+                return false;
+            }
+        }
+        
+        /// <summary>
+        /// Gives access into entries of the dictionary.
+        /// </summary>
+        public object IDictionary.this[object key] {
+            get {
+                return this[(TKey)key];
+            }
+            set {
+                this[(TKey)key] = (TValue)value;
+            }
+        }
+        
+        /// <summary>
+        /// Gives access to the keys in the dictionary.
+        /// </summary>
+        public ICollection IDictionary.Keys {
+            get {
+                throw new NotImplementedException();
+            }
+        }
+
+        /// <summary>
+        /// Gives access to the values in the dictionary.
+        /// </summary>
+        public ICollection IDictionary.Values {
+            get {
+                return Values;
+            }
+        }
+        
+        /// <summary>
+        /// A collection with all of the values.
+        /// </summary>
+        public ValueCollection Values {
+            get {
+                throw new NotImplementedException();
+            }
+        }
+        
+#region Enumerator
+        public sealed class Enumerator: IEnumerator<KeyValuePair<TKey, TValue> >, IDisposable,
+                        IDictionaryEnumerator
+        {
+            public Enumerator(Dictionary<TKey, TValue> dictionary)
+            {
+            }
+            
+            public void Dispose()
+            {
+            }
+            
+            public bool MoveNext()
+            {
+                throw new NotImplementedException();
+            }
+            
+            public void IEnumerator.Reset()
+            {
+            }
+            
+            public KeyValuePair<TKey, TValue> Current {
+                get {
+                    throw new NotImplementedException();
+                }
+            }
+            
+            public DictionaryEntry IDictionaryEnumerator.Entry {
+                get {
+                    throw new NotImplementedException();
+                }
+            }
+            
+            public object IDictionaryEnumerator.Key {
+                get {
+                    throw new NotImplementedException();
+                }
+            }
+            
+            public object IDictionaryEnumerator.Value {
+                get {
+                    throw new NotImplementedException();
+                }
+            }
+            
+            public object IEnumerator.Current {
+                get {
+                    throw new NotImplementedException();
+                }
+            }
+        }
+#endregion
+
+#region ValueCollection
+        public sealed class ValueCollection: ICollection<TKey>, ICollection
+        {
+            public ValueCollection(Dictionary<TKey, TValue> dictionary)
+            {
+                throw new NotImplementedException();
+            }
+            
+            public void CopyTo(TValue[] array, int arrayIndex)
+            {
+                throw new NotImplementedException();
+            }
+            
+            public Enumerator GetEnumerator()
+            {
+                throw new NotImplementedException();
+            }
+            
+            public void ICollection<TValue>.Add(TValue item)
+            {
+                throw new NotSupportedException();
+            }
+            
+            public void ICollection<TValue>.Clear()
+            {
+                throw new NotSupportedException();
+            }
+            
+            public bool ICollection<TValue>.Contains(TValue item)
+            {
+                throw new NotImplementedException();
+            }
+            
+            public bool ICollection<TValue>.Remove(TValue item)
+            {
+                throw new NotSupportedException();
+            }
+            
+            public IEnumerator<TValue> IEnumerable<TValue>.GetEnumerator()
+            {
+                return GetEnumerator();
+            }
+            
+            public void ICollection.CopyTo(Array array, int index)
+            {
+                throw new NotImplementedException();
+            }
+            
+            public IEnumerator IEnumerable.GetEnumerator()
+            {
+                return GetEnumerator();
+            }
+            
+            public int Count {
+                get {
+                    throw new NotImplementedException();
+                }
+            }
+            
+            public bool ICollection<TValue>.IsReadOnly {
+                get {
+                    return true;
+                }
+            }
+            
+            public bool ICollection.IsSynchronized {
+                get {
+                    return false;
+                }
+            }
+            
+            public object ICollection.SyncRoot {
+                get {
+                    throw new NotImplementedException();
+                }
+            }
+            
+#region ValueCollection.Enumerator
+            public struct Enumerator: IEnumerator<TValue>, IDisposable, IEnumerator 
+            {
+                public void Dispose()
+                {
+                }
+                
+                public bool MoveNext()
+                {
+                    throw new NotImplementedException();
+                }
+                
+                public void IEnumerator.Reset()
+                {
+                    throw new NotImplementedException();
+                }
+                
+                public TValue Current {
+                    get {
+                        throw new NotImplementedException();
+                    }
+                }
+                
+                public object IEnumerator.Current {
+                    get {
+                        throw new NotImplementedException();
+                    }
+                }
+            };
+#endregion
+        }
+#endregion
+    }
+}
+

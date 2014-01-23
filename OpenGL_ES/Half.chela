@@ -1,0 +1,5 @@
+namespace Chela.Graphics
+{
+    typedef short Half;
+}
+

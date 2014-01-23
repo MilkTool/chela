@@ -1,0 +1,169 @@
+using Chela.Gui;
+
+namespace Chela.Gui.SystemDriver
+{
+    internal class SystemWindowContext: WindowContext
+    {
+        private unsafe WINDOW *window;
+        private SystemDisplay display;
+
+        public unsafe SystemWindowContext(SystemDisplay display, WINDOW *window)
+        {
+            this.window = window;
+            this.display = display;
+            display.RegisterWindow(this);
+        }
+
+        public override Display CurrentDisplay {
+            get {
+                return display;
+            }
+        }
+
+        public override void Show()
+        {
+            unsafe {
+                _ChGui_Window_Show(window);
+            }
+        }
+
+        public override void Hide()
+        {
+            unsafe {
+                _ChGui_Window_Hide(window);
+            }
+        }
+
+        public override void CaptureMouse()
+        {
+            unsafe {
+                _ChGui_Window_CaptureMouse(window);
+            }
+        }
+        
+        public override void ReleaseMouse()
+        {
+            unsafe {
+                _ChGui_Window_ReleaseMouse(window);
+            }
+        }
+
+        public override bool HasFocus {
+            get {
+                unsafe {
+                    return _ChGui_Window_HasFocus(window);
+                }
+            }
+        }
+
+        public override void SetFocus()
+        {
+            unsafe {
+                _ChGui_Window_SetFocus(window);
+            }            
+        }
+        
+        public override bool IsInputEnabled
+        {
+            get {
+                unsafe {
+                    return _ChGui_Window_IsInputEnabled(window);
+                }
+            }
+        }
+        
+        public override void EnableInput()
+        {
+            unsafe {
+                _ChGui_Window_EnableInput(window);
+            }
+        }
+        
+        public override void DisableInput()
+        {
+            unsafe {
+                _ChGui_Window_DisableInput(window);
+            }
+        }
+        
+        public unsafe WINDOW *Handle {
+            get {
+                return window;
+            }
+        }
+
+        public override int Width {
+            get {
+                unsafe {
+                    return _ChGui_Drawable_GetWidth((DRAWABLE*)window);
+                }
+            }
+        }
+
+        public override int Height {
+            get {
+                unsafe {
+                    return _ChGui_Drawable_GetHeight((DRAWABLE*)window);
+                }
+            }
+        }
+
+        public override Display Display {
+            get {
+                return display;
+            }
+        }
+
+        public override void Refresh()
+        {
+            unsafe {
+                _ChGui_Window_Refresh(window);
+            }
+        }
+
+        public override GraphicContext CreateGraphicContext(bool painting)
+        {
+            unsafe {
+                GC *gc = _ChGui_Window_CreateGraphicContext(window, painting);
+                return new SystemGraphicContext(gc, this);
+            }
+        }
+
+        public override void SetProperty(string property, object value)
+        {
+            if(string.IsNullOrEmpty(property))
+                return;
+
+            // Get the string representation of the value.
+            string valueStr = null;
+            if(value != null)
+                valueStr = value.ToString();
+
+            unsafe {
+                // Get the property name c string.
+                const sbyte *propCStr = property.C_Str();
+
+                // Get the value string data.
+                int valueSize = 0;
+                const char *valueData = null;
+                if(valueStr != null)
+                {
+                    valueSize = valueStr.Length;
+                    valueData = valueStr.RawData;
+                }
+
+                // Set the property.
+                _ChGui_Window_SetStringAttribute(window, propCStr, valueSize, valueData);
+
+                // Delete the name c string.
+                delete [] propCStr;
+            }
+        }
+
+        public override object GetProperty(string property)
+        {
+            return null;
+        }
+    }
+}
+

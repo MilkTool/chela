@@ -1,0 +1,14 @@
+using Chela.Lang;
+
+namespace Chela.Xml
+{
+    /// <summary>
+    /// Formatting options for XmlTextWriter
+    /// </summary>
+    public enum Formatting
+    {
+        Indented = 1,
+        None = 0,
+    };
+}
+

@@ -1,0 +1,153 @@
+using Chela.Lang;
+
+namespace Chela.Threading
+{
+    /// Thread generic API
+    internal extern __cdecl void _Chela_Sleep(int ms);
+
+    ///<summary>
+    /// Thread starting point without parameter.
+    ///</summary>
+    public delegate void ThreadStart();
+
+    ///<summary>
+    /// Thread starting point with a parameter.
+    ///</summary>
+    public delegate void ParameterizedThreadStart(object parameter);
+
+    ///<summary>
+    /// This class is used to control a thread.
+    ///</summary>
+    public class Thread
+    {
+        private ThreadStart entry;
+        private ParameterizedThreadStart paramEntry;
+        private int maxStackSize;
+        private ThreadState state;
+        private unsafe LowLevelThread threadHandle;
+        private object currentParam;
+
+        public Thread(ThreadStart entry, int maxStackSize)
+        {
+            this.entry = entry;
+            this.maxStackSize = maxStackSize;
+            SetupThread();
+        }
+
+        public Thread(ThreadStart entry)
+            : this(entry, -1)
+        {
+        }
+
+        public Thread(ParameterizedThreadStart paramEntry, int maxStackSize)
+        {
+            this.paramEntry = paramEntry;
+            this.maxStackSize = maxStackSize;
+            SetupThread();
+        }
+
+        public Thread(ParameterizedThreadStart paramEntry)
+            : this(paramEntry, -1)
+        {
+        }
+
+        ~Thread()
+        {
+            unsafe {
+                threadHandle.Destroy();
+            }
+        }
+
+        private void SetupThread()
+        {
+            this.state = Chela.Threading.ThreadState.Unstarted;
+            unsafe {
+                threadHandle.Initialize();
+            }
+        }
+
+        private unsafe static void ThreadEntry(void *arg)
+        {
+            // Cast myself.
+            Thread self = reinterpret_cast<Thread> (arg);
+
+            // Release extra reference.
+            __chela_rel_ref__(arg);
+
+            // Enter the thread.
+            self.entry();
+        }
+
+        public void Start()
+        {
+            if(entry == null)
+                throw new InvalidOperationException("Using parameterized thread start.");
+
+            unsafe  {
+                // Give ownership to the thread.
+                void *self = reinterpret_cast<void*> (this);
+                __chela_add_ref__(self);
+
+                // Start the thread.
+                threadHandle.Start(&ThreadEntry, self);
+            }
+        }
+
+        private unsafe static void ThreadEntryParam(void *arg)
+        {
+            // Cast myself.
+            Thread self = reinterpret_cast<Thread> (arg);
+
+            // Release extra reference.
+            __chela_rel_ref__(arg);
+
+            // Store the parameter in heap.
+            object param = self.currentParam;
+            self.currentParam = null;
+
+            // Enter the requested entry point.
+            self.paramEntry(param);
+        }
+
+        public void Start(object param)
+        {
+            if(paramEntry == null)
+                throw new InvalidOperationException("Using simple thread start.");
+
+            // Store the parameter.
+            currentParam = param;
+            
+            unsafe {
+                // Give ownership to the thread.
+                void *self = reinterpret_cast<void*> (this);
+                __chela_add_ref__(self);
+
+                // Start the thread.
+                threadHandle.Start(&ThreadEntryParam, self);
+            }
+        }
+
+        public void Join()
+        {
+            // Join the thread.
+            unsafe {
+                threadHandle.Join();
+            }
+        }
+
+        public ThreadState ThreadState {
+            get {
+                return state;
+            }
+        }
+
+        ///<summary>
+        ///Releases the CPU control for the specified amount of milliseconds.
+        ///</summary>
+        public static void Sleep(int milliseconds)
+        {
+            _Chela_Sleep(milliseconds);
+        }
+    }
+}
+

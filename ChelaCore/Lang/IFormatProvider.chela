@@ -1,0 +1,11 @@
+namespace Chela.Lang
+{
+    ///<summary>
+    ///Formatting services supplier.
+    ///</summary>
+    public interface IFormatProvider
+    {
+        object GetFormat(Type formatType);
+    }
+}
+

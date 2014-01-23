@@ -1,0 +1,40 @@
+namespace Chela.Gui
+{
+    ///<summary>
+    ///Expose event arguments.
+    ///</summary>
+    public class MotionEvent: GuiEvent
+    {
+        public MotionEvent(WindowContext context, GuiEventType type)
+            : base(context, type)
+        {
+        }
+
+        public ivec2 Position;
+        public int Modifiers;
+
+        public int X {
+            get {
+                return Position.x;
+            }
+            set {
+                Position.x = value;
+            }
+        }
+
+        public int Y {
+            get {
+                return Position.y;
+            }
+            set {
+                Position.y = value;
+            }
+        }
+    }
+
+    ///<summary>
+    ///Draw event handler.
+    ///</summary>
+    public delegate void MotionEventHandler(object sender, MotionEvent args);
+}
+

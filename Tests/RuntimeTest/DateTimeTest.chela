@@ -1,0 +1,35 @@
+using Chela.Lang;
+
+namespace Chela.TestModule
+{
+    [Test("DateTime")]
+    public static class DateTimeTest
+    {
+        private static void SleepEating(int seconds)
+        {
+            DateTime end = DateTime.Now + TimeSpan.FromSeconds(seconds);
+            while(DateTime.Now < end)
+                ;
+        }
+
+        //[Test("T-10")]
+        public static void CountFromTen()
+        {
+            int counter = 10;
+            do
+            {
+               // Write the remaining amount
+               if(counter == 10)
+                    Console.WriteLine("T-minus 10");
+               else
+                    Console.WriteLine(counter.ToString());
+
+               // Count down one second.
+               if(counter > 0)
+                    SleepEating(1);
+               --counter;
+            }while(counter >= 0);
+        }
+    }
+}
+

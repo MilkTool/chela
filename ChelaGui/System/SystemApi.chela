@@ -1,0 +1,140 @@
+// SysLayer API
+namespace Chela.Gui.SystemDriver
+{
+    internal struct DRIVER {};
+    internal struct DISPLAY {};
+    internal struct SCREEN {};
+    internal struct DRAWABLE {};
+    internal struct WINDOW {};
+    internal struct GC {};
+    internal struct RENDER_CTX {};
+
+    internal unsafe struct ANY_EVENT
+    {
+        public WINDOW *window;
+        public int type;
+    }
+
+    internal unsafe struct KEY_EVENT
+    {
+        public WINDOW *window;
+        public int type;
+        public int modifiers;
+        public int keySym;
+        public int unicode;
+    }
+
+    internal unsafe struct BUTTON_EVENT
+    {
+        public WINDOW *window;
+        public int type;
+        public int x, y;
+        public int modifiers;
+        public int button;
+    }
+
+    internal unsafe struct MOTION_EVENT
+    {
+        public WINDOW *window;
+        public int type;
+        public int x, y;
+        public int modifiers;
+    }
+
+    internal unsafe struct EXPOSE_EVENT
+    {
+        public WINDOW *window;
+        public int type;
+        public int x, y;
+        public int width, height;
+        public int count;
+    }
+
+    internal unsafe struct EVENT
+    {
+        public WINDOW *window;
+        public int type;
+        private KEY_EVENT key_padding;
+        private BUTTON_EVENT button_padding;
+        private MOTION_EVENT motion_padding;
+        private EXPOSE_EVENT expose_padding;
+    }
+
+    // Driver interfacing.
+    unsafe extern __cdecl int _ChGui_GetDriverCount();
+    unsafe extern __cdecl DRIVER *_ChGui_GetDriver(int index);
+
+    // GuiDriver
+    unsafe extern __cdecl DISPLAY *_ChGui_Driver_GetDisplay(DRIVER *driver);
+
+    // Display
+    unsafe extern __cdecl int _ChGui_Display_GetScreenCount(DISPLAY *disp);
+    unsafe extern __cdecl int _ChGui_Display_GetDefaultScreenIndex(DISPLAY *disp);
+    unsafe extern __cdecl SCREEN *_ChGui_Display_GetScreen(DISPLAY *disp, int index);
+    unsafe extern __cdecl WINDOW *_ChGui_Display_CreateSimpleWindow(DISPLAY *disp, WINDOW *parent, int x, int y,
+                                                                    int w, int h, int borderWidth, int border,
+                                                                    int bg);
+    unsafe extern __cdecl WINDOW *_ChGui_Display_CreateRenderWindow(DISPLAY *disp, RENDER_CTX *context,
+                                                                    WINDOW *parent, int x, int y, int w,
+                                                                    int h, int borderWidth, int border, int bg);
+    unsafe extern __cdecl RENDER_CTX *_ChGui_Display_CreateRenderContext(DISPLAY *disp, const sbyte *systemName,
+                                                                    SCREEN *screen, int numattributes, int *attributes);
+
+    unsafe extern __cdecl bool _ChGui_Display_PollEvent(DISPLAY *driver, EVENT *dest);
+
+    // Screen
+    unsafe extern __cdecl WINDOW *_ChGui_Screen_GetRootWindow(SCREEN *screen);
+    unsafe extern __cdecl int _ChGui_Screen_GetWidth(SCREEN *screen);
+    unsafe extern __cdecl int _ChGui_Screen_GetHeight(SCREEN *screen);
+
+    // Drawable
+    unsafe extern __cdecl int _ChGui_Drawable_GetWidth(DRAWABLE *drawable);
+    unsafe extern __cdecl int _ChGui_Drawable_GetHeight(DRAWABLE *drawable);
+
+    // Window.
+    unsafe extern __cdecl void _ChGui_Window_Show(WINDOW *window);
+    unsafe extern __cdecl void _ChGui_Window_Hide(WINDOW *window);
+
+    unsafe extern __cdecl void _ChGui_Window_CaptureMouse(WINDOW *window);
+    unsafe extern __cdecl void _ChGui_Window_ReleaseMouse(WINDOW *window);
+
+    unsafe extern __cdecl bool _ChGui_Window_HasFocus(WINDOW *window);
+    unsafe extern __cdecl void _ChGui_Window_SetFocus(WINDOW *window);
+    
+    unsafe extern __cdecl bool _ChGui_Window_IsInputEnabled(WINDOW *window);
+    unsafe extern __cdecl void _ChGui_Window_EnableInput(WINDOW *window);
+    unsafe extern __cdecl void _ChGui_Window_DisableInput(WINDOW *window);
+
+    unsafe extern __cdecl GC *_ChGui_Window_CreateGraphicContext(WINDOW *window, bool painting);
+    unsafe extern __cdecl void _ChGui_Window_Refresh(WINDOW *window);
+
+    unsafe extern __cdecl char *_ChGui_Window_GetStringAttribute(WINDOW *window, const sbyte *name);
+    unsafe extern __cdecl void _ChGui_Window_SetStringAttribute(WINDOW *window, const sbyte *name, int attrSize, const char *attr);
+
+    // GraphicContext.
+    unsafe extern __cdecl void _ChGui_GC_BeginDrawing(GC *gc);
+    unsafe extern __cdecl void _ChGui_GC_EndDrawing(GC *gc);
+
+    unsafe extern __cdecl void _ChGui_GC_SetBackground(GC *gc, int color);
+    unsafe extern __cdecl int _ChGui_GC_GetBackground(GC *gc);
+    unsafe extern __cdecl void _ChGui_GC_SetForeground(GC *gc, int color);
+    unsafe extern __cdecl int _ChGui_GC_GetForeground(GC *gc);
+
+    unsafe extern __cdecl void _ChGui_GC_Clear(GC *gc);
+    unsafe extern __cdecl void _ChGui_GC_ClearRect(GC *gc, int x0, int y0, int x1, int y1);
+
+    unsafe extern __cdecl void _ChGui_GC_DrawPoint(GC *gc, int x0, int y0);
+    unsafe extern __cdecl void _ChGui_GC_DrawLine(GC *gc, int x0, int y0, int x1, int y1);
+    unsafe extern __cdecl void _ChGui_GC_DrawRectangle(GC *gc, int x0, int y0, int x1, int y1);
+    unsafe extern __cdecl void _ChGui_GC_DrawFillRectangle(GC *gc, int x0, int y0, int x1, int y1);
+    unsafe extern __cdecl void _ChGui_GC_DrawTriangle(GC *gc, int x0, int y0, int x1, int y1, int x2, int y2);
+    unsafe extern __cdecl void _ChGui_GC_DrawFillTriangle(GC *gc, int x0, int y0, int x1, int y1, int x2, int y2);
+
+    unsafe extern __cdecl void _ChGui_GC_DrawHorizGradient(GC *gc, int x0, int y0, int x1, int y1, int start, int end);
+    unsafe extern __cdecl void _ChGui_GC_DrawVertGradient(GC *gc, int x0, int y0, int x1, int y1, int start, int end);
+
+    // RenderContext
+    unsafe extern __cdecl bool _ChGui_Render_MakeCurrent(RENDER_CTX *ctx, WINDOW *window);
+    unsafe extern __cdecl bool _ChGui_Render_SwapBuffers(RENDER_CTX *ctx);
+}
+

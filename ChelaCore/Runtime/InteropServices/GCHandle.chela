@@ -1,0 +1,63 @@
+using Chela.Lang;
+
+namespace Chela.Runtime.InteropServices
+{
+    ///GCHandleType
+    public enum GCHandleType
+    {
+        Normal = 0,
+        Pinned,
+    }
+
+    ///OpenTK bindings uses GCHandle, usually provided by the .NET runtime.
+    public struct GCHandle
+    {
+        private GCHandleType type;
+        private IntPtr address;
+
+        public IntPtr AddrOfPinnedObject()
+        {
+            return address;
+        }
+
+        public void Free()
+        {
+        }
+
+        public object Target {
+            get {
+                return null;
+            }
+        }
+        
+        public static GCHandle Alloc (object value)
+        {
+            return Alloc(value, GCHandleType.Normal);
+        }
+
+        public static GCHandle Alloc (object value, GCHandleType type)
+        {
+            GCHandle res;
+            res.type = type;
+            if(type != GCHandleType.Pinned)
+                throw new NotImplementedException();
+                
+            // Create the object handle.
+            if(value != null)
+            {
+                unsafe {
+                    // Get the object type information
+                    StandardObject *obj = reinterpret_cast<StandardObject*> (value);
+                    TypeInformation *typeInfo = obj->vtable->type;
+                    
+                    // Get the data pointer.
+                    byte *address = reinterpret_cast<byte*> (value) + typeInfo->dataOffset;
+                    res.address = (IntPtr)address;
+                }
+            }
+            
+            return res;
+        }
+    }
+}
+

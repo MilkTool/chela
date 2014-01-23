@@ -1,0 +1,5 @@
+Name: ChelaSysLayer
+Description: 
+Version: 0.1
+Libs: -L"/home/ronie/Projects/Chela/ChelaSysLayer/bin/Release" -lChelaSysLayer
+Cflags: -I"/home/ronie/Projects/Chela/ChelaSysLayer/include" -I"/home/ronie/Projects/Chela/ChelaSysLayer/src" -I"/home/ronie/Projects/Chela/ChelaSysLayer/src/X11Driver"

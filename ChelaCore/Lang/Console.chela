@@ -1,0 +1,68 @@
+using Chela.IO;
+
+namespace Chela.Lang
+{
+    unsafe extern __cdecl FILE *_Chela_IO_GetStdout();
+
+    // Simple text input/output.
+    public class Console
+    {
+        public static void Write(string text)
+        {
+            unsafe
+            {
+                const sbyte *cstr = text.C_Str();
+                try
+                    _Chela_IO_Write((const void *)cstr, (size_t)text.Length, 1u, _Chela_IO_GetStdout());
+                finally
+                    delete [] cstr;
+            }
+        }
+
+        public static void WriteLine(string text)
+        {
+            Write(text + "\n");
+        }
+
+        public static void WriteLine(object obj)
+        {
+            WriteLine(obj.ToString());
+        }
+
+        ///<summary>
+        ///Displays a formatted string.
+        ///</summary>
+        public static void WriteLine(string format, params object[] args)
+        {
+            WriteLine(string.Format(format, args));
+        }
+
+        ///<summary>
+        ///Displays a formatted string.
+        ///</summary>
+        public static void WriteLine(string format, object arg0)
+        {
+            object[] args = new object[] {arg0};
+            WriteLine(format, args);
+        }
+
+        ///<summary>
+        ///Displays a formatted string.
+        ///</summary>
+        public static void WriteLine(string format, object arg0, object arg1)
+        {
+            object[] args = new object[] {arg0, arg1};
+            WriteLine(format, args);
+        }
+
+        ///<summary>
+        ///Displays a formatted string.
+        ///</summary>
+        public static void WriteLine(string format, object arg0, object arg1, object arg2)
+        {
+            object[] args = new object[] {arg0, arg1, arg2};
+            WriteLine(format, args);
+        }
+    };
+}
+

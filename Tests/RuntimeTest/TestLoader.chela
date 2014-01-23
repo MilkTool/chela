@@ -1,0 +1,89 @@
+using Chela.Lang;
+using Chela.Reflection;
+
+class MainClass
+{
+    private static Type testAttributeType;
+
+    private static void DumpAssembly(Assembly assembly)
+    {
+        Type[] types = assembly.GetTypes();
+        Console.WriteLine("Assembly " + assembly);
+        Console.WriteLine("types " + types.Length);
+        for(int i = 0; i < types.Length; ++i) {
+            Console.WriteLine(types[i].FullName);
+        }
+    }
+
+    private static void RunTest(MethodInfo potentialTest)
+    {
+        // The test must be static.
+        if(!potentialTest.IsStatic)
+            return;
+
+        // Find the test attribute.
+        object[] attributes = potentialTest.GetCustomAttributes(testAttributeType, false);
+        if(attributes == null || attributes.Length == 0)
+            return;
+
+        // Print the test data.
+        Console.WriteLine(attributes[0]);
+
+        // Make sure it doesn't have parameters.
+        ParameterInfo[] parameters = potentialTest.GetParameters();
+        if(parameters != null && parameters.Length != 0)
+        {
+            Console.WriteLine("Test functions cannot have parameters({0}).", potentialTest.Name);
+            return;
+        }
+
+        // Invoke the test.
+        potentialTest.Invoke(null, null);
+    }
+
+    private static void RunTestSuit(Type testSuit)
+    {
+        // Find the test attribute.
+        object[] attributes = testSuit.GetCustomAttributes(testAttributeType, false);
+        if(attributes == null || attributes.Length == 0)
+            return;
+        
+        // Only use the first one.
+        Console.WriteLine("-------------------------------------------------------------------");
+        Console.WriteLine("TestSuit: {0}", attributes[0]);
+
+        // Find the test suit entry points.
+        MemberInfo[] members = testSuit.GetMembers();
+        for(int i = 0; i < members.Length; ++i)
+        {
+            MethodInfo method = members[i] as MethodInfo;
+            if(method != null)
+                RunTest(method);
+        }
+    }
+
+    public static void Main(string[] args)
+    {
+        /*// Get my assembly.
+        Assembly myAssembly = typeof(MainClass).Assembly;
+
+        // Dump the assembly types.
+        DumpAssembly(myAssembly);
+
+        // Dump the chela runtime assembly.
+        DumpAssembly(typeof(Object).Assembly);*/
+
+        // Load a module.
+        Assembly loaded = Assembly.LoadFrom("TestModule");
+
+        // Get the test attribute type.
+        testAttributeType = loaded.GetType("Chela.TestModule.TestAttribute", true);
+        Console.WriteLine("TestAttribute: {0}", testAttributeType.FullName);
+
+        // Run the tests suits.
+        Type[] types = loaded.GetTypes();
+        for(int i = 0; i < types.Length; ++i)
+            RunTestSuit(types[i]);
+    }
+}
+

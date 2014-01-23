@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="3.5" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.21022</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{8435FC90-A6C7-4517-B336-274364B12380}</ProjectGuid>
+    <Target>Bin</Target>
+    <Language>CPP</Language>
+    <Compiler>
+      <Compiler ctype="GppCompiler" />
+    </Compiler>
+    <Packages>
+      <Packages>
+        <Package file="/home/ronie/Projects/Chela/ChelaSysLayer/ChelaSysLayer.md.pc" name="ChelaSysLayer" IsProject="true" />
+      </Packages>
+    </Packages>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Debug</OutputPath>
+    <ExtraLinkerArguments>`/opt/llvm-debug/bin/llvm-config --ldflags --libs engine native linker bitreader bitwriter`</ExtraLinkerArguments>
+    <DefineSymbols>DEBUG MONODEVELOP</DefineSymbols>
+    <SourceDirectory>.</SourceDirectory>
+    <ExtraCompilerArguments>`/opt/llvm-debug/bin/llvm-config --cxxflags engine native linker bitreader bitwriter` -fexceptions</ExtraCompilerArguments>
+    <Externalconsole>true</Externalconsole>
+    <OutputName>ChelaVm</OutputName>
+    <CompileTarget>Bin</CompileTarget>
+    <Includes>
+      <Includes>
+        <Include>${ProjectDir}/include</Include>
+        <Include>${SolutionDir}/ChelaSysLayer/include</Include>
+      </Includes>
+    </Includes>
+    <CustomCommands>
+      <CustomCommands>
+        <Command type="AfterBuild" command="cp &quot;${ProjectDir}/bin/Debug/ChelaVm&quot; &quot;${SolutionDir}/Chela/bin/Debug/ChelaVm&quot;" />
+      </CustomCommands>
+    </CustomCommands>
+    <WarningLevel>All</WarningLevel>
+    <Libs>
+      <Libs>
+        <Lib>X11</Lib>
+        <Lib>rt</Lib>
+        <Lib>GL</Lib>
+        <Lib>dl</Lib>
+      </Libs>
+    </Libs>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>bin\Release</OutputPath>
+    <OptimizationLevel>3</OptimizationLevel>
+    <DefineSymbols>MONODEVELOP</DefineSymbols>
+    <SourceDirectory>.</SourceDirectory>
+    <Externalconsole>true</Externalconsole>
+    <OutputName>ChelaVm</OutputName>
+    <CompileTarget>Bin</CompileTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="src\main.cpp" />
+    <Compile Include="src\Module.cpp" />
+    <Compile Include="src\VirtualMachine.cpp" />
+    <Compile Include="src\ModuleFile.cpp" />
+    <Compile Include="src\Types.cpp" />
+    <Compile Include="src\Member.cpp" />
+    <Compile Include="src\Namespace.cpp" />
+    <Compile Include="src\Structure.cpp" />
+    <Compile Include="src\Class.cpp" />
+    <Compile Include="src\Field.cpp" />
+    <Compile Include="src\Function.cpp" />
+    <Compile Include="src\FunctionLocal.cpp" />
+    <Compile Include="src\FunctionBlock.cpp" />
+    <Compile Include="src\FunctionArgument.cpp" />
+    <Compile Include="src\FunctionGroup.cpp" />
+    <Compile Include="src\Interface.cpp" />
+    <Compile Include="src\Property.cpp" />
+    <Compile Include="src\SpecialFunctions.cpp" />
+    <Compile Include="src\ConstantValue.cpp" />
+    <Compile Include="src\AttributeConstant.cpp" />
+    <Compile Include="src\DebugInformation.cpp" />
+    <Compile Include="src\FileSystem.cpp" />
+    <Compile Include="src\PEFormat.cpp" />
+    <Compile Include="src\ELFFormat.cpp" />
+    <Compile Include="src\PlaceHolderType.cpp" />
+    <Compile Include="src\GenericPrototype.cpp" />
+    <Compile Include="src\GenericInstance.cpp" />
+    <Compile Include="src\FunctionInstance.cpp" />
+    <Compile Include="src\TypeInstance.cpp" />
+    <Compile Include="src\MemberInstance.cpp" />
+    <Compile Include="src\TypeGroup.cpp" />
+    <Compile Include="src\ArgumentData.cpp" />
+    <Compile Include="src\Closure.cpp" />
+    <Compile Include="src\System_Unix.cpp" />
+    <Compile Include="src\System_Win32.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="include\" />
+    <Folder Include="include\ChelaVm\" />
+    <Folder Include="src\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="include\ChelaVm\InstructionDescription.hpp" />
+    <None Include="include\ChelaVm\ModuleFile.hpp" />
+    <None Include="include\ChelaVm\Module.hpp" />
+    <None Include="include\ChelaVm\ModuleReader.hpp" />
+    <None Include="include\ChelaVm\VirtualMachine.hpp" />
+    <None Include="include\ChelaVm\Types.hpp" />
+    <None Include="include\ChelaVm\Member.hpp" />
+    <None Include="include\ChelaVm\Namespace.hpp" />
+    <None Include="include\ChelaVm\Structure.hpp" />
+    <None Include="include\ChelaVm\Class.hpp" />
+    <None Include="include\ChelaVm\Field.hpp" />
+    <None Include="include\ChelaVm\Function.hpp" />
+    <None Include="include\ChelaVm\FunctionLocal.hpp" />
+    <None Include="include\ChelaVm\FunctionBlock.hpp" />
+    <None Include="include\ChelaVm\InstructionReader.hpp" />
+    <None Include="include\ChelaVm\FunctionArgument.hpp" />
+    <None Include="include\ChelaVm\FunctionGroup.hpp" />
+    <None Include="include\ChelaVm\Interface.hpp" />
+    <None Include="include\ChelaVm\Property.hpp" />
+    <None Include="include\ChelaVm\ConstantValue.hpp" />
+    <None Include="include\ChelaVm\AttributeConstant.hpp" />
+    <None Include="include\ChelaVm\DebugInformation.hpp" />
+    <None Include="include\ChelaVm\FileSystem.hpp" />
+    <None Include="include\ChelaVm\System.hpp" />
+    <None Include="include\ChelaVm\PEFormat.hpp" />
+    <None Include="include\ChelaVm\ELFFormat.hpp" />
+    <None Include="include\ChelaVm\Closure.hpp" />
+    <None Include="include\ChelaVm\PlaceHolderType.hpp" />
+    <None Include="include\ChelaVm\GenericPrototype.hpp" />
+    <None Include="include\ChelaVm\GenericInstance.hpp" />
+    <None Include="include\ChelaVm\FunctionInstance.hpp" />
+    <None Include="include\ChelaVm\TypeInstance.hpp" />
+    <None Include="include\ChelaVm\MemberInstance.hpp" />
+    <None Include="include\ChelaVm\TypeGroup.hpp" />
+    <None Include="include\ChelaVm\ArgumentData.hpp" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,103 @@
+namespace Chela.Lang
+{
+    public class Random
+    {
+        private int seed;
+        
+        ///<summary>
+        ///Constructs a PRNG using Environment.TickCount as the seed.
+        ///</summary>
+        public Random()
+            : this(Environment.TickCount)
+        {
+        }
+
+        ///<summary>
+        ///Constructs a PRNG a given seed.
+        ///</summary>
+        public Random(int seed)
+        {
+            this.seed = seed;
+        }
+        
+        ///<summary>
+        ///Computes the next number in the sequence.
+        ///</summary>
+        private int GenerateInt()
+        {
+            seed = 1103515245*seed + 12345;
+            return seed & int.MaxValue;
+        }
+        
+        ///<summary>
+        ///Computes the next number in the sequence.
+        ///</summary>
+        ///<returns>
+        ///An integer in [0, int.MaxValue].
+        ///</returns>
+        public virtual int Next()
+        {
+            return GenerateInt();
+        }
+
+        ///<summary>
+        ///Computes the next number in the sequence.
+        ///</summary>
+        ///<returns>
+        ///An integer in [0, maxValue].
+        ///</returns>
+        public virtual int Next(int maxValue)
+        {
+            // Check the max value.
+            if(maxValue < 0)
+                throw new ArgumentOutOfRangeException("maxValue", "is less than zero");
+            else if(maxValue == 0) // Avoid division by zero.
+                return 0;
+            return Next() % maxValue;
+        }
+     
+        ///<summary>
+        ///Computes the next number in the sequence.
+        ///</summary>
+        ///<returns>
+        ///An integer in [minValue, maxValue].
+        ///</returns>  
+        public virtual int Next(int minValue, int maxValue)
+        {
+            if(minValue > maxValue)
+                throw new ArgumentOutOfRangeException("minValue", "is greater than maxValue");
+            return Next(maxValue - minValue) + minValue;
+        }
+        
+        ///<summary>
+        ///Fills a byte array with random numbers.
+        ///</summary>
+        public virtual void NextBytes(byte[] buffer)
+        {
+            if(buffer == null)
+                throw new ArgumentNullException("buffer");
+
+            // Fill the buffer
+            for(int i = 0; i < buffer.Length; ++i)
+                buffer[i] = (byte)(Next()&0xFF);
+        }
+
+        ///<summary>
+        ///Generates a number between 0 and 1.0
+        ///</summary>
+        public virtual double NextDouble()
+        {
+            return Sample();
+        }
+        
+        ///<summary>
+        ///Performs a random sample.
+        ///</summary>
+        protected virtual double Sample()
+        {
+            return (double)GenerateInt() / (double)int.MaxValue;
+        }        
+
+    }
+}
+

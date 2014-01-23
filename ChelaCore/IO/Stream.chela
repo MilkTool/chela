@@ -1,0 +1,125 @@
+using Chela.Lang;
+
+namespace Chela.IO
+{
+    ///<summary>
+    ///An I/O stream.
+    ///</summary>
+	public abstract class Stream: IDisposable
+	{
+		protected Stream ()
+		{
+		}
+		
+		~Stream()
+		{
+		    Dispose(false);
+		}
+		
+		///<summary>
+		///Closes the stream.
+		///</summary>
+		public virtual void Close()
+		{
+		}
+
+        ///<summary>
+        ///Disposes the stream data.
+        ///</summary>
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+        
+        ///<summary>
+        ///Disposes the stream data.
+        ///</summary>
+        protected virtual void Dispose(bool disposing)
+        {
+        }
+        
+		///<summary>
+		///Flushes the stream bffer.
+		///</summary>		
+		public abstract void Flush();
+		
+		///<summary>
+		///Reads data from the stream.
+		///</summary>
+		public abstract int Read(byte[] buffer, int offset, int count);
+		
+		///<summary>
+		///Reads a single byte from the stream.
+		///</summary>
+		public virtual int ReadByte()
+		{
+			byte[] buffer = new byte[1];
+			if (Read(buffer, 0, 1) > 0 )
+				return buffer[0];
+			else
+				return -1;
+		}
+		
+		///<summary>
+		///Writes data into the stream.
+		///</summary>
+		public abstract void Write(byte [] buffer, int offset, int count);
+
+        ///<summary>
+        ///Writes a single byte into the stream.
+        ///</summary>
+		public virtual void WriteByte(byte value)
+		{
+			byte[] buffer = new byte[1];
+			buffer[0] = value;
+			Write(buffer, 0, 1);			
+		}
+		
+		///<summary>
+		///Moves the stream cursor.
+		///</summary>
+		public abstract long Seek(long offset, SeekOrigin origin);
+		
+		///<summary>
+		///Sets the length of the current stream.
+		///</summary>
+		public abstract void SetLength(long value);
+		
+		///<summary>
+		///Is the stream readable?.
+		///<summary>
+		public abstract bool CanRead {
+		    get;
+		}
+		
+		///<summary>
+		///Is the stream seekable?.
+		///<summary>
+		public abstract bool CanSeek {
+		    get;
+		}
+		
+		///<summary>
+		///Is the stream writable?.
+		///<summary>
+		public abstract bool CanWrite {
+		    get;
+		}
+		
+		///<summary>
+		///Retrieves the stream length.
+		///</summary>
+        public abstract long Length {
+            get;
+        }
+		
+		///<summary>
+		///Retrieves the current position in the stream.
+		///</summary>
+        public abstract long Position {
+            get;
+            set;
+        }
+    }
+}
+

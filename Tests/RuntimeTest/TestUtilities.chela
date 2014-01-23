@@ -1,0 +1,19 @@
+using Chela.Lang;
+
+namespace Chela.TestModule
+{
+    private int testCount = 0;
+    private int passedCount = 0;
+    private int failureCount = 0;
+
+    public void Result(string what, bool result)
+    {
+        ++testCount;
+        if(result)
+            ++passedCount;
+        else
+            ++failureCount;
+        Console.WriteLine(what);
+    }
+}
+

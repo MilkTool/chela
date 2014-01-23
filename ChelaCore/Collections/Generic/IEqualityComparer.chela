@@ -1,0 +1,19 @@
+namespace Chela.Collections.Generic
+{
+    /// <summary>
+    /// Compares two object for equality.
+    /// </summary>
+    public interface IEqualityComparer<T>: IEqualityComparer
+    {
+        /// <summary>
+        /// Tells if two objects are equal.
+        /// </summary>
+        bool Equals(T a, T b);
+
+        /// <summary>
+        /// Gives a hash code for an object.
+        /// </summary>
+        int GetHashCode(T a);
+    }
+}
+

@@ -1,0 +1,8 @@
+namespace Chela.Collections.Generic
+{
+    public interface IEnumerable<T>: IEnumerable
+    {
+        IEnumerator<T> GetEnumerator();
+    }
+}
+

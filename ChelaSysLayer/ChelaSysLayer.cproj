@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="3.5" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.21022</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{056DBE64-C090-4FE1-8609-E778DCCFEBDE}</ProjectGuid>
+    <Target>Bin</Target>
+    <Language>CPP</Language>
+    <Compiler>
+      <Compiler ctype="GppCompiler" />
+    </Compiler>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Debug</OutputPath>
+    <ExtraCompilerArguments>-fPIC</ExtraCompilerArguments>
+    <DefineSymbols>DEBUG MONODEVELOP</DefineSymbols>
+    <SourceDirectory>.</SourceDirectory>
+    <OutputName>ChelaSysLayer</OutputName>
+    <CompileTarget>StaticLibrary</CompileTarget>
+    <Includes>
+      <Includes>
+        <Include>${ProjectDir}/include</Include>
+        <Include>${ProjectDir}/src</Include>
+      </Includes>
+    </Includes>
+    <WarningLevel>All</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>bin\Release</OutputPath>
+    <DefineSymbols>MONODEVELOP</DefineSymbols>
+    <SourceDirectory>.</SourceDirectory>
+    <OptimizationLevel>3</OptimizationLevel>
+    <OutputName>ChelaSysLayer</OutputName>
+    <CompileTarget>StaticLibrary</CompileTarget>
+    <WarningLevel>All</WarningLevel>
+    <Includes>
+      <Includes>
+        <Include>${ProjectDir}/include</Include>
+        <Include>${ProjectDir}/src</Include>
+      </Includes>
+    </Includes>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="include\SysLayer.hpp" />
+    <None Include="src\ChelaGui.hpp" />
+    <None Include="src\X11Driver\X11Driver.hpp" />
+    <None Include="src\X11Driver\X11Display.hpp" />
+    <None Include="src\X11Driver\X11Window.hpp" />
+    <None Include="src\X11Driver\X11Screen.hpp" />
+    <None Include="src\X11Driver\X11Drawable.hpp" />
+    <None Include="src\X11Driver\X11GraphicContext.hpp" />
+    <None Include="src\X11Driver\GlxContext.hpp" />
+    <None Include="src\Reflection_UnixAMD64Trap.nasm" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="src\Memory.cpp" />
+    <Compile Include="src\SysLayer.cpp" />
+    <Compile Include="src\System.cpp" />
+    <Compile Include="src\DataConversion.cpp" />
+    <Compile Include="src\GuiDriver.cpp" />
+    <Compile Include="src\X11Driver\X11Driver.cpp" />
+    <Compile Include="src\X11Driver\X11Display.cpp" />
+    <Compile Include="src\X11Driver\X11Window.cpp" />
+    <Compile Include="src\X11Driver\X11Screen.cpp" />
+    <Compile Include="src\PThreads.cpp" />
+    <Compile Include="src\Atomic.cpp" />
+    <Compile Include="src\X11Driver\X11Drawable.cpp" />
+    <Compile Include="src\X11Driver\X11GraphicContext.cpp" />
+    <Compile Include="src\Module.cpp" />
+    <Compile Include="src\X11Driver\GlxContext.cpp" />
+    <Compile Include="src\OpenGL.cpp" />
+    <Compile Include="src\Math.cpp" />
+    <Compile Include="src\IO_Common.cpp" />
+    <Compile Include="src\IO_Win32.cpp" />
+    <Compile Include="src\IO_Unix.cpp" />
+    <Compile Include="src\Reflection_UnixAMD64.cpp" />
+    <Compile Include="src\PosixTime.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="src\X11Driver\" />
+    <Folder Include="src\" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,32 @@
+namespace Chela.Lang
+{
+    ///<summary>
+    ///This interface is implemented by objects that are supposed to
+    ///be compared with others.
+    ///</summary>
+	public interface IComparable
+	{
+        ///<summary>
+        ///Compare myself with to returning a negative number if
+        ///this < to, zero if this == to, and a positive number
+        ///if this > to
+        ///</summary>
+		int CompareTo(object to);
+	}
+
+    ///<summary>
+    ///This interface is implemented by objects that are supposed to
+    ///be compared with others.
+    ///</summary>
+	public interface IComparable<T>
+	{
+        ///<summary>
+        ///Compare myself with to returning a negative number if
+        ///this < to, zero if this == to, and a positive number
+        ///if this > to
+        ///</summary>
+		int CompareTo(T to);
+	}
+
+}
+

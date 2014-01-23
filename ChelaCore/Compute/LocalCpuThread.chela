@@ -1,0 +1,52 @@
+using Chela.Lang;
+
+namespace Chela.Compute
+{
+    internal typedef void (*)(Closure, int, int) LocalCpuThreadEntry;
+    
+    ///<summary>
+    ///This class represents a local cpu stream computation.
+    ///</summary>
+    internal sealed class LocalCpuThread
+    {
+        private Closure closure;
+        private unsafe LocalCpuThreadEntry entry;
+        private IStreamHolder[] streams;
+        
+        public unsafe LocalCpuThread(Closure closure, void *method, IStreamHolder[] streams)
+        {
+            this.closure = closure;
+            this.entry = (LocalCpuThreadEntry)method;
+            this.streams = streams;
+        }
+        
+        public void Run()
+        {
+            // Validate the streams.
+            int streamSize = streams[0].Length;
+            for(int i = 1; i < streams.Length; ++i)
+            {
+                if(streams[i].Length != streamSize)
+                    throw new InvalidOperationException("Cannot perform computation with streams of different sizes.");
+            }
+ 
+            //TODO: Get the number of CPUs.           
+            int numcpus = 1;
+            if(numcpus <= 1)
+            {
+                // Its too expensive to create only one thread.
+                // So, run the computation directly.
+                unsafe {
+                    entry(closure, 0, streamSize);
+                }
+            }
+            else
+            {
+                //TODO: Partitionate the streams according to the number of CPUs.
+                //TODO: Use a thread pool
+                throw new NotImplementedException("Thread local stream computations.");
+            }
+        }
+    }
+}
+

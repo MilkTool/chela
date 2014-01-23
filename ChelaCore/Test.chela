@@ -1,0 +1,287 @@
+using Chela.Gui;
+using Chela.Lang;
+using Chela.Threading;
+
+// Cycle reference counting testing.
+class CycleClass
+{
+    CycleClass cycle;
+    //string test;
+
+    public CycleClass()
+    {
+        //cycle = this;
+        //test = "Constant string.";
+    }
+
+    public override void Finalize()
+    {
+        Console.WriteLine("Cycle collected!");
+    }
+}
+
+class EventHolder
+{
+    public event EventHandler Event;
+
+    public void Raise()
+    {
+        Event(null, null);
+    }
+}
+
+void TestHandler(object sender, EventArgs args)
+{
+    Console.WriteLine("Test handler called!!!!");
+}
+
+void TestEvent()
+{
+    EventHolder holder = new EventHolder();
+    holder.Event += TestHandler;
+    holder.Raise();
+}
+
+void TestThread()
+{
+    for(int i = 0; i < 1000; ++i)
+        Console.WriteLine("test thread.");
+}
+
+void TestThread()
+{
+    int LeakSize = 50;
+    Thread[] threads = new Thread[LeakSize];
+    for(int i = 0; i < LeakSize; ++i)
+    {
+        threads[i] = new Thread(TestThread);
+        threads[i].Start();
+    }
+
+    for(int i = 0; i < LeakSize; ++i)
+    {
+        threads[i].Join();
+    }
+    //ThreadStart s = TestThread;
+    //s();
+    //new Thread(TestThread);
+}
+
+void TestCycle()
+{
+    int LeakSize = 40000;
+    for(int i = 0; i < LeakSize; ++i)
+        new CycleClass();
+        //Console.WriteLine("lt");
+}
+
+void TestVectors()
+{
+    vec2 v = vec2(1.0f, 2.0f);
+    Console.WriteLine(v.ToString());
+    Console.WriteLine((v+v).yx);
+    Console.WriteLine("v.x " + v.x);
+    v.y = 0.0f;
+    Console.WriteLine("v.y " + v.y);
+    Console.WriteLine(v.xyyx);
+    Console.WriteLine(vec4(3.0f, 4.0f, v));
+}
+
+Frame testGuiFrame;
+bool mouseInside = false;
+bool gotFocus = false;
+void TestGui_Draw()
+{
+    WindowContext ctx = testGuiFrame.Context;
+    ctx.BeginDrawing();
+
+    if(mouseInside)
+        ctx.Foreground = Color.Red;
+    else
+        ctx.Foreground = Color.Blue;
+    ctx.Clear();
+    ctx.DrawFillTriangle(20, 20, 180, 180, 50, 150);
+    ctx.Foreground = gotFocus ? Color(0,128,255) : Color.Black;
+    ctx.DrawTriangle(20, 20, 180, 180, 50, 150);
+
+    ctx.EndDrawing();
+}
+
+void TestGui_MouseEnter(object sender, GuiEvent args)
+{
+    mouseInside = true;
+    testGuiFrame.Refresh();
+}
+
+void TestGui_MouseLeave(object sender, GuiEvent args)
+{
+    mouseInside = false;
+    testGuiFrame.Refresh();
+}
+
+void TestGui_GotFocus(object sender, GuiEvent args)
+{
+    gotFocus = true;
+    testGuiFrame.Refresh();
+}
+
+void TestGui_LostFocus(object sender, GuiEvent args)
+{
+    gotFocus = false;
+    testGuiFrame.Refresh();
+}
+
+void TestGui_Expose(object sender, ExposeEvent args)
+{
+    if(args.Count != 0)
+        return;
+    TestGui_Draw();
+}
+
+void TestGui_ButtonPressed(object sender, ButtonEvent args)
+{
+    Console.WriteLine("Button " + args.Button + " pressed");
+}
+
+void TestGui_ButtonReleased(object sender, ButtonEvent args)
+{
+    Console.WriteLine("Button " + args.Button + " released");
+}
+
+void TestGui_MouseMotion(object sender, MotionEvent args)
+{
+    Console.WriteLine("Motion " + args.Position);
+}
+
+void TestGui_KeyPressed(object sender, KeyEvent args)
+{
+    Console.WriteLine("Key " + args.KeyCode + " pressed");
+}
+
+void TestGui_KeyReleased(object sender, KeyEvent args)
+{
+    Console.WriteLine("Key " + args.KeyCode + " released");
+}
+
+void TestGui()
+{
+    // Get the current display.
+    Display disp = Display.Current;
+
+    // Get the default screen.
+    Screen screen = disp.DefaultScreen;
+
+    // Create a simple window.
+    Frame frame = new Frame(null, ivec2(0,0), ivec2(200,200));
+    frame.Title = "Test Window";
+    testGuiFrame = frame;
+    frame.Exposed += TestGui_Expose;
+    frame.MouseEnter += TestGui_MouseEnter;
+    frame.MouseLeave += TestGui_MouseLeave;
+    frame.MouseMotion += TestGui_MouseMotion;
+    frame.GotFocus += TestGui_GotFocus;
+    frame.LostFocus += TestGui_LostFocus;
+    frame.ButtonPressed += TestGui_ButtonPressed;
+    frame.ButtonReleased += TestGui_ButtonReleased;
+    frame.KeyPressed += TestGui_KeyPressed;
+    frame.KeyReleased += TestGui_KeyReleased;
+    frame.Show();
+
+    // Enter into the main loop.
+    disp.MainLoop();
+}
+
+int Main(string[] args)
+{
+    //TestDelegate();
+    //TestCycle();
+    //TestEvent();
+    TestVectors();
+    TestGui();
+    return 0;
+}
+
+internal cdecl int __chela_main_caller__(int argc, const byte **argv, int (*)(string[]) MainFunction)
+{
+   // Read the command line.
+    string[] args = new string[argc-1];
+    for(int i = 1; i < argc; ++i)
+        args[i-1] = new string(argv[i]);
+
+    // Invoke the Main function
+    return MainFunction(args);
+}
+
+internal cdecl void __chela_main_caller2__(int argc, const byte **argv, void (*)(string[]) MainFunction)
+{
+   // Read the command line.
+    string[] args = new string[argc-1];
+    for(int i = 1; i < argc; ++i)
+        args[i-1] = new string(argv[i]);
+
+    // Invoke the Main function
+    MainFunction(args);
+}
+
+public cdecl int __chela_main_vv__(int argc, const byte **argv, void (*)() MainFunction)
+{
+    // Initialize the memory manager.
+    __chela_init_memmgr__();
+
+    // Call the main function.
+    MainFunction();
+
+    // Shutdown the memory manager.
+    __chela_init_memmgr__();
+
+    return 0;
+}
+
+public cdecl int __chela_main_iv__(int argc, const byte **argv, int (*)() MainFunction)
+{
+    // Initialize the memory manager.
+    __chela_init_memmgr__();
+
+    // Call the main function.
+    int res = MainFunction();
+
+    // Shutdown the memory manager.
+    __chela_init_memmgr__();
+
+    return res;
+}
+
+public cdecl int __chela_main_vs__(int argc, const byte **argv, void (*)(string[]) MainFunction)
+{
+    // Initialize the memory manager.
+    __chela_init_memmgr__();
+
+    // Call the main function.
+    __chela_main_caller2__(argc, argv, MainFunction);
+
+    // Shutdown the memory manager.
+    __chela_init_memmgr__();
+
+    return 0;
+}
+
+public cdecl int __chela_main_is__(int argc, const byte **argv, int (*)(string[]) MainFunction)
+{
+    // Initialize the memory manager.
+    __chela_init_memmgr__();
+
+    // Call the main function.
+    int res = __chela_main_caller__(argc, argv, MainFunction);
+
+    // Shutdown the memory manager.
+    __chela_init_memmgr__();
+
+    return res;
+}
+
+public cdecl int main(int argc, const byte **argv)
+{
+    // Call the main function.
+    return __chela_main_is__(argc, argv, &Main);
+}
+

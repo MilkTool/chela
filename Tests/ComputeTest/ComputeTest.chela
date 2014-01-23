@@ -1,0 +1,56 @@
+using Chela.Lang;
+using Chela.Compute;
+
+kernel void Sum(float$ a, float$ b, float u, out float$ dest)
+{
+    dest = a + b + u;
+}
+
+void SumDemo()
+{
+    Console.WriteLine("SumDemo");
+    StreamHolder1D<float> a = new StreamHolder1D<float>(new float[6]{0,1,2,3,4,6});
+    StreamHolder1D<float> b = new StreamHolder1D<float>(new float[6]{7,8,9,10,11,12});
+    UniformHolder<float> u = new UniformHolder<float>(0.1f);
+    StreamHolder1D<float> c = new StreamHolder1D<float>(6);
+    ComputeBinding binding = Sum(a,b,u,c);
+    binding();
+    for(int i = 0; i < 6; ++i)
+        Console.WriteLine(a[i] + " + " + b[i] + " + " + u + " = " + c[i]);
+}
+
+kernel void SumRange(readonly float[] data, ivec2$ range, out float$ sum)
+{
+    sum = 0;
+    for(int i = range.x; i < range.y; ++i)
+        sum += data[i];
+}
+
+void SumRangeDemo()
+{
+    Console.WriteLine("SumRangeDemo");
+    
+    // Create the stream data.
+    StreamHolder1D<float> data = new StreamHolder1D<float> (new float[10] {0,1,2,3,4,5,6,7,8,9});
+    StreamHolder1D<ivec2> ranges = new StreamHolder1D<ivec2>
+        (new ivec2[]{ivec2(0,3), ivec2(1,5), ivec2(0,10)});
+    StreamHolder1D<float> result = new StreamHolder1D<float>(ranges.Length);
+    
+    // Compute the stream.
+    ComputeBinding binding = SumRange(data, ranges, result);
+    binding();
+    
+    // Show the result.
+    for(int i = 0; i < result.Length; ++i)
+        Console.WriteLine("result " + i + " = " + result[i]);
+}
+
+public void Main()
+{
+    // Run the sum demo.
+    SumDemo();
+    
+    // Run the sum range demo.
+    SumRangeDemo();
+}
+

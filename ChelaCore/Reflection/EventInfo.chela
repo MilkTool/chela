@@ -1,0 +1,19 @@
+using Chela.Lang;
+
+namespace Chela.Reflection
+{
+    public abstract class EventInfo: MethodBase
+    {
+    
+        ///<summary>
+        ///Returns the member type.
+        ///</summary>
+        public override MemberTypes MemberType {
+            get {
+                return MemberTypes.Event;
+            }
+        }
+
+    }
+}
+

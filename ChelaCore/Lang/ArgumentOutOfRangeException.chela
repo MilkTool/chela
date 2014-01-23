@@ -1,0 +1,38 @@
+namespace Chela.Lang
+{
+    public class ArgumentOutOfRangeException: ArgumentException
+    {
+        private object actualValue = null;
+
+        public ArgumentOutOfRangeException()
+        {
+        }
+
+        public ArgumentOutOfRangeException(string paramName)
+            : base("Parameter is out of range", paramName)
+        {
+        }
+
+        public ArgumentOutOfRangeException(string message, Exception innerException)
+            : base(message, innerException)
+        {
+        }
+
+        public ArgumentOutOfRangeException(string paramName, string message)
+            : base(message, paramName)
+        {
+        }
+
+        public ArgumentOutOfRangeException(string paramName, object actualValue, string message)
+            : base(message, paramName)
+        {
+        }
+
+        public object ActualValue {
+            get {
+                return actualValue;
+            }
+        }
+    }
+}
+

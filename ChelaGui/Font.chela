@@ -1,0 +1,13 @@
+namespace Chela.Gui
+{
+    public abstract class Font
+    {
+        ///<summary>
+        ///The display that contains this font.
+        ///</summary>
+        public abstract Display CurrentDisplay {
+            get;
+        }
+    }
+}
+

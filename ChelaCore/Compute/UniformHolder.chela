@@ -1,0 +1,79 @@
+using Chela.Lang;
+
+namespace Chela.Compute
+{
+    ///<summary>
+    ///An uniform compute resource holder.
+    ///</summary>
+    public sealed class UniformHolder<T>: IResourceHolder
+        where T: struct 
+    {
+        ///<summary>
+        ///The holded resource.
+        ///</summary>
+        T resource;
+        
+        ///<summary>
+        ///Constructs a holder with the default value.
+        ///</summary>
+        public UniformHolder()
+        {
+            resource = default(T);
+        }
+        
+        ///<summary>
+        ///Constructs a holder with a specified value.
+        ///</summary>
+        public UniformHolder(T value)
+        {
+            resource = value;
+        }
+        
+        ///<summary>
+        ///Constructs a holder with the same value as other holder.
+        ///</summary>       
+        public UniformHolder(UniformHolder<T> other)
+        {
+            resource = other.resource;
+        }
+        
+        ///<summary>
+        ///Gets a string representation of the uniform.
+        ///</summary>
+        public override string ToString()
+        {
+            return resource.ToString();
+        }
+        
+        ///<summary>
+        ///Compares this uniform holder with another one.
+        ///</summary
+        public override bool Equals(object o)
+        {
+            if(o == null) return false;
+            UniformHolder<T> holder = (UniformHolder<T>)o;
+            return resource.Equals(holder.resource);
+        }
+        
+        ///<summary>
+        ///Gets a pointer to the holded value.
+        ///</summary>
+        public unsafe T *GetValuePtr()
+        {
+            return &resource;
+        }
+
+        ///<summary>
+        ///Access to the holded value.
+        ///</summary>
+        public T Value {
+            get {
+                return resource;
+            }
+            set {
+                resource = value;
+            }
+        }
+    }
+}
+

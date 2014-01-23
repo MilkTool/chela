@@ -1,0 +1,37 @@
+using Chela.Lang;
+
+namespace Chela.Reflection
+{
+    ///<summary>
+    ///Method access attributes
+    ///</summary>
+    [Flags]
+    public enum MethodAttributes
+    {
+        MemberAccessMask = 7,        //MemberAccessMask
+        PrivateScope = 0,            //PrivateScope
+        Private = 1,                 //Private
+        FamANDAssem = 2,             //FamANDAssem
+        Assembly = 3,                //Assembly
+        Family = 4,                  //Family
+        FamORAssem = 5,              //FamORAssem
+        Public = 6,                  //Public
+        Static = 16,                 //Static
+        Final = 32,                  //Final
+        Virtual = 64,                //Virtual
+        HideBySig = 128,             //HideBySig
+        VtableLayoutMask = 256,      //VtableLayoutMask
+        CheckAccessOnOverride = 512, //CheckAccessOnOverride
+        ReuseSlot = 0,               //PrivateScope
+        NewSlot = 256,               //VtableLayoutMask
+        Abstract = 1024,             //Abstract
+        SpecialName = 2048,          //SpecialName
+        PinvokeImpl = 8192,          //PinvokeImpl
+        UnmanagedExport = 8,         //UnmanagedExport
+        RTSpecialName = 4096,        //RTSpecialName
+        ReservedMask = 53248,        //ReservedMask
+        HasSecurity = 16384,         //HasSecurity
+        RequireSecObject = 32768,    //RequireSecObject
+    }
+}
+

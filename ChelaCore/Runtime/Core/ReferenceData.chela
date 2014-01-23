@@ -1,0 +1,9 @@
+namespace Chela.Runtime.Core
+{
+    // Reference data structure.
+    internal const uint ThreadDataReference = (uint) (1<<31);
+    internal const uint FinalizingObjectFlag = (uint) (1<<30);
+    internal const uint ReferenceDataMask = (uint) (ThreadDataReference | FinalizingObjectFlag);
+    internal const uint ReferenceCountMask = (uint) ~ReferenceDataMask;
+}
+

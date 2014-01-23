@@ -1,0 +1,123 @@
+using Chela.Lang;
+using Chela.Collections.Generic;
+using Chela.IO;
+
+namespace Chela.Gui
+{
+    ///<summary>
+    ///Image serialization format provider.
+    ///</summary>
+    public abstract class ImageFormatProvider
+    {
+        protected ImageFormatProvider()
+        {
+        }
+        
+        private static List<ImageFormatProvider> providers;
+        
+        ///<summary>
+        ///Register built-in providers.
+        ///</summary>
+        private static void RegisterBuiltIn()
+        {
+            if(providers != null)
+                return;
+                
+            providers = new List<ImageFormatProvider> ();
+            RegisterProvider(new BMPFormatProvider());
+        }
+        
+        ///<summary>
+        ///Registers a format provider.
+        ///</summary>
+        public static void RegisterProvider(ImageFormatProvider provider)
+        {
+            RegisterBuiltIn();
+            providers.Add(provider);
+        }
+        
+        ///<summary>
+        ///Unregisters a format provider.
+        ///</summary>
+        public static void UnregisterProvider(ImageFormatProvider provider)
+        {
+            RegisterBuiltIn();
+            providers.Remove(provider);
+        }
+        
+        ///<summary>
+        ///Finds a format provider by extension.
+        ///</summary
+        public static ImageFormatProvider FindByExtension(string extension)
+        {
+            RegisterBuiltIn();            
+            for(int i = 0; i < providers.Count; ++i)
+            {
+                ImageFormatProvider provider = providers[i];
+                if(provider.Extension == extension)
+                    return provider;
+            }
+                    
+            return null;
+        }
+
+        ///<summary>
+        ///Finds a format provider by name.
+        ///</summary
+        public static ImageFormatProvider FindByName(string name)
+        {
+            RegisterBuiltIn();                
+            for(int i = 0; i < providers.Count; ++i)
+            {
+                ImageFormatProvider provider = providers[i];
+                if(provider.Name == name)
+                    return provider;
+            }
+                    
+            return null;
+        }
+        
+        ///<summary>
+        ///Loads an image from a stream.
+        ///</summary>
+        public static Image LoadByExt(Stream stream, string extension)
+        {
+            // Find a matching provider.
+            ImageFormatProvider loader = FindByExtension(extension);
+            if(loader == null)
+                return null;
+
+            return loader.Load(stream);
+        }
+        
+        ///<summary>
+        ///The format name.
+        ///</summary>
+        public abstract string Name {
+            get;
+        }
+        
+        ///<summary>
+        ///The format file name extension.
+        ///</summary>
+        public abstract string Extension {
+            get;
+        }
+        
+        ///<summary>
+        ///Loads the image from the given stream.
+        ///</summary>
+        public abstract Image Load(Stream stream);
+        
+        ///<summary>
+        ///Check if the format provider can save the given image.
+        ///</summary>
+        public abstract bool CanStore(Image image);
+        
+        ///<summary>
+        ///Store the image into the given stream.
+        ///</summary>
+        public abstract void Store(Stream stream, Image image);
+    }
+}
+

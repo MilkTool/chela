@@ -1,0 +1,29 @@
+namespace Chela.Gui
+{
+    /// <summary>
+    /// Control activation event
+    /// </summary>
+    public class ActivateEvent: GuiEvent
+    {
+        public ActivateEvent()
+            : base(GuiEventType.Activate)
+        {
+        }
+
+        public ActivateEvent(WindowContext context)
+            : base(context, GuiEventType.Activate)
+        {
+        }
+
+        public ActivateEvent(Window window)
+            : base(window, GuiEventType.Activate)
+        {
+        }
+    }
+    
+    /// <summary>
+    /// Activate event handler.
+    /// </summary>
+    public delegate void ActivateEventHandler(object sender, ActivateEvent ev);
+}
+

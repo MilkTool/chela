@@ -1,0 +1,28 @@
+using Chela.Lang;
+
+namespace Chela.TestModule
+{
+    [Test("Vector", Description="Vector math testing.")]
+    public static class VectorTest
+    {
+        [Test("Vector printing")]
+        public void VectorPrinting()
+        {
+            vec2 v = vec2(1.0f, 2.0f);
+            Console.WriteLine(v.ToString());
+            Console.WriteLine((v+v).yx);
+            Console.WriteLine(v.x);
+            Console.WriteLine("a " + "b");
+            Console.WriteLine("v.x " + v.x);
+            Console.WriteLine("(0,0,0,0) " + vec4(0,0,0,0));
+            v.y = 0.0f;
+            Console.WriteLine("v.y " + v.y);
+            Console.WriteLine("v.xy " + v.xy);
+            Console.WriteLine("v.xyy " + v.xyy);
+            Console.WriteLine("v.xyyx " + v.xyyx);
+            Console.WriteLine(vec4(3.0f, 4.0f, v));
+            //Result();
+        }
+    }
+}
+

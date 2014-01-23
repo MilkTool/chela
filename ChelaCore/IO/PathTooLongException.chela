@@ -1,0 +1,22 @@
+using Chela.Lang;
+
+namespace Chela.IO
+{
+    public class PathTooLongException: IOException
+    {
+        public PathTooLongException()
+        {
+        }
+        
+        public PathTooLongException(string message)
+            : base(message)
+        {
+        }
+        
+        public PathTooLongException(string message, Exception innerException)
+            : base(message, innerException)
+        {
+        }
+    }
+}
+

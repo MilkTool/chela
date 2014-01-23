@@ -1,0 +1,43 @@
+namespace Chela.Lang
+{
+    unsafe extern __cdecl int _Chela_DC_DToA(sbyte *buffer, double value);
+
+    public struct Single
+    {
+        internal float __value;
+
+        ///<summary>
+        ///Retrieves a string representation of the float.
+        ///</summary>
+        public override string ToString()
+        {
+            unsafe {
+                // Allocate a buffer and use system conversion.
+                sbyte* buffer = stackalloc sbyte[32];
+                _Chela_DC_DToA(buffer, __value);
+                return new string(buffer);
+            }
+        }
+
+        ///<summary>
+        ///Computes a hash code for the float.
+        ///</summary>
+        public override int GetHashCode()
+        {
+            return reinterpret_cast<int> (__value);
+        }
+        
+        ///<summary>
+        ///Compares for equality.
+        ///</summary>
+        public override bool Equals(object o)
+        {
+            if(o == null || !(o is Single))
+                return false;
+                
+            Single cmp = (Single)o;
+            return __value == cmp.__value;
+        }
+    }
+}
+

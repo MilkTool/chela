@@ -1,0 +1,8 @@
+namespace Chela.Collections
+{
+	public interface IComparable
+	{
+		int CompareTo(object to);
+	}
+}
+

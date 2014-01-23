@@ -1,0 +1,43 @@
+using Chela.Gui;
+
+namespace Chela.Gui.SystemDriver
+{
+    internal class SystemFontManager: FontManager
+    {
+        private SystemDisplay display;
+        private SystemFont defaultFont;
+
+        public unsafe SystemFontManager(SystemDisplay display)
+        {
+            this.display = display;
+        }
+
+        ///<summary>
+        ///The display that contains this font manager.
+        ///</summary>
+        public override Display CurrentDisplay {
+            get {
+                return display;
+            }
+        }
+
+        ///<summary>
+        ///The default font.
+        ///</summary>
+        public override Font DefaultFont {
+            get {
+                return defaultFont;
+            }
+        }
+
+        ///<summary>
+        ///A monospaced font.
+        ///</summary>
+        public override Font MonoSpace {
+            get {
+                return null;
+            }
+        }
+    }
+}
+

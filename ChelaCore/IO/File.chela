@@ -1,0 +1,14 @@
+namespace Chela.IO
+{
+    public static class File
+    {
+        ///<summary>
+        ///Does the path exist.
+        ///</summary>
+        public bool Exists(string path)
+        {
+            return false;
+        }
+    }
+}
+

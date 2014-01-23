@@ -1,0 +1,148 @@
+using Chela.Lang;
+
+namespace Chela.Gui
+{
+    ///<summary>
+    ///Image related utility functions.
+    ///</summary>
+    public static class ImageUtil
+    {
+        ///<summary>
+        ///Decodes the given pixel.
+        ///</summary>
+        public Color DecodePixel(byte[] pixels, int position, PixelFormat format, Palette palette)
+        {
+            // Compute the actual pixel position.
+            int pixelSize = GetPixelSize(format);
+            int pixelPosition = position*pixelSize;
+            
+            // Perform parameters check.
+            if(pixels == null)
+                throw new ArgumentNullException("pixels");
+            else if(position < 0 || pixelPosition >= pixels.Length)
+                throw new ArgumentOutOfRangeException("position");
+                
+            // Decode the pixel.
+            switch(format)
+            {
+            case PixelFormat.Grayscale:
+                {
+                    byte gray = pixels[pixelPosition];
+                    return Color(gray, gray, gray);
+                }
+            case PixelFormat.Indexed:
+                {
+                    if(palette == null)
+                        throw new ArgumentNullException("palette");
+                    return palette.GetColor(pixels[pixelPosition]);
+                }
+            case PixelFormat.RGB555:
+            case PixelFormat.RGB565:
+                throw new NotImplementedException();
+            case PixelFormat.RGB:
+                return Color(pixels[pixelPosition], pixels[pixelPosition+1],
+                             pixels[pixelPosition+2]);
+            case PixelFormat.RGBA:
+                return Color(pixels[pixelPosition], pixels[pixelPosition+1],
+                             pixels[pixelPosition+2], pixels[pixelPosition+3]);
+            default:
+                throw new ArgumentException("invalid pixel format");
+            }
+        }
+        
+        public Color DecodePixel(byte[] pixels, int position, PixelFormat format)
+        {
+            return DecodePixel(pixels, position, format, null);
+        }
+            
+        ///<summary>
+        ///Encodes the given color into the pixel position.
+        ///</summary>
+        public void EncodePixel(byte[] pixels, int position, PixelFormat format,
+                                Color color, Palette palette)
+        {
+            // Compute the actual pixel position.
+            int pixelSize = GetPixelSize(format);
+            int pixelPosition = position*pixelSize;
+            
+            // Perform parameters check.
+            if(pixels == null)
+                throw new ArgumentNullException("pixels");
+            else if(position < 0 || pixelPosition >= pixels.Length)
+                throw new ArgumentOutOfRangeException("position");
+                
+            // Decode the pixel.
+            switch(format)
+            {
+            case PixelFormat.Grayscale:
+                pixels[pixelPosition] = (byte) ( (color.r+color.g+color.b) / 3);
+                break;
+            case PixelFormat.Indexed:
+                if(palette == null)
+                    throw new ArgumentNullException("palette");
+                pixels[pixelPosition] = (byte)palette.FindClosestColor(color);
+                break;
+            case PixelFormat.RGB555:
+            case PixelFormat.RGB565:
+                throw new NotImplementedException();
+            case PixelFormat.RGB:
+                pixels[pixelPosition] = color.r;
+                pixels[pixelPosition] = color.g;
+                pixels[pixelPosition] = color.b;
+                break;
+            case PixelFormat.RGBA:
+                pixels[pixelPosition] = color.r;
+                pixels[pixelPosition] = color.g;
+                pixels[pixelPosition] = color.b;
+                pixels[pixelPosition] = color.a;
+                break;
+            }
+        }
+
+        ///<summary>
+        ///Encodes the given color into the pixel position.
+        ///</summary>
+        public void EncodePixel(byte[] pixels, int position, PixelFormat format,
+                                Color color)
+        {
+            EncodePixel(pixels, position, format, color, null);
+        }
+        
+        ///<summary>
+        ///Gets the size of a pixel in bytes.
+        ///</summary>
+        public int GetPixelSize(PixelFormat format)
+        {
+            switch(format)
+            {
+            case PixelFormat.Grayscale: return 1;
+            case PixelFormat.Indexed:   return 1;
+            case PixelFormat.RGB555:    return 2;
+            case PixelFormat.RGB565:    return 2;
+            case PixelFormat.RGB:       return 3;
+            case PixelFormat.RGBA:      return 4;
+            default:
+                throw new ArgumentException("Invalid pixel format.");
+            }
+        }
+        
+        ///<summary>
+        ///Checks if pixel format is indexed.
+        ///</summary>
+        public bool IsIndexedFormat(PixelFormat format)
+        {
+            switch(format)
+            {
+            case PixelFormat.Grayscale: return false;
+            case PixelFormat.Indexed:   return true;
+            case PixelFormat.RGB555:    return false;
+            case PixelFormat.RGB565:    return false;
+            case PixelFormat.RGB:       return false;
+            case PixelFormat.RGBA:      return false;
+            default:
+                throw new ArgumentException("Invalid pixel format.");
+            }
+        }
+    }    
+}
+

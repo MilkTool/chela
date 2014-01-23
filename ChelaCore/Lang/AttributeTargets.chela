@@ -1,0 +1,25 @@
+namespace Chela.Lang
+{
+    // TODO: Make sure this values are compatible with CLI
+    [Flags]
+    public enum AttributeTargets
+    {
+        All              =   ~1,
+        Assembly         =    1,
+        Class            = 1<<1,
+        Constructor      = 1<<2,
+        Delegate         = 1<<3,
+        Enum             = 1<<4,
+        Event            = 1<<5,
+        Field            = 1<<6,
+        GenericParameter = 1<<7,
+        Interface        = 1<<8,
+        Method           = 1<<9,
+        Module           = 1<<10,
+        Parameter        = 1<<11,
+        Property         = 1<<12,
+        ReturnValue      = 1<<13,
+        Struct           = 1<<14
+    }
+}
+

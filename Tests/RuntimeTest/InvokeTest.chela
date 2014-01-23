@@ -1,0 +1,262 @@
+using Chela.Lang;
+using Chela.Reflection;
+
+namespace Chela.TestModule
+{
+    internal class ObjectContainer
+    {
+        private object contained;
+        
+        public ObjectContainer(object o)
+        {
+            contained = o;
+        }
+        
+        public override string ToString()
+        {
+            return string.Format("[{0}]", contained);
+        }
+    }
+
+    /// A structure that contains three values.
+    private struct TrioContainer
+    {
+        public int a;
+        public double b;
+        public float c;
+
+        public TrioContainer(int a, double b, float c)
+        {
+            this.a = a;
+            this.b = b;
+            this.c = c;
+        }
+
+        public override string ToString()
+        {
+            return "[" + a + "," + b + "," + c + "]";
+        }
+    }
+    
+    [Test("Invoke")]
+    public static class InvokeTest
+    {
+        public byte squareByte(byte x)
+        {
+            return (byte)(x*x);
+        }
+
+        public sbyte squareSByte(sbyte x)
+        {
+            return (sbyte)(x*x);
+        }
+
+        public short squareShort(short x)
+        {
+            return (short)(x*x);
+        }
+
+        public ushort squareUShort(ushort x)
+        {
+            return (ushort) (x*x);
+        }
+
+        public int squareInt(int x)
+        {
+            return x*x;
+        }
+
+        public uint squareUInt(uint x)
+        {
+            return x*x;
+        }
+
+        public long squareLong(long x)
+        {
+            return x*x;
+        }
+
+        public ulong squareULong(ulong x)
+        {
+            return x*x;
+        }
+
+        public size_t squareSize(size_t x)
+        {
+            return x*x;
+        }
+
+        public ptrdiff_t squarePtrDiff(ptrdiff_t x)
+        {
+            return x*x;
+        }
+
+        public float squareFloat(float x)
+        {
+            return x*x;
+        }
+
+        public vec2 squareVec2(vec2 x)
+        {
+            return x*x;
+        }
+
+        public vec3 squareVec3(vec3 x)
+        {
+            return x*x;
+        }
+
+        public vec4 squareVec4(vec4 x)
+        {
+            return x*x;
+        }
+
+        public dvec2 squareDVec2(dvec2 x)
+        {
+            return x*x;
+        }
+
+        public dvec3 squareDVec3(dvec3 x)
+        {
+            return x*x;
+        }
+
+        public dvec4 squareDVec4(dvec4 x)
+        {
+            return x*x;
+        }
+
+        public ivec2 squareIVec2(ivec2 x)
+        {
+            return x*x;
+        }
+
+        public ivec3 squareIVec3(ivec3 x)
+        {
+            return x*x;
+        }
+
+        public ivec4 squareIVec4(ivec4 x)
+        {
+            return x*x;
+        }
+
+        public double squareDouble(double x)
+        {
+            return x*x;
+        }
+        
+        public object squareObject(object o)
+        {
+            return new ObjectContainer(o);
+        }
+
+        public TrioContainer squareTrioContainer(TrioContainer c)
+        {
+            return new TrioContainer(c.a*c.a, c.b*c.b, c.c*c.c);
+        }
+
+        private MethodInfo GetMethod(string name)
+        {
+            Type invokeTest = typeof(InvokeTest);
+            return (MethodInfo)invokeTest.GetMember(name, MemberTypes.Method,
+                BindingFlags.Static | BindingFlags.Public);
+        }
+        
+        private void SquareTest(string suffix, object x)
+        {
+            string functionName = "square" + suffix;
+            Console.WriteLine("{0}({1}) = {2}", functionName, x,
+                GetMethod(functionName).Invoke(null, new object[]{x}));
+        }
+        
+        [Test("square")]
+        public void SquareTest()
+        {
+            // Test correct paramater passing and returning for unary functions.
+            SquareTest("Byte", (byte)2);
+            SquareTest("SByte", (sbyte)2);
+            SquareTest("Short", (short)2);
+            SquareTest("UShort", (ushort)2);
+            SquareTest("Int", 2);
+            SquareTest("UInt", 2u);
+            SquareTest("Long", 2l);
+            SquareTest("ULong", 2ul);
+            SquareTest("Size", (size_t)2);
+            SquareTest("PtrDiff", (ptrdiff_t)2);
+            SquareTest("Float", 2.0f);
+            SquareTest("Double", 2.0);
+            SquareTest("Object", new object());
+
+            // Test structure paramter passing.
+            //SquareTest("TrioContainer", new TrioContainer(3, 1, 4));
+
+            // Test correct vector parameter passing.
+            SquareTest("Vec2", vec2(1.0f, 2.0f));
+            SquareTest("Vec3", vec3(1.0f, 2.0f, 3.0f));
+            SquareTest("Vec4", vec4(1.0f, 2.0f, 3.0f, 4.0f));
+            SquareTest("DVec2", dvec2(1.0, 2.0));
+            SquareTest("DVec3", dvec3(1.0, 2.0, 3.0));
+            SquareTest("DVec4", dvec4(1.0, 2.0, 3.0, 4.0));
+            SquareTest("IVec2", ivec2(1, 2));
+            SquareTest("IVec3", ivec3(1, 2, 3));
+            SquareTest("IVec4", ivec4(1, 2, 3, 4));
+        }
+        
+        private object[] longCallArguments = new object[] {
+            // In AMD64 linux, the six first integer arguments and the seven
+            // first floating point arguments are passed in registers.
+            0,1,2,3,4,5,
+            0.0f,1.0,2.0f,3.0f,4.0,5.0f,6.0,
+            
+            // The following arguments are usually passed in the stack.
+            (byte)1, (sbyte)2, (short)3, (ushort)4, 5, 6u, 7l, 8ul,
+            1.0, 9, 2.0f,
+        };
+        
+        public object LongCalled(
+            int ri1, int ri2, int ri3, int ri4, int ri5, int ri6,
+            float rf1, double rf2, float rf3, float rf4, double rf5, float rf6, double rf7,
+            
+            byte s1, sbyte s2, short s3, ushort s4, int s5, uint s6, long s7, ulong s8,
+            double s9, int s10, float s11)
+        {
+            // Now, store the arguments.
+            object[] received = new object[] {
+                ri1, ri2, ri3, ri4, ri5, ri6,
+                rf1, rf2, rf3, rf4, rf5, rf6, rf7,
+            
+                s1, s2, s3, s4, s5, s6, s7, s8,
+                s9, s10, s11,
+            };
+            
+            // Print and compare the arguments.
+            bool success = true;
+            for(int i = 0; i < received.Length; ++i)
+            {
+                object r = received[i];
+                object p = longCallArguments[i];
+                bool result = r.Equals(p);
+                if(!result)
+                    success = false;
+                Console.WriteLine("{0} == {1}: {2}", r, p, result);
+            }
+            
+            // Print a resume.
+            if(success)
+                Console.WriteLine("Success");
+            else
+                Console.WriteLine("Failure. Check the reflection assembly trap.");
+            
+            return received;
+        }
+                
+        [Test("lcall")]
+        public void LongCallTest()
+        {
+            // Perform a long function calling.
+            GetMethod("LongCalled").Invoke(null, longCallArguments);
+        }
+    }
+}
+

@@ -1,0 +1,8 @@
+namespace System.Reflection
+{
+    public typedef Chela.Reflection.Assembly Assembly;
+    public typedef Chela.Reflection.FieldInfo FieldInfo;
+    public typedef Chela.Reflection.MemberInfo MemberInfo;
+    public typedef Chela.Reflection.MethodInfo MethodInfo;
+}
+

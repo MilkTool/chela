@@ -1,0 +1,48 @@
+// Chela managed array base class.
+namespace Chela.Lang
+{
+    public abstract class Array
+    {
+        public Array()
+        {
+            // Do nothing.
+        }
+
+        public int Length {
+            get {
+                unsafe {
+                    // Compute the lengths.
+                    int dims = Rank;
+                    int *lengths = Lengths;
+                    int res = *lengths;
+                    for(int i = 1; i < dims; ++i)
+                        res += lengths[i];
+                    return res;
+                }
+            }
+        }
+        
+        public int Rank {
+            get {
+                unsafe {
+                    return TypeInfo->dimensions;
+                }
+            }
+        }
+
+        private unsafe TypeInformation *TypeInfo {
+            get {
+                StandardObject *self = reinterpret_cast<StandardObject*> (this);
+                return self->vtable->type;
+            }
+        }
+        
+        private unsafe int *Lengths {
+            get {
+                byte *selfPtr = reinterpret_cast<byte*> (this);
+                return reinterpret_cast<int*> (selfPtr + TypeInfo->sizeOffset);
+            }
+        }
+    };
+};
+

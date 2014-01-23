@@ -1,0 +1,47 @@
+using Chela.Lang;
+
+namespace Chela.Text
+{
+    /// <summary>
+    /// UTF16 unicode encoding.
+    /// </summary>
+    public abstract class UnicodeEncoding: Encoding
+    {
+        private bool bigEndian;
+        private bool byteOrderMark;
+        
+        /// <summary>
+        /// Constructs a little endian UTF-16 encoding which includes a byte order
+        /// mask in his conversions.
+        /// </summary>
+        public UnicodeEncoding()
+        {
+            bigEndian = false;
+        }
+
+        /// <summary>
+        /// Constructs a UTF-16 with the specified endianess.
+        /// <param name="bigEndian">If true, default to big-endian encoding.</param>
+        /// <param name="byteOrderMark">If true, includes the byte-order mark in encoded text.</param>
+        /// </summary>
+        public UnicodeEncoding(bool bigEndian, bool byteOrderMark)
+        {
+            this.bigEndian = bigEndian;
+            this.byteOrderMark = byteOrderMark;
+        }
+        
+        // TODO: Implement this.
+        
+        /// <summary>
+        /// Returns the sequence used to identify a particular encoding.
+        /// </summary>
+        public override byte[] GetPreamble()
+        {
+            if(bigEndian)
+                return new byte[]{0xFE, 0xFF};
+            return new byte[]{0xFF, 0xFE};
+        }
+        
+    }
+}
+

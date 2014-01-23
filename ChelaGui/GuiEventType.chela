@@ -1,0 +1,34 @@
+namespace Chela.Gui
+{
+    /// <summary>
+    /// The gui event type.
+    /// </summary>
+    public enum GuiEventType
+    {
+        Unknown=0,
+        
+        // Driver generated events
+        Show,
+        Hide,
+        Size,
+        Expose,
+        GotFocus,
+        LostFocus,
+        MouseEnter,
+        MouseLeave,
+        KeyPressed,
+        KeyReleased,
+        ButtonPressed,
+        ButtonReleased,
+        MouseMotion,
+        Destroy,
+        Close,
+        Idle,
+        
+        // Control events.
+        Activate,
+        Changed,
+        Scrolled
+    }
+}
+

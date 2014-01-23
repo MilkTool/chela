@@ -1,0 +1,97 @@
+using Chela.Lang;
+
+namespace Chela.Text
+{
+    ///<summary>
+    ///A character set decoder.
+    ///</summary>
+    public abstract class Decoder
+    {
+        protected Decoder()
+        {
+        }
+
+        ///<summary>
+        ///Decodes the specified characters into a bytes buffer.
+        ///</summary>
+        public unsafe virtual void Convert(byte *bytes, int byteCount,
+            char *chars, int charCount, bool flush, out int bytesUsed,
+            out int charsUsed, out bool completed)
+        {
+        
+        }
+
+        ///<summary>
+        ///Decodes the specified characters into a bytes buffer.
+        ///</summary>
+        public virtual void Convert(byte[] bytes, int byteCount, char[] chars,
+            int charIndex, bool flush, out int bytesUsed, out int charsUsed,
+            out bool completed)
+        {
+        }
+        
+        ///<summary>
+        ///Computes the number of characters represented by a byte sequence.
+        ///</summary>
+        public unsafe virtual int GetCharCount(byte *bytes, int count, bool flush)
+        {
+            byte[] buffer = new byte[count];
+            for(int i = 0; i < count; ++i)
+                buffer[i] = bytes[i];
+            return GetCharCount(buffer, 0, count, flush);
+        }
+
+        ///<summary>
+        ///Computes the number of characters represented by a byte sequence.
+        ///</summary>
+        public virtual int GetCharCount(byte[] bytes, int index, int count, bool flush)
+        {
+            return GetCharCount(bytes, index, count);
+        }
+        
+        ///<summary>
+        ///Computes the number of characters represented by a byte sequence.
+        ///</summary>
+        public abstract int GetCharCount(byte[] bytes, int index, int count);
+
+        ///<summary>
+        ///Decodes the characters represented by a byte sequence.
+        ///</summary>
+        public unsafe virtual int GetChars(byte* bytes, int byteCount,
+                                    char* chars, int charCount, bool flush)
+        {
+            // Copy the bytes.
+            byte[] byteArray = new byte[byteCount];
+            for(int i = 0; i < byteCount; ++i)
+                byteArray[i] = bytes[i];
+            
+            // Allocate the characters buffer.
+            char[] buffer = new char[charCount];
+            
+            // Decode the characters.
+            int decoded = GetChars(byteArray, 0, byteCount, buffer, 0, flush);
+            
+            // Copy back the decoded characters.
+            for(int i = 0; i < decoded; ++i)
+                chars[i] = buffer[i];
+                
+            return decoded;
+        }
+
+        ///<summary>
+        ///Decodes the characters represented by a byte sequence.
+        ///</summary>
+        public abstract int GetChars(byte[] bytes, int byteIndex, int byteCount,
+                                    char[] chars, int charIndex);
+                                    
+        ///<summary>
+        ///Decodes the characters represented by a byte sequence.
+        ///</summary>
+        public virtual int GetChars(byte[] bytes, int byteIndex, int byteCount,
+                                    char[] chars, int charIndex, bool flush)
+        {
+            return GetChars(bytes, byteIndex, byteCount, chars, charIndex);
+        }
+    }
+}
+

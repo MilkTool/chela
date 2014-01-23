@@ -1,0 +1,22 @@
+namespace Chela.Lang
+{
+    public class Attribute
+    {
+        public virtual bool IsDefaultAttribute()
+        {
+            return false;
+        }
+
+        public virtual bool Match(object obj)
+        {
+            return false;
+        }
+
+        public virtual object TypeId {
+            get {
+                return null;
+            }
+        }
+    }
+}
+

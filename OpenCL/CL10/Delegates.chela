@@ -1,0 +1,241 @@
+#region License
+//
+// The Open Toolkit Library License
+//
+// Copyright (c) 2006 - 2009 the Open Toolkit library.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights to 
+// use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+// the Software, and to permit persons to whom the Software is furnished to do
+// so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+//
+#endregion
+
+namespace Chela.Compute.CL10
+{
+    using Chela.Lang;
+    using Chela.Text;
+    #pragma warning disable 0649
+    #pragma warning disable 3019
+    #pragma warning disable 1591
+
+    public partial class CL
+    {
+        public static unsafe partial class Delegates
+        {
+            public typedef int (*) __apicall (IntPtr program, uint num_devices, IntPtr* device_list, sbyte* options, IntPtr pfn_notify, IntPtr user_data) BuildProgram;
+            public unsafe static BuildProgram clBuildProgram;
+            public typedef IntPtr (*) __apicall (IntPtr context, MemFlags flags, IntPtr size, IntPtr host_ptr, Chela.Compute.CL10.ErrorCode* errcode_ret) CreateBuffer;
+            public unsafe static CreateBuffer clCreateBuffer;
+            public typedef IntPtr (*) __apicall (IntPtr context, IntPtr device, CommandQueueFlags properties, Chela.Compute.CL10.ErrorCode* errcode_ret) CreateCommandQueue;
+            public unsafe static CreateCommandQueue clCreateCommandQueue;
+            public typedef IntPtr (*) __apicall (IntPtr* properties, uint num_devices, IntPtr* devices, IntPtr pfn_notify, IntPtr user_data, Chela.Compute.CL10.ErrorCode* errcode_ret) CreateContext;
+            public unsafe static CreateContext clCreateContext;
+            public typedef IntPtr (*) __apicall (IntPtr* properties, DeviceTypeFlags device_type, IntPtr pfn_notify, IntPtr user_data, Chela.Compute.CL10.ErrorCode* errcode_ret) CreateContextFromType;
+            public unsafe static CreateContextFromType clCreateContextFromType;
+            public typedef IntPtr (*) __apicall (IntPtr context, MemFlags flags, ImageFormat* image_format, IntPtr image_width, IntPtr image_height, IntPtr image_row_pitch, IntPtr host_ptr, int* errcode_ret) CreateImage2D;
+            public unsafe static CreateImage2D clCreateImage2D;
+            public typedef IntPtr (*) __apicall (IntPtr context, MemFlags flags, ImageFormat* image_format, IntPtr image_width, IntPtr image_height, IntPtr image_depth, IntPtr image_row_pitch, IntPtr image_slice_pitch, IntPtr host_ptr, int* errcode_ret) CreateImage3D;
+            public unsafe static CreateImage3D clCreateImage3D;
+            public typedef IntPtr (*) __apicall (IntPtr program, sbyte* kernel_name, Chela.Compute.CL10.ErrorCode* errcode_ret) CreateKernel;
+            public unsafe static CreateKernel clCreateKernel;
+            public typedef int (*) __apicall (IntPtr program, uint num_kernels, IntPtr* kernels, uint* num_kernels_ret) CreateKernelsInProgram;
+            public unsafe static CreateKernelsInProgram clCreateKernelsInProgram;
+            public typedef IntPtr (*) __apicall (IntPtr context, uint num_devices, IntPtr* device_list, IntPtr* lengths, byte** binaries, int* binary_status, Chela.Compute.CL10.ErrorCode* errcode_ret) CreateProgramWithBinary;
+            public unsafe static CreateProgramWithBinary clCreateProgramWithBinary;
+            public typedef IntPtr (*) __apicall (IntPtr context, uint count, sbyte** strings, IntPtr* lengths, Chela.Compute.CL10.ErrorCode* errcode_ret) CreateProgramWithSource;
+            public unsafe static CreateProgramWithSource clCreateProgramWithSource;
+            public typedef IntPtr (*) __apicall (IntPtr context, bool normalized_coords, AddressingMode addressing_mode, FilterMode filter_mode, int* errcode_ret) CreateSampler;
+            public unsafe static CreateSampler clCreateSampler;
+            public typedef int (*) __apicall (IntPtr command_queue) EnqueueBarrier;
+            public unsafe static EnqueueBarrier clEnqueueBarrier;
+            public typedef int (*) __apicall (IntPtr command_queue, IntPtr src_buffer, IntPtr dst_buffer, IntPtr src_offset, IntPtr dst_offset, IntPtr cb, uint num_events_in_wait_list, IntPtr* event_wait_list, IntPtr* @event) EnqueueCopyBuffer;
+            public unsafe static EnqueueCopyBuffer clEnqueueCopyBuffer;
+            public typedef int (*) __apicall (IntPtr command_queue, IntPtr src_buffer, IntPtr dst_image, IntPtr src_offset, IntPtr** dst_origin, IntPtr** region, uint num_events_in_wait_list, IntPtr* event_wait_list, IntPtr* @event) EnqueueCopyBufferToImage;
+            public unsafe static EnqueueCopyBufferToImage clEnqueueCopyBufferToImage;
+            public typedef int (*) __apicall (IntPtr command_queue, IntPtr src_image, IntPtr dst_image, IntPtr** src_origin, IntPtr** dst_origin, IntPtr** region, uint num_events_in_wait_list, IntPtr* event_wait_list, IntPtr* @event) EnqueueCopyImage;
+            public unsafe static EnqueueCopyImage clEnqueueCopyImage;
+            public typedef int (*) __apicall (IntPtr command_queue, IntPtr src_image, IntPtr dst_buffer, IntPtr** src_origin, IntPtr** region, IntPtr dst_offset, uint num_events_in_wait_list, IntPtr* event_wait_list, IntPtr* @event) EnqueueCopyImageToBuffer;
+            public unsafe static EnqueueCopyImageToBuffer clEnqueueCopyImageToBuffer;
+            public typedef System.IntPtr (*) __apicall (IntPtr command_queue, IntPtr buffer, bool blocking_map, MapFlags map_flags, IntPtr offset, IntPtr cb, uint num_events_in_wait_list, IntPtr* event_wait_list, IntPtr* @event, int* errcode_ret) EnqueueMapBuffer;
+            public unsafe static EnqueueMapBuffer clEnqueueMapBuffer;
+            public typedef System.IntPtr (*) __apicall (IntPtr command_queue, IntPtr image, bool blocking_map, MapFlags map_flags, IntPtr** origin, IntPtr** region, IntPtr* image_row_pitch, IntPtr* image_slice_pitch, uint num_events_in_wait_list, IntPtr* event_wait_list, IntPtr* @event, int* errcode_ret) EnqueueMapImage;
+            public unsafe static EnqueueMapImage clEnqueueMapImage;
+            public typedef int (*) __apicall (IntPtr command_queue, IntPtr* @event) EnqueueMarker;
+            public unsafe static EnqueueMarker clEnqueueMarker;
+            public typedef int (*) __apicall (IntPtr command_queue, IntPtr user_func, IntPtr args, IntPtr cb_args, uint num_mem_objects, IntPtr* mem_list, IntPtr args_mem_loc, uint num_events_in_wait_list, IntPtr* event_wait_list, IntPtr* @event) EnqueueNativeKernel;
+            public unsafe static EnqueueNativeKernel clEnqueueNativeKernel;
+            public typedef int (*) __apicall (IntPtr command_queue, IntPtr @kernel, uint work_dim, IntPtr* global_work_offset, IntPtr* global_work_size, IntPtr* local_work_size, uint num_events_in_wait_list, IntPtr* event_wait_list, IntPtr* @event) EnqueueNDRangeKernel;
+            public unsafe static EnqueueNDRangeKernel clEnqueueNDRangeKernel;
+            public typedef int (*) __apicall (IntPtr command_queue, IntPtr buffer, bool blocking_read, IntPtr offset, IntPtr cb, IntPtr ptr, uint num_events_in_wait_list, IntPtr* event_wait_list, IntPtr* @event) EnqueueReadBuffer;
+            public unsafe static EnqueueReadBuffer clEnqueueReadBuffer;
+            public typedef int (*) __apicall (IntPtr command_queue, IntPtr image, bool blocking_read, IntPtr** origin, IntPtr** region, IntPtr row_pitch, IntPtr slice_pitch, IntPtr ptr, uint num_events_in_wait_list, IntPtr* event_wait_list, IntPtr* @event) EnqueueReadImage;
+            public unsafe static EnqueueReadImage clEnqueueReadImage;
+            public typedef int (*) __apicall (IntPtr command_queue, IntPtr @kernel, uint num_events_in_wait_list, IntPtr* event_wait_list, IntPtr* @event) EnqueueTask;
+            public unsafe static EnqueueTask clEnqueueTask;
+            public typedef int (*) __apicall (IntPtr command_queue, IntPtr memobj, IntPtr mapped_ptr, uint num_events_in_wait_list, IntPtr* event_wait_list, IntPtr* @event) EnqueueUnmapMemObject;
+            public unsafe static EnqueueUnmapMemObject clEnqueueUnmapMemObject;
+            public typedef int (*) __apicall (IntPtr command_queue, uint num_events, IntPtr* event_list) EnqueueWaitForEvents;
+            public unsafe static EnqueueWaitForEvents clEnqueueWaitForEvents;
+            public typedef int (*) __apicall (IntPtr command_queue, IntPtr buffer, bool blocking_write, IntPtr offset, IntPtr cb, IntPtr ptr, uint num_events_in_wait_list, IntPtr* event_wait_list, IntPtr* @event) EnqueueWriteBuffer;
+            public unsafe static EnqueueWriteBuffer clEnqueueWriteBuffer;
+            public typedef int (*) __apicall (IntPtr command_queue, IntPtr image, bool blocking_write, IntPtr** origin, IntPtr** region, IntPtr input_row_pitch, IntPtr input_slice_pitch, IntPtr ptr, uint num_events_in_wait_list, IntPtr* event_wait_list, IntPtr* @event) EnqueueWriteImage;
+            public unsafe static EnqueueWriteImage clEnqueueWriteImage;
+            public typedef int (*) __apicall (IntPtr command_queue) Finish;
+            public unsafe static Finish clFinish;
+            public typedef int (*) __apicall (IntPtr command_queue) Flush;
+            public unsafe static Flush clFlush;
+            public typedef int (*) __apicall (IntPtr command_queue, CommandQueueInfo param_name, IntPtr param_value_size, IntPtr param_value, IntPtr* param_value_size_ret) GetCommandQueueInfo;
+            public unsafe static GetCommandQueueInfo clGetCommandQueueInfo;
+            public typedef int (*) __apicall (IntPtr context, ContextInfo param_name, IntPtr param_value_size, IntPtr param_value, IntPtr* param_value_size_ret) GetContextInfo;
+            public unsafe static GetContextInfo clGetContextInfo;
+            public typedef int (*) __apicall (IntPtr platform, DeviceTypeFlags device_type, uint num_entries, IntPtr* devices, uint* num_devices) GetDeviceIDs;
+            public unsafe static GetDeviceIDs clGetDeviceIDs;
+            public typedef int (*) __apicall (IntPtr device, DeviceInfo param_name, IntPtr param_value_size, IntPtr param_value, IntPtr* param_value_size_ret) GetDeviceInfo;
+            public unsafe static GetDeviceInfo clGetDeviceInfo;
+            public typedef int (*) __apicall (IntPtr @event, EventInfo param_name, IntPtr param_value_size, IntPtr param_value, IntPtr* param_value_size_ret) GetEventInfo;
+            public unsafe static GetEventInfo clGetEventInfo;
+            public typedef int (*) __apicall (IntPtr @event, ProfilingInfo param_name, IntPtr param_value_size, IntPtr param_value, IntPtr* param_value_size_ret) GetEventProfilingInfo;
+            public unsafe static GetEventProfilingInfo clGetEventProfilingInfo;
+            public typedef int (*) __apicall (IntPtr image, ImageInfo param_name, IntPtr param_value_size, IntPtr param_value, IntPtr* param_value_size_ret) GetImageInfo;
+            public unsafe static GetImageInfo clGetImageInfo;
+            public typedef int (*) __apicall (IntPtr @kernel, KernelInfo param_name, IntPtr param_value_size, IntPtr param_value, IntPtr* param_value_size_ret) GetKernelInfo;
+            public unsafe static GetKernelInfo clGetKernelInfo;
+            public typedef int (*) __apicall (IntPtr @kernel, IntPtr device, KernelWorkGroupInfo param_name, IntPtr param_value_size, IntPtr param_value, IntPtr* param_value_size_ret) GetKernelWorkGroupInfo;
+            public unsafe static GetKernelWorkGroupInfo clGetKernelWorkGroupInfo;
+            public typedef int (*) __apicall (IntPtr memobj, MemInfo param_name, IntPtr param_value_size, IntPtr param_value, IntPtr* param_value_size_ret) GetMemObjectInfo;
+            public unsafe static GetMemObjectInfo clGetMemObjectInfo;
+            public typedef int (*) __apicall (uint num_entries, IntPtr* platforms, uint* num_platforms) GetPlatformIDs;
+            public unsafe static GetPlatformIDs clGetPlatformIDs;
+            public typedef int (*) __apicall (IntPtr platform, PlatformInfo param_name, IntPtr param_value_size, IntPtr param_value, IntPtr* param_value_size_ret) GetPlatformInfo;
+            public unsafe static GetPlatformInfo clGetPlatformInfo;
+            public typedef int (*) __apicall (IntPtr program, IntPtr device, ProgramBuildInfo param_name, IntPtr param_value_size, IntPtr param_value, IntPtr* param_value_size_ret) GetProgramBuildInfo;
+            public unsafe static GetProgramBuildInfo clGetProgramBuildInfo;
+            public typedef int (*) __apicall (IntPtr program, ProgramInfo param_name, IntPtr param_value_size, IntPtr param_value, IntPtr* param_value_size_ret) GetProgramInfo;
+            public unsafe static GetProgramInfo clGetProgramInfo;
+            public typedef int (*) __apicall (IntPtr sampler, SamplerInfo param_name, IntPtr param_value_size, IntPtr param_value, IntPtr* param_value_size_ret) GetSamplerInfo;
+            public unsafe static GetSamplerInfo clGetSamplerInfo;
+            public typedef int (*) __apicall (IntPtr context, MemFlags flags, MemObjectType image_type, uint num_entries, ImageFormat* image_formats, uint* num_image_formats) GetSupportedImageFormats;
+            public unsafe static GetSupportedImageFormats clGetSupportedImageFormats;
+            public typedef int (*) __apicall (IntPtr command_queue) ReleaseCommandQueue;
+            public unsafe static ReleaseCommandQueue clReleaseCommandQueue;
+            public typedef int (*) __apicall (IntPtr context) ReleaseContext;
+            public unsafe static ReleaseContext clReleaseContext;
+            public typedef int (*) __apicall (IntPtr @event) ReleaseEvent;
+            public unsafe static ReleaseEvent clReleaseEvent;
+            public typedef int (*) __apicall (IntPtr @kernel) ReleaseKernel;
+            public unsafe static ReleaseKernel clReleaseKernel;
+            public typedef int (*) __apicall (IntPtr memobj) ReleaseMemObject;
+            public unsafe static ReleaseMemObject clReleaseMemObject;
+            public typedef int (*) __apicall (IntPtr program) ReleaseProgram;
+            public unsafe static ReleaseProgram clReleaseProgram;
+            public typedef int (*) __apicall (IntPtr sampler) ReleaseSampler;
+            public unsafe static ReleaseSampler clReleaseSampler;
+            public typedef int (*) __apicall (IntPtr command_queue) RetainCommandQueue;
+            public unsafe static RetainCommandQueue clRetainCommandQueue;
+            public typedef int (*) __apicall (IntPtr context) RetainContext;
+            public unsafe static RetainContext clRetainContext;
+            public typedef int (*) __apicall (IntPtr @event) RetainEvent;
+            public unsafe static RetainEvent clRetainEvent;
+            public typedef int (*) __apicall (IntPtr @kernel) RetainKernel;
+            public unsafe static RetainKernel clRetainKernel;
+            public typedef int (*) __apicall (IntPtr memobj) RetainMemObject;
+            public unsafe static RetainMemObject clRetainMemObject;
+            public typedef int (*) __apicall (IntPtr program) RetainProgram;
+            public unsafe static RetainProgram clRetainProgram;
+            public typedef int (*) __apicall (IntPtr sampler) RetainSampler;
+            public unsafe static RetainSampler clRetainSampler;
+            public typedef int (*) __apicall (IntPtr command_queue, CommandQueueFlags properties, bool enable, CommandQueueFlags* old_properties) SetCommandQueueProperty;
+            public unsafe static SetCommandQueueProperty clSetCommandQueueProperty;
+            public typedef int (*) __apicall (IntPtr @kernel, uint arg_index, IntPtr arg_size, IntPtr arg_value) SetKernelArg;
+            public unsafe static SetKernelArg clSetKernelArg;
+            public typedef int (*) __apicall () UnloadCompiler;
+            public unsafe static UnloadCompiler clUnloadCompiler;
+            public typedef int (*) __apicall (uint num_events, IntPtr* event_list) WaitForEvents;
+            public unsafe static WaitForEvents clWaitForEvents;
+
+            public unsafe static void LoadEntryPoints()
+            {
+                clBuildProgram = (BuildProgram) GetEntryPoint(c"clBuildProgram");
+                clCreateBuffer = (CreateBuffer) GetEntryPoint(c"clCreateBuffer");
+                clCreateCommandQueue = (CreateCommandQueue) GetEntryPoint(c"clCreateCommandQueue");
+                clCreateContext = (CreateContext) GetEntryPoint(c"clCreateContext");
+                clCreateContextFromType = (CreateContextFromType) GetEntryPoint(c"clCreateContextFromType");
+                clCreateImage2D = (CreateImage2D) GetEntryPoint(c"clCreateImage2D");
+                clCreateImage3D = (CreateImage3D) GetEntryPoint(c"clCreateImage3D");
+                clCreateKernel = (CreateKernel) GetEntryPoint(c"clCreateKernel");
+                clCreateKernelsInProgram = (CreateKernelsInProgram) GetEntryPoint(c"clCreateKernelsInProgram");
+                clCreateProgramWithBinary = (CreateProgramWithBinary) GetEntryPoint(c"clCreateProgramWithBinary");
+                clCreateProgramWithSource = (CreateProgramWithSource) GetEntryPoint(c"clCreateProgramWithSource");
+                clCreateSampler = (CreateSampler) GetEntryPoint(c"clCreateSampler");
+                clEnqueueBarrier = (EnqueueBarrier) GetEntryPoint(c"clEnqueueBarrier");
+                clEnqueueCopyBuffer = (EnqueueCopyBuffer) GetEntryPoint(c"clEnqueueCopyBuffer");
+                clEnqueueCopyBufferToImage = (EnqueueCopyBufferToImage) GetEntryPoint(c"clEnqueueCopyBufferToImage");
+                clEnqueueCopyImage = (EnqueueCopyImage) GetEntryPoint(c"clEnqueueCopyImage");
+                clEnqueueCopyImageToBuffer = (EnqueueCopyImageToBuffer) GetEntryPoint(c"clEnqueueCopyImageToBuffer");
+                clEnqueueMapBuffer = (EnqueueMapBuffer) GetEntryPoint(c"clEnqueueMapBuffer");
+                clEnqueueMapImage = (EnqueueMapImage) GetEntryPoint(c"clEnqueueMapImage");
+                clEnqueueMarker = (EnqueueMarker) GetEntryPoint(c"clEnqueueMarker");
+                clEnqueueNativeKernel = (EnqueueNativeKernel) GetEntryPoint(c"clEnqueueNativeKernel");
+                clEnqueueNDRangeKernel = (EnqueueNDRangeKernel) GetEntryPoint(c"clEnqueueNDRangeKernel");
+                clEnqueueReadBuffer = (EnqueueReadBuffer) GetEntryPoint(c"clEnqueueReadBuffer");
+                clEnqueueReadImage = (EnqueueReadImage) GetEntryPoint(c"clEnqueueReadImage");
+                clEnqueueTask = (EnqueueTask) GetEntryPoint(c"clEnqueueTask");
+                clEnqueueUnmapMemObject = (EnqueueUnmapMemObject) GetEntryPoint(c"clEnqueueUnmapMemObject");
+                clEnqueueWaitForEvents = (EnqueueWaitForEvents) GetEntryPoint(c"clEnqueueWaitForEvents");
+                clEnqueueWriteBuffer = (EnqueueWriteBuffer) GetEntryPoint(c"clEnqueueWriteBuffer");
+                clEnqueueWriteImage = (EnqueueWriteImage) GetEntryPoint(c"clEnqueueWriteImage");
+                clFinish = (Finish) GetEntryPoint(c"clFinish");
+                clFlush = (Flush) GetEntryPoint(c"clFlush");
+                clGetCommandQueueInfo = (GetCommandQueueInfo) GetEntryPoint(c"clGetCommandQueueInfo");
+                clGetContextInfo = (GetContextInfo) GetEntryPoint(c"clGetContextInfo");
+                clGetDeviceIDs = (GetDeviceIDs) GetEntryPoint(c"clGetDeviceIDs");
+                clGetDeviceInfo = (GetDeviceInfo) GetEntryPoint(c"clGetDeviceInfo");
+                clGetEventInfo = (GetEventInfo) GetEntryPoint(c"clGetEventInfo");
+                clGetEventProfilingInfo = (GetEventProfilingInfo) GetEntryPoint(c"clGetEventProfilingInfo");
+                clGetImageInfo = (GetImageInfo) GetEntryPoint(c"clGetImageInfo");
+                clGetKernelInfo = (GetKernelInfo) GetEntryPoint(c"clGetKernelInfo");
+                clGetKernelWorkGroupInfo = (GetKernelWorkGroupInfo) GetEntryPoint(c"clGetKernelWorkGroupInfo");
+                clGetMemObjectInfo = (GetMemObjectInfo) GetEntryPoint(c"clGetMemObjectInfo");
+                clGetPlatformIDs = (GetPlatformIDs) GetEntryPoint(c"clGetPlatformIDs");
+                clGetPlatformInfo = (GetPlatformInfo) GetEntryPoint(c"clGetPlatformInfo");
+                clGetProgramBuildInfo = (GetProgramBuildInfo) GetEntryPoint(c"clGetProgramBuildInfo");
+                clGetProgramInfo = (GetProgramInfo) GetEntryPoint(c"clGetProgramInfo");
+                clGetSamplerInfo = (GetSamplerInfo) GetEntryPoint(c"clGetSamplerInfo");
+                clGetSupportedImageFormats = (GetSupportedImageFormats) GetEntryPoint(c"clGetSupportedImageFormats");
+                clReleaseCommandQueue = (ReleaseCommandQueue) GetEntryPoint(c"clReleaseCommandQueue");
+                clReleaseContext = (ReleaseContext) GetEntryPoint(c"clReleaseContext");
+                clReleaseEvent = (ReleaseEvent) GetEntryPoint(c"clReleaseEvent");
+                clReleaseKernel = (ReleaseKernel) GetEntryPoint(c"clReleaseKernel");
+                clReleaseMemObject = (ReleaseMemObject) GetEntryPoint(c"clReleaseMemObject");
+                clReleaseProgram = (ReleaseProgram) GetEntryPoint(c"clReleaseProgram");
+                clReleaseSampler = (ReleaseSampler) GetEntryPoint(c"clReleaseSampler");
+                clRetainCommandQueue = (RetainCommandQueue) GetEntryPoint(c"clRetainCommandQueue");
+                clRetainContext = (RetainContext) GetEntryPoint(c"clRetainContext");
+                clRetainEvent = (RetainEvent) GetEntryPoint(c"clRetainEvent");
+                clRetainKernel = (RetainKernel) GetEntryPoint(c"clRetainKernel");
+                clRetainMemObject = (RetainMemObject) GetEntryPoint(c"clRetainMemObject");
+                clRetainProgram = (RetainProgram) GetEntryPoint(c"clRetainProgram");
+                clRetainSampler = (RetainSampler) GetEntryPoint(c"clRetainSampler");
+                clSetCommandQueueProperty = (SetCommandQueueProperty) GetEntryPoint(c"clSetCommandQueueProperty");
+                clSetKernelArg = (SetKernelArg) GetEntryPoint(c"clSetKernelArg");
+                clUnloadCompiler = (UnloadCompiler) GetEntryPoint(c"clUnloadCompiler");
+                clWaitForEvents = (WaitForEvents) GetEntryPoint(c"clWaitForEvents");
+            }
+        }
+    }
+}

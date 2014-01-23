@@ -1,0 +1,184 @@
+using Chela.Lang;
+using Chela.Collections.Generic;
+
+namespace Chela.Compute
+{
+    ///<summary>
+    ///This is a component in a compute pipeline.
+    ///</summary>
+    public abstract class PipelineNode
+    {
+        ///<summary>
+        ///The previous execution nodes.
+        ///</summary>
+        private List<PipelineNode> previousSteps;
+        
+        ///<summary>
+        ///The next execution nodes.
+        ///</summary>
+        private List<PipelineNode> nextSteps;
+        
+        ///<summary>
+        ///The computing serial number
+        ///</summary>
+        private int computeSerial;
+        
+        ///<summary>
+        ///The completed previous steps.
+        ///</summary>
+        private int completedDependencies;
+        
+        ///<summary>
+        ///Is this node asynchronous?.
+        ///</summary>
+        private bool asynchronous;
+        
+        ///<summary>
+        ///The node default constructor.
+        ///</summary>
+        public PipelineNode()
+        {
+            asynchronous = 0;
+        }
+        
+        ///<summary>
+        ///Adds a step to be executed after me.
+        ///</summary>
+        public void AddStep(PipelineNode step)
+        {
+            // Create the next steps list.
+            if(nextSteps == null)
+                nextSteps = new List<PipelineNode> ();
+            nextSteps.Add(step);
+        }
+        
+        ///<summary>
+        ///Adds a compute step to be executed after me.
+        ///</summary>
+        public void AddStep(ComputeBinding binding)
+        {
+            AddStep(new ComputeStep(binding));
+        }
+        
+        ///<summary>
+        ///Stores one of the previous steps.
+        ///</summary>
+        protected void AddPrev(PipelineNode prev)
+        {
+            // Create the prev steps list.
+            if(previousSteps == null)
+                previousSteps = new List<PipelineNode> ();
+            previousSteps.Add(prev);
+        }
+        
+        ///<summary>
+        ///Runs one sequence of the pipeline.
+        ///</summary>
+        public void RunPipeline()
+        {
+            // Run the node using a new compute serial.
+            RunNode(computeSerial+1);
+            ++computeSerial;
+        }
+        
+        ///<summary>
+        ///Schedule this and the following steps for running.
+        ///</summary>
+        protected void RunNode(int computeSerial)
+        {
+            // If the serial is different, reset the dependencies count.
+            if(this.computeSerial != computeSerial)
+            {
+                this.computeSerial = computeSerial;
+                completedDependencies = 1;
+            }
+            else
+            {
+                // Increase the dependencies count.
+                ++completedDependencies;
+            }
+            
+            // Only run the step if the dependencies has been fullfiled.
+            if(completedDependencies < Dependencies)
+                return;
+                
+            // Run this step.
+            RunStep();
+            
+            // Run the next steps.
+            RunNext();
+        }
+        
+        ///<summary>
+        ///The node associated step.
+        ///</summary>
+        protected abstract void RunStep();        
+        
+        ///<summary>
+        ///Runs the next steps.
+        ///</summary>
+        protected void RunNext()
+        {
+            // Get the next steps counts.
+            int count = NextStepsCount;
+            if(count == 0)
+                return;
+                
+            // Try to run the steps asynchronously.
+            if(Asynchronous)
+            {
+                RunNextAsync();
+            }
+            else
+            {
+                // Just run each one of the next steps.
+                foreach(PipelineNode step in nextSteps)
+                    step.RunNode(computeSerial);
+            }
+        }
+        
+        ///<summary>
+        ///Runs the next steps aynchronously.
+        ///</summary>
+        protected void RunNextAsync()
+        {
+            // TODO: Use a global compute thread pool.
+            throw new NotImplementedException();
+        }
+        
+        ///<summary>
+        ///The dependencies in this node.
+        ///</summary>
+        public int Dependencies {
+            get {
+                if(previousSteps == null)
+                    return 0;
+                return previousSteps.Count;
+            }
+        }
+        
+        ///<summary>
+        ///The next steps counts.
+        ///</summary>
+        public int NextStepsCount {
+            get {
+                if(nextSteps == null)
+                    return 0;
+                return nextSteps.Count;
+            }
+        }
+        
+        ///<summary>
+        ///Is the node asynchronous?
+        ///</summary>
+        public bool Asynchronous {
+            get {
+                return asynchronous;
+            }
+            set {
+                asynchronous = value;
+            }
+        }
+    }
+}
+

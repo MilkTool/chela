@@ -1,0 +1,19 @@
+namespace Chela.Lang
+{
+    public struct Boolean4
+    {
+        internal bvec4 __value;
+
+        public override string ToString()
+        {
+            return "(" + __value.x + ", " + __value.y + ", " + __value.z + ", " + __value.w + ")";
+        }
+
+        public override int GetHashCode()
+        {
+            return __value.x.GetHashCode() ^ __value.y.GetHashCode() ^
+                   __value.z.GetHashCode() ^ __value.w.GetHashCode();
+        }
+    }
+}
+

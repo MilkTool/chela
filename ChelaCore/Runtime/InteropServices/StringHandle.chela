@@ -1,0 +1,164 @@
+using Chela.Lang;
+using Chela.Text;
+
+namespace Chela.Runtime.InteropServices
+{
+    ///<summary>
+    ///Handle useful for mashalling string data.
+    ///</summary>
+    public struct StringHandle
+    {
+        private unsafe sbyte** stringData;
+        private StringBuilder buffer;
+        private StringBuilder[] buffers;
+        private int numelements;
+        
+        public static StringHandle Alloc(string text)
+        {
+            // Create the handle.
+            StringHandle ret;
+            ret.numelements = -1; // No string array.
+            unsafe
+            {
+                ret.stringData = (sbyte**)ReadString(text);
+            }
+            return ret;
+        }
+        
+        public static StringHandle Alloc(StringBuilder buffer)
+        {
+            // Create the handle.
+            StringHandle ret;
+            ret.buffer = buffer;
+            ret.numelements = -1;
+            unsafe
+            {
+                sbyte *data = heapalloc sbyte[buffer.Capacity + 1];
+                ret.stringData = (sbyte**) data;
+                ret.Address[buffer.Capacity] = (sbyte)0;
+            }
+            return ret;
+        }
+        
+        public static StringHandle Alloc(string[] texts)
+        {
+            // Create the handle.
+            StringHandle ret;
+            ret.numelements = texts.Length;
+            unsafe
+            {
+                // Allocate the string array.
+                ret.stringData = heapalloc sbyte*[texts.Length];
+                
+                // Read the strings.
+                for(int i = 0; i < texts.Length; ++i)
+                    ret.stringData[i] = ReadString(texts[i]);
+            }
+
+            return ret;
+        }
+        
+        public static StringHandle Alloc(StringBuilder[] buffers)
+        {
+            // Create the handle.
+            StringHandle ret;
+            ret.buffers = buffers;
+            ret.numelements = buffers.Length;
+            unsafe
+            {
+                // Allocate the string array.
+                ret.stringData = heapalloc sbyte*[buffers.Length];
+
+                // Allocate space for the strings.
+                for(int i = 0; i < buffers.Length; ++i)
+                {
+                    int length = buffers[i].Capacity;
+                    ret.stringData[i] = heapalloc sbyte[length + 1];
+                    ret.stringData[i][length] = (sbyte)0;
+                }
+            }
+                
+            return ret;
+        }
+        
+        private static unsafe sbyte *ReadString(string data)
+        {
+            // TODO: Use encodings
+            sbyte *res = heapalloc sbyte[data.Length+1];
+            for(int i = 0; i < data.Length; ++i)
+                res[i] = (sbyte)data[i];
+            res[data.Length] = (sbyte)0;
+            return res;
+        }
+        
+        ///<summary>
+        ///Updates the data in a buffer.
+        ///</summary>
+        private unsafe void UpdateBuffer(sbyte *data, StringBuilder buffer)
+        {
+            // TODO: Use encodings.
+            while(*data != 0)
+                buffer.Append((char)*data++);
+        }
+        
+        ///<summary>
+        ///Frees a single buffer.
+        ///</summary>
+        private unsafe void FreeSingle()
+        {
+            // Update the buffer.
+            if(buffer != null)
+                UpdateBuffer(Address, buffer);
+                    
+            // Delete the string data.
+            sbyte *addr = Address;
+            delete [] addr;
+        }
+        
+        ///<summary>
+        ///Frees multiples buffers.
+        ///</summary>
+        private unsafe void FreeMultiple()
+        {
+            // Update each buffer, and delete the string store.
+            for(int i = 0; i < numelements; ++i)
+            {
+                // Update the buffers.
+                if(buffers != null)
+                    UpdateBuffer(stringData[i], buffers[i]);
+                delete [] stringData[i];
+            }
+                
+            // Delete the string array.
+            delete [] stringData;
+        }
+        
+        ///<summary>
+        ///Frees the string handle data, updating any buffer needed.
+        ///</summary>
+        public void Free()
+        {
+            unsafe
+            {
+                // Negative number means noarray.
+                if(numelements < 0)
+                    FreeSingle();
+                else
+                    FreeMultiple();
+            }
+        }
+        
+        public unsafe sbyte* Address {
+            get {
+                return (sbyte*)stringData;
+            }
+        }
+        
+        public unsafe sbyte** ArrayAddress {
+            get {
+                return stringData;
+            }
+        }
+    }
+}
+

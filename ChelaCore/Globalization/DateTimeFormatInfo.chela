@@ -1,0 +1,449 @@
+using Chela.Lang;
+
+namespace Chela.Globalization
+{
+    /// <summary>
+    /// Date time formatting info.
+    /// </summary>
+    public sealed class DateTimeFormatInfo: ICloneable, IFormatProvider
+    {
+        private string[] abbreviatedDayNames;
+        private string[] abbreviatedMonthNames;
+        private string amDesignator;
+        private string dateSeparator;
+        private string[] dayNames;
+        private string fullDateTimePattern;
+        private string longDatePattern;
+        private string longTimePattern;
+        private string monthDayPattern;
+        private string[] monthNames;
+        private string pmDesignator;
+        private bool readOnly;
+        private string shortDatePattern;
+        private string shortTimePattern;
+        private string timeSeparator;
+        private string yearMonthPattern;
+        private static DateTimeFormatInfo invariantInfo;
+        
+        /// <summary>
+        /// Create a writable culture-invariant date time info.
+        /// </summary>
+        public DateTimeFormatInfo()
+        {
+            readOnly = false;
+            amDesignator = "AM";
+            dateSeparator = "/";
+            fullDateTimePattern = "dddd, dd MMMM yyyy HH:mm:ss";
+            longDatePattern = "dddd, dd MMMM yyyy";
+            longTimePattern = "HH:mm:ss";
+            monthDayPattern = "MMMM dd";
+            pmDesignator = "PM";
+            shortDatePattern = "MM/dd/yyyy";
+            shortTimePattern = "HH:mm";
+            timeSeparator = ":";
+            yearMonthPattern = "yyyy MMMM";
+            abbreviatedDayNames =
+                new string[]{"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+            abbreviatedMonthNames =
+                new string[]{"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul",
+                    "Aug", "Sep", "Oct", "Nov", "Dec", ""};
+            dayNames =
+                new string[]{"Sunday", "Monday", "Tuesday", "Wednesday", "Thusday",
+                    "Friday", "Saturday"};
+            monthNames =
+                new string[]{"January", "Febrary", "March", "April", "May",
+                    "June", "July", "August", "September", "October",
+                    "November", "December", ""};
+            
+        }        
+        
+        /// <summary>
+        /// Creates a copy of the current instance.
+        /// </summary>
+        /// <remarks>
+        /// The created copy is not read-only.
+        /// </remarks>
+        public object Clone()
+        {
+            DateTimeFormatInfo cloned = (DateTimeFormatInfo)MemberwiseClone();
+            cloned.readOnly = false;
+            return cloned;
+        }
+        
+        /// <summary>
+        /// Gets the abbreviated name of a month.
+        /// </summary>
+        /// <param name="month">The month represented as an integer in 1-13.</param>
+        public string GetAbbreviatedMonthName(int month)
+        {
+            if(month < 1 || month > 13)
+                throw new ArgumentOutOfRangeException("month");
+            return abbreviatedMonthNames[month];
+        }
+        
+        /// <summary>
+        /// Gets an integer representing an era.
+        /// </summary>
+        public int GetEra(string eraName)
+        {
+            throw new NotImplementedException();
+        }
+        
+        /// <summary>
+        /// Gets a string representation of the given era.
+        /// </summary>
+        public string GetEraName(int era)
+        {
+            throw new NotImplementedException();
+        }
+        
+        /// <summary>
+        /// Returns an object of the specified type with formatting info.
+        /// </summary>
+        public object GetFormat(Type formatType)
+        {
+            if(formatType == typeof(DateTimeFormatInfo))
+                return this;
+            return null;
+        }
+        
+        /// <summary>
+        /// Gets the full name of the specified month.
+        /// </summary>
+        public string GetMonthName(int month)
+        {
+            if(month < 1 || month > 13)
+                throw new ArgumentOutOfRangeException("month");
+            return monthNames[month];
+        }
+        
+        /// <summary>
+        /// Returns a read-only copy of the specified format info.
+        /// </summary>
+        public static DateTimeFormatInfo ReadOnly(DateTimeFormatInfo dtfi)
+        {
+            if(dtfi == null)
+                throw new ArgumentNullException("dtfi");
+            DateTimeFormatInfo copy = (DateTimeFormatInfo)dtfi.Clone();
+            copy.readOnly = true;
+            return copy;
+        }
+        
+        /// <summary>
+        /// Gets or sets a one-dimensional array with the abbreviated names of
+        /// a week.
+        /// </summary>
+        public string[] AbbreviatedDayNames {
+            get {
+                return abbreviatedDayNames;
+            }
+            set {
+                if(value == null)
+                    throw new ArgumentNullException("value");
+                if(value.Length != 7)
+                    throw new ArgumentException("The array specified must have only 7 elements");
+                if(readOnly)
+                    throw new InvalidOperationException("The current instance is read-only.");
+                // Copy the day names.
+                for(int i = 0; i < 7; ++i)
+                    abbreviatedDayNames[i] = value[i];
+            }
+        }
+        
+        /// <summary>
+        /// Gets or sets a one-dimensional array with the abbreviated names of
+        /// the months.
+        /// </summary>
+        /// <remarks>
+        /// This supports calendars with 13 months, so the array provided must
+        /// have 13 elements. For calendars with 12 months(as the Gregorian),
+        /// the 13th elements is the empty string.
+        /// </remarks>
+        public string[] AbbreviatedMonthNames {
+            get {
+                return abbreviatedMonthNames;
+            }
+            set {
+                if(value == null)
+                    throw new ArgumentNullException("value");
+                if(value.Length != 7)
+                    throw new ArgumentException("The array specified must have only 13 elements");
+                if(readOnly)
+                    throw new InvalidOperationException("The current instance is read-only.");
+                    
+                // Copy the month names.
+                for(int i = 0; i < 13; ++i)
+                    abbreviatedMonthNames[i] = value[i];
+            }
+        }
+        
+        /// <summary>
+        /// Gets or sets the specifier for hours before the noon.
+        /// </summary>
+        /// <remarks>
+        /// The culture invariant value is "AM".
+        /// </remarks>
+        public string AMDesignator {
+            get {
+                return amDesignator;
+            }
+            set {
+                if(value == null)
+                    throw new ArgumentNullException("value");
+                if(readOnly)
+                    throw new InvalidOperationException("The current instance is read-only.");
+                amDesignator  = value;
+            }
+        }
+        
+        /// <summary>
+        /// Gets the date time formatting info for the current system culture.
+        /// </summary>
+        public static DateTimeFormatInfo CurrentInfo {
+            get {
+                // TODO: Implement this.
+                return InvariantInfo;
+            }
+        }
+        
+        /// <summary>
+        /// Gets or sets the string element used to separate the day, month and
+        /// year components of a date.
+        /// </summary>
+        public string DateSeparator {
+            get {
+                return dateSeparator;
+            }
+            set {
+                if(value == null)
+                    throw new ArgumentNullException("value");
+                if(readOnly)
+                    throw new InvalidOperationException("The current instance is read-only.");
+                dateSeparator = value;
+            }
+        }
+        
+        /// <summary>
+        /// Gets or sets a one dimensional array with the names of the days in
+        /// a week.
+        /// </summary>
+        public string[] DayNames {
+            get {
+                return dayNames;
+            }
+            set {
+                if(value == null)
+                    throw new ArgumentNullException("value");
+                if(value.Length != 7)
+                    throw new ArgumentException("The array specified must have only 7 elements");
+                if(readOnly)
+                    throw new InvalidOperationException("The current instance is read-only.");
+                // Copy the day names.
+                for(int i = 0; i < 7; ++i)
+                    dayNames[i] = value[i];
+            }
+        }
+        
+        /// <summary>
+        /// Gets or sets the format pattern of a string containing a full date time.
+        /// </summary>
+        public string FullDateTimePattern {
+            get {
+                return fullDateTimePattern;
+            }
+            set {
+                if(value == null)
+                    throw new ArgumentNullException("value");
+                if(readOnly)
+                    throw new InvalidOperationException("The current instance is read-only.");
+                fullDateTimePattern = value;
+            }
+        }
+        
+        /// <summary>
+        /// Gets a culture invariant info.
+        /// </summary>
+        public static DateTimeFormatInfo InvariantInfo {
+            get {
+                // Make sure the invariant info is created.
+                if(invariantInfo == null)
+                {
+                    lock(typeof(DateTimeFormatInfo))
+                    {
+                        if(invariantInfo == null)
+                        {
+                            invariantInfo = new DateTimeFormatInfo();
+                            invariantInfo.readOnly = true;
+                        }
+                    }
+                }
+                
+                // Return it.
+                return invariantInfo;
+            }
+        }
+        
+        /// <summary>
+        /// Tells if this instance is read-only.
+        /// </summary>
+        public bool IsReadOnly {
+            get {
+                return readOnly;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the format pattern of a string containing a long date.
+        /// </summary>
+        public string LongDatePattern {
+            get {
+                return longDatePattern;
+            }
+            set {
+                if(value == null)
+                    throw new ArgumentNullException("value");
+                if(readOnly)
+                    throw new InvalidOperationException("The current instance is read-only.");
+                longDatePattern = value;
+            }
+        }
+        
+        /// <summary>
+        /// Gets or sets the format pattern of a string containing a long time.
+        /// </summary>
+        public string LongTimePattern {
+            get {
+                return longTimePattern;
+            }
+            set {
+                if(value == null)
+                    throw new ArgumentNullException("value");
+                if(readOnly)
+                    throw new InvalidOperationException("The current instance is read-only.");
+                longTimePattern = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the format pattern of a string containing a month and a day.
+        /// </summary>
+        public string MonthDayPattern {
+            get {
+                return monthDayPattern;
+            }
+            set {
+                if(value == null)
+                    throw new ArgumentNullException("value");
+                if(readOnly)
+                    throw new InvalidOperationException("The current instance is read-only.");
+                monthDayPattern = value;
+            }
+        }
+        
+        /// <summary>
+        /// Gets or sets a one dimensional array with the names of the months.
+        /// </summary>
+        public string[] MonthNames {
+            get {
+                return monthNames;
+            }
+            set {
+                if(value == null)
+                    throw new ArgumentNullException("value");
+                if(value.Length != 7)
+                    throw new ArgumentException("The array specified must have only 7 elements");
+                if(readOnly)
+                    throw new InvalidOperationException("The current instance is read-only.");
+                // Copy the day names.
+                for(int i = 0; i < 7; ++i)
+                    monthNames[i] = value[i];
+            }
+        }
+        
+        /// <summary>
+        /// Gets or sets the specifier for hours after the noon.
+        /// </summary>
+        /// <remarks>
+        /// The culture invariant value is "PM".
+        /// </remarks>
+        public string PMDesignator {
+            get {
+                return pmDesignator;
+            }
+            set {
+                if(value == null)
+                    throw new ArgumentNullException("value");
+                if(readOnly)
+                    throw new InvalidOperationException("The current instance is read-only.");
+                pmDesignator  = value;
+            }
+        }
+        
+        /// <summary>
+        /// Gets or sets the format pattern of a string containing a short date.
+        /// </summary>
+        public string ShortDatePattern {
+            get {
+                return shortDatePattern;
+            }
+            set {
+                if(value == null)
+                    throw new ArgumentNullException("value");
+                if(readOnly)
+                    throw new InvalidOperationException("The current instance is read-only.");
+                shortDatePattern = value;
+            }
+        }
+        
+        /// <summary>
+        /// Gets or sets the format pattern of a string containing a short time.
+        /// </summary>
+        public string ShortTimePattern {
+            get {
+                return shortTimePattern;
+            }
+            set {
+                if(value == null)
+                    throw new ArgumentNullException("value");
+                if(readOnly)
+                    throw new InvalidOperationException("The current instance is read-only.");
+                shortTimePattern = value;
+            }
+        }
+        
+        /// <summary>
+        /// Gets or sets the string element used to separate the hours, minutes 
+        /// and seconds of a time value..
+        /// </summary>
+        public string TimeSeparator {
+            get {
+                return timeSeparator;
+            }
+            set {
+                if(value == null)
+                    throw new ArgumentNullException("value");
+                if(readOnly)
+                    throw new InvalidOperationException("The current instance is read-only.");
+                timeSeparator = value;
+            }
+        }
+        
+        /// <summary>
+        /// Gets or sets the format pattern of a string containing a year and
+        /// a month.
+        /// </summary>
+        public string YearMonthPattern {
+            get {
+                return yearMonthPattern;
+            }
+            set {
+                if(value == null)
+                    throw new ArgumentNullException("value");
+                if(readOnly)
+                    throw new InvalidOperationException("The current instance is read-only.");
+                yearMonthPattern = value;
+            }
+        }
+    }
+}
+

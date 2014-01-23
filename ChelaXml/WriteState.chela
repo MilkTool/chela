@@ -1,0 +1,18 @@
+using Chela.Lang;
+
+namespace Chela.Xml
+{
+    /// <summary>
+    /// The state of a xml writer.
+    /// </summary>
+    public enum WriteState
+    {
+        Attribute = 3,
+        Closed = 5,
+        Content = 4,
+        Element = 2,
+        Prolog = 1,
+        Start = 0,
+    }
+}
+

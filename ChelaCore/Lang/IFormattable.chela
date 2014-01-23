@@ -1,0 +1,8 @@
+namespace Chela.Lang
+{
+    public interface IFormattable
+    {
+        string ToString(string format, IFormatProvider formatProvider);
+    }    
+}
+

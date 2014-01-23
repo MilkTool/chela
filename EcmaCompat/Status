@@ -1,0 +1,18 @@
+This chart contains the status of the ECMA-335 API compatibility layer.
+
+Namespace                               | Status
+--------------------------------------------------------------------------------
+System                                  | Incomplete
+System.Diagnostics                      | Nothing
+System.Globalization                    | Complete
+System.IO                               | Nothing
+System.Reflection                       | Incomplete, incompatible
+System.Runtime.CompilerServices         | Nothing
+System.Runtime.InteropServices          | Incomplete
+System.Net                              | Nothing
+System.Text                             | Incomplete
+System.Threading                        | Incomplete
+System.Threading.Parallel               | Nothing
+System.Security                         | Nothing
+System.Security.Permissions             | Nothing
+System.Xml                              | Nothing

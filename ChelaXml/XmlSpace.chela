@@ -1,0 +1,15 @@
+using Chela.Lang;
+
+namespace Chela.Xml
+{
+    /// <summary>
+    /// The white space attribute xml:space.
+    /// </summary>
+    public enum XmlSpace
+    {
+        Default = 1,
+        None = 0,
+        Preserve = 2,
+    }
+}
+

@@ -1,0 +1,23 @@
+using Chela.Lang;
+
+namespace Chela.Reflection
+{
+    ///<summary>
+    ///Comon flags present in MethodAttributes, FieldAttributes, E
+    ///</summary>
+    [Flags]
+    internal enum CommonAttributes
+    {
+        None = 0,
+        AccessMask = 7,	//FieldAccessMask
+        PrivateScope = 0,	//PrivateScope
+        Private = 1,	//Private
+        FamANDAssem = 2,	//FamANDAssem
+        Assembly = 3,	//Assembly
+        Family = 4,	//Family
+        FamORAssem = 5,	//FamORAssem
+        Public = 6,	//Public
+        Static = 16,	//Static
+    }
+}
+

@@ -1,0 +1,66 @@
+using Chela.Lang;
+
+namespace Chela.Gui
+{
+    /// <summary>
+    /// The base class of all of the gui related events.
+    /// </summary>
+    public class GuiEvent: EventArgs
+    {
+        public WindowContext Context;
+        public GuiEventType EventType;
+        public bool Handled;
+
+        public GuiEvent()
+        {
+        }
+
+        public GuiEvent(GuiEventType type)
+        {
+        }
+
+        public GuiEvent(WindowContext context, GuiEventType type)
+        {
+            this.Context = context;
+            this.EventType = type;
+        }
+
+        public GuiEvent(Window window, GuiEventType type)
+        {
+            if(window != null)
+                this.Context = window.Context;
+            this.EventType = type;
+        }
+
+        /// <summary>
+        /// Sets the handled flag.
+        /// </summary>
+        public void Done()
+        {
+            Handled = true;
+        }
+
+        /// <summary>
+        /// The window in which this event was generated.
+        /// </summary>
+        public Window Window {
+            get {
+                if(Context != null)
+                    return Context.AssociatedWindow;
+                return null;
+            }
+            set {
+                if(value != null)
+                    Context = value.Context;
+                else
+                    Context = null;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gui related event handler.
+    /// </summary>
+    public delegate void GuiEventHandler(object sender, GuiEvent args);
+}
+

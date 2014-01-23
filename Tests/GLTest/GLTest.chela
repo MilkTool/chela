@@ -1,0 +1,221 @@
+using Chela.Gui;
+using Chela.Lang;
+using Chela.Graphics.GL2;
+using Chela.Text;
+
+string vertexShaderSource = 
+    "varying vec4 color;\n" +
+    "\n" +
+    "void main()\n" +
+    "{\n"+
+    "   color = gl_Color;\n" +
+    "   gl_Position = ftransform();\n" +
+    "}\n";
+    
+string fragmentShaderSource = 
+    "varying vec4 color;\n" +
+    "\n" +
+    "void main()\n" +
+    "{\n"+
+    "   gl_FragData[0] = color;\n" +
+    "}\n";
+    
+int[] glContextAttrs = new int [] {
+    RenderAttribute.DoubleBuffer,
+    RenderAttribute.Window,
+    RenderAttribute.RGBA,
+    RenderAttribute.RedSize, 8,
+    RenderAttribute.BlueSize, 8,
+    RenderAttribute.GreenSize, 8,
+    RenderAttribute.AlphaSize, 8,
+    RenderAttribute.DepthSize, 24,
+};
+
+RenderContext glContext = null;
+Canvas glCanvas = null;
+
+void TestGui_OnClose(object sender, GuiEvent ev)
+{
+    System.Console.WriteLine("Close button pressed.");
+    Display.Current.Quit();
+}
+
+void LoadPerspective(float fov, float aspect, float near, float far)
+{
+    float angle = fov*(float)Math.PI/360.0f;
+    float f = Math.Cos(angle)/Math.Sin(angle);
+    float den = near - far;
+    mat4 projection = 
+        mat4(f/aspect, 0, 0, 0,
+            0, f, 0, 0,
+            0, 0, (far + near)/den, 2*far*near/den,
+            0, 0, -1, 0);
+    GL.LoadTransposeMatrix(ref projection);
+}
+
+int program = 0;
+bool initialized = false;
+
+int CompileShader(ShaderType type, string source)
+{
+    Console.WriteLine("Compile shader: ");
+    Console.WriteLine(source);
+    
+    // Create the shader.
+    int shader = GL.CreateShader(type);
+    
+    // Set the source.
+    int length = source.Length;
+    GL.ShaderSource(shader, 1, new string[]{source}, ref length);
+    
+    // Compile the shader.
+    GL.CompileShader(shader);
+    
+    // Check for compile errors.
+    int status;
+    GL.GetShader(shader, ShaderParameter.CompileStatus, ref status);
+    if(status == 0)
+    {
+        // Get the info log length.
+        int length;
+        GL.GetShader(shader, ShaderParameter.InfoLogLength, ref length);
+        
+        // Read the info log.
+        int readedLength = 0;
+        StringBuilder infoLog = new StringBuilder(length);
+        GL.GetShaderInfoLog(shader, length, ref readedLength, infoLog);
+        
+        // Print it.
+        throw new ApplicationException("Shader compilation error:" + infoLog.ToString());
+    }
+    
+    return shader;    
+}
+
+void Initialize()
+{
+    // Compile the shaders.
+    int vertexShader = CompileShader(ShaderType.VertexShader, vertexShaderSource);
+    int fragmentShader = CompileShader(ShaderType.FragmentShader, fragmentShaderSource);
+    
+    // Create the program and attach the shaders.
+    program = GL.CreateProgram();
+    GL.AttachShader(program, vertexShader);
+    GL.AttachShader(program, fragmentShader);
+    GL.LinkProgram(program);    
+    
+    // Set the initialized flag.
+    initialized = true;
+}
+
+void Render()
+{
+    // Set the current context.
+    if(!glContext.MakeCurrent(glCanvas))
+    {
+        System.Console.WriteLine("Failed to set current context.");
+        return;
+    }
+
+    // Initialize.
+    if(!initialized)
+        Initialize();
+        
+    // Set the viewport.
+    int w = glCanvas.Width;
+    int h = glCanvas.Height;
+
+    GL.Viewport(0, 0, w, h);
+
+    GL.MatrixMode(MatrixMode.Projection);
+    GL.LoadIdentity();
+    LoadPerspective(45.0f, (float)w/(float)h, 0.1f, 100.0f);
+ 
+    GL.MatrixMode(MatrixMode.Modelview);
+    GL.LoadIdentity();
+    GL.Translate(-1.5f,0.0f,-6.0f);
+       
+    // Settings
+    //GL.Enable(EnableCap.Texture2D);
+    GL.ShadeModel(ShadingModel.Smooth);
+    GL.ClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    GL.ClearDepth(0.0f);
+    //GL.Enable(EnableCap.DepthTest);
+    GL.DepthFunc(DepthFunction.Lequal);
+    GL.Hint(HintTarget.PerspectiveCorrectionHint, HintMode.Nicest);
+    GL.ClearStencil(0);
+    GL.Clear(ClearBufferMask.ColorBufferBit);
+       
+    GL.Enable(EnableCap.CullFace);
+    
+    // Draw a triangle.
+    GL.UseProgram(program);
+    GL.Begin(BeginMode.Triangles);
+    GL.Color3(1.0f, 0.0f, 0.0f); GL.Vertex3(0.f, 1.f, 0.f);
+    GL.Color3(0.0f, 1.0f, 0.0f); GL.Vertex3(-1.f, -1.f, 0.f);
+    GL.Color3(0.0f, 0.0f, 1.0f); GL.Vertex3(1.f, -1.f, 0.f);
+    GL.End();
+
+    glContext.SwapBuffers();
+}
+
+void GLCanvas_Exposed(object sender, ExposeEvent ev)
+{
+    Console.WriteLine("Exposed");
+
+    // Begin/End drawin pair is required in windows.
+    glCanvas.PaintGC.BeginDrawing();
+    Render();
+    glCanvas.PaintGC.EndDrawing();
+}
+
+void GLCanvas_Motion(object sender, MotionEvent ev)
+{
+    Render();
+}
+
+public int Main(string[] args)
+{
+    // Get the current display.
+    Display disp = Display.Current;
+
+    // Get the default screen.
+    Screen screen = disp.DefaultScreen;
+
+    // Create a simple window.
+    Frame frame = new Frame(null, ivec2(0,0), ivec2(640,480));
+    frame.Title = "OpenGL Test";
+    frame.Closed += TestGui_OnClose;
+
+    // Create the opengl context.
+    glContext = screen.CreateRenderContext("OpenGL", glContextAttrs);
+
+    // Create the opengl canvas.
+    glCanvas = new Canvas(glContext, frame, ivec2(20, 20), ivec2(600, 440));
+    glCanvas.Exposed += GLCanvas_Exposed;
+    glCanvas.MouseMotion += GLCanvas_Motion;
+
+    // Show the frame.
+    frame.Show();
+    glCanvas.Show();
+
+    // Use the context.
+    if(!glContext.MakeCurrent(glCanvas))
+    {
+        System.Console.WriteLine("Failed to set current context.");
+        return -1;
+    }
+    
+    // Load the OpenGL entry points.
+    GL.LoadAll();
+    Console.WriteLine("OpenGL version " + GL.GetString(StringName.Version));
+    Console.WriteLine("Extensions: ");
+    Console.WriteLine(GL.GetString(StringName.Extensions));
+    
+    // Enter into the main loop.
+    disp.MainLoop();
+
+    return 0;
+}
+
+

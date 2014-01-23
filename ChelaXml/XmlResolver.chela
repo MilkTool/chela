@@ -1,0 +1,34 @@
+using Chela.Lang;
+using Chela.Net;
+
+namespace Chela.Xml
+{
+    /// <summary>
+    /// Resolves external resources.
+    /// </summary>
+    public abstract class XmlResolver
+    {
+        protected XmlResolver()
+        {
+        }
+        
+        /// <summary>
+        /// Maps a URI into an object.
+        /// </summary>
+        public abstract object GetEntity(Uri absoluteUri, string role,
+                        Type ofObjectToReturn);
+
+        /// <summary>
+        /// Resolves the absolute URI.
+        /// </summary>
+        public abstract Uri ResolveUri(Uri baseUri, string relativeUri);
+
+        /// <summary>
+        /// Sets the credentials for web requests.
+        /// </summary>
+        public abstract ICredentials Credentials {
+            set;
+        }
+    }
+}
+

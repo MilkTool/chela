@@ -1,0 +1,35 @@
+namespace Chela.Gui
+{
+    ///<summary>
+    ///This class represents a screen.
+    ///</summary>
+    public abstract class Screen
+    {
+        ///<summary>
+        ///This property represents the screen width.
+        ///</summary>
+        public abstract int Width {
+            get;
+        }
+
+        ///<summary>
+        ///This property represents the screen height.
+        ///</summary>
+        public abstract int Height {
+            get;
+        }
+
+        ///<summary>
+        ///This property represents the root window context.
+        ///</summary>
+        public abstract WindowContext RootWindowContext {
+            get;
+        }
+
+        ///<summary>
+        ///This function is used to create a RenderContext.
+        ///</summary>
+        public abstract RenderContext CreateRenderContext(string type, int[] attributes);
+    }
+}
+

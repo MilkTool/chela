@@ -1,0 +1,44 @@
+using Chela.Lang;
+
+namespace Chela.Reflection
+{
+    ///<summary>
+    ///Type related attributes
+    ///</summary>
+    [Flags]
+    public enum TypeAttributes
+    {
+        VisibilityMask = 7,	//VisibilityMask
+        NotPublic = 0,	//NotPublic
+        Public = 1,	//Public
+        NestedPublic = 2,	//NestedPublic
+        NestedPrivate = 3,	//NestedPrivate
+        NestedFamily = 4,	//NestedFamily
+        NestedAssembly = 5,	//NestedAssembly
+        NestedFamANDAssem = 6,	//NestedFamANDAssem
+        NestedFamORAssem = 7,	//VisibilityMask
+        LayoutMask = 24,	//LayoutMask
+        AutoLayout = 0,	//NotPublic
+        SequentialLayout = 8,	//SequentialLayout
+        ExplicitLayout = 16,	//ExplicitLayout
+        ClassSemanticsMask = 32,	//ClassSemanticsMask
+        Class = 0,	//NotPublic
+        Interface = 32,	//ClassSemanticsMask
+        Abstract = 128,	//Abstract
+        Sealed = 256,	//Sealed
+        SpecialName = 1024,	//SpecialName
+        Import = 4096,	//Import
+        Serializable = 8192,	//Serializable
+        StringFormatMask = 196608,	//CustomFormatClass
+        AnsiClass = 0,	//NotPublic
+        UnicodeClass = 65536,	//UnicodeClass
+        AutoClass = 131072,	//AutoClass
+        BeforeFieldInit = 1048576,	//BeforeFieldInit
+        ReservedMask = 264192,	//ReservedMask
+        RTSpecialName = 2048,	//RTSpecialName
+        HasSecurity = 262144,	//HasSecurity
+        CustomFormatClass = 196608,	//CustomFormatClass
+        CustomFormatMask = 12582912,	//CustomFormatMask
+    }
+}
+

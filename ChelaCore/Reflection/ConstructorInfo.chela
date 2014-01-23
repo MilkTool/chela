@@ -1,0 +1,18 @@
+using Chela.Lang;
+
+namespace Chela.Reflection
+{
+    public abstract class ConstructorInfo: MethodBase
+    {
+        ///<summary>
+        ///Returns the member type.
+        ///</summary>
+        public override MemberTypes MemberType {
+            get {
+                return MemberTypes.Constructor;
+            }
+        }
+
+    }
+}
+

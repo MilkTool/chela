@@ -1,0 +1,14 @@
+namespace Chela.Lang
+{
+    ///<summary>
+    ///Attribute used to mark a field as thread local storage.
+    ///</summary>
+    [AttributeUsage(AttributeTargets.Field)]
+    public sealed class ThreadStaticAttribute: Attribute
+    {
+        public ThreadStaticAttribute()
+        {
+        }
+    }
+}
+

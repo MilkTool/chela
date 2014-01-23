@@ -1,0 +1,24 @@
+namespace Chela.Lang
+{
+    ///<summary>
+    ///This is used to notify the compiler about an instruction that can do
+    ///the job of the flagged method.
+    ///</summary>
+    [AttributeUsage(AttributeTargets.Method)]
+    public class ChelaIntrinsic: Attribute
+    {
+        private string name;
+        
+        public ChelaIntrinsic(string name)
+        {
+            this.name = name;
+        }
+        
+        public string Name {
+            get {
+                return name;
+            }
+        }
+    }
+}
+

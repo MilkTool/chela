@@ -1,0 +1,155 @@
+using Chela.Lang;
+using Chela.Reflection;
+
+// Write an indented line.
+int depth = 0;
+void IncrDepth()
+{
+    ++depth;
+}
+
+void DecrDepth()
+{
+    --depth;
+}
+
+void WriteLine(string text)
+{
+    for(int i = 0; i < depth; ++i)
+        Console.Write("    ");
+    Console.WriteLine(text);
+}
+
+void WriteLine(string text, object arg0)
+{
+    WriteLine(string.Format(text, arg0));
+}
+
+void WriteLine(string text, object arg0, object arg1)
+{
+    WriteLine(string.Format(text, arg0, arg1));
+}
+
+void WriteLine(string text, object arg0, object arg1, object arg2)
+{
+    WriteLine(string.Format(text, arg0, arg1, arg2));
+}
+
+void WriteField(FieldInfo field)
+{
+    WriteLine("<field name=\"{0}\" type=\"{1}\" />", field.Name, field.FieldType.Name);
+}
+
+void WriteParameter(ParameterInfo parameter)
+{
+    WriteLine("<param name=\"{0}\" type=\"{1}\" />", parameter.Name, parameter.ParameterType.Name);
+}
+
+void WriteMethod(MethodInfo method)
+{
+    // Begin the method content.
+    WriteLine("<method name=\"{0}\" returnType=\"{1}\">", method.Name, method.ReturnType.Name);
+    IncrDepth();
+    
+    // Write the parameters.
+    WriteLine("<parameters>");
+    IncrDepth();
+    ParameterInfo[] parameters = method.GetParameters();
+    for(int i = 0; i < parameters.Length; ++i)
+        WriteParameter(parameters[i]);
+
+    DecrDepth();
+    WriteLine("</parameters>");
+    
+    // End the method content.
+    DecrDepth();
+    WriteLine("</method>", method.Name, method.ReturnType);
+}
+
+void WriteProperty(PropertyInfo property)
+{
+    WriteLine("<property name=\"{0}\" type=\"{1}\"/>", property.Name, property.PropertyType);
+}
+
+void WriteMember(MemberInfo member)
+{
+    // Try to write a field.
+    FieldInfo field = member as FieldInfo;
+    if(field != null)
+    {
+        WriteField(field);
+        return;
+    }
+    
+    // Try to write a method.
+    MethodInfo method = member as MethodInfo;
+    if(method != null)
+    {
+        WriteMethod(method);
+        return;
+    }
+
+    // Try to write a property
+    PropertyInfo property = member as PropertyInfo;
+    if(property != null)
+    {
+        WriteProperty(property);
+        return;
+    }
+    
+    // Try to write a type.
+    Type type = member as Type;
+    if(type != null)
+    {
+        WriteType(type);
+        return;
+    }
+    
+    // Write a member.
+    WriteLine("<member name=\"{0}\" />", member.Name);
+}
+
+void WriteType(Type type)
+{
+    // Get the base type name.
+    string baseName = "";
+    if(type.BaseType != null)
+        baseName = type.BaseType.Name;
+        
+    // Write the element start tag
+    WriteLine("<type name=\"{0}\" base=\"{1}\">", type.Name, baseName);
+    IncrDepth();
+    
+    // Write the members.
+    MemberInfo[] members = type.GetMembers();
+    for(int i = 0; i < members.Length; ++i)
+        WriteMember(members[i]);
+    
+    // Write the element end tag 
+    DecrDepth();
+    WriteLine("</type>");
+}
+
+void WriteMembers(Assembly assembly)
+{
+    Type[] types = assembly.GetTypes();
+    for(int i = 0; i < types.Length; ++i)
+        WriteType(types[i]);
+}
+
+int Main(string[] args)
+{
+    // Write the xml entity.
+    Console.WriteLine("<?xml version=\"1.0\" encoding=\"utf-8\" ?>");
+    Console.WriteLine("<members>");
+    IncrDepth();
+    
+    // Write the members of the core assembly.
+    WriteMembers(typeof(Type).Assembly);
+    
+    // Close the members.
+    DecrDepth();
+    Console.WriteLine("</members>");
+    return 0;
+}
+

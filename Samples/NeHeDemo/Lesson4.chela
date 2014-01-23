@@ -1,0 +1,113 @@
+using Chela.Lang;
+using Chela.Graphics.GL2;
+
+namespace NeHeDemo
+{
+    public sealed class Lesson4: Lesson
+    {
+        private float rtri = 0.0f;
+        private float rquad = 0.0f;
+        
+        protected override void Render()
+        {
+            // Clear the screen and the depth buffer.
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            
+            // Reset the screen.            
+            GL.MatrixMode(MatrixMode.Modelview);
+            GL.LoadIdentity();
+            
+            // Move left and into The Screen 6.0
+            GL.Translate(-1.5f, 0.0f, -6.0f); 
+            GL.Rotate(rtri, 0.0f, 1.0f, 0.0f); // Rotate the pyramid.
+            
+            // Draw a pyramid.
+            GL.Begin(BeginMode.Triangles);
+                // Front face.
+                GL.Color3(1.0f,0.0f,0.0f);          // Red
+                GL.Vertex3( 0.0f, 1.0f, 0.0f);      // Top Of Triangle
+                GL.Color3(0.0f,1.0f,0.0f);          // Green
+                GL.Vertex3(-1.0f,-1.0f, 1.0f);      // Left Of Triangle
+                GL.Color3(0.0f,0.0f,1.0f);          // Blue
+                GL.Vertex3( 1.0f,-1.0f, 1.0f);      // Right Of Triangle
+                // Right face.
+                GL.Color3(1.0f,0.0f,0.0f);          // Red
+                GL.Vertex3( 0.0f, 1.0f, 0.0f);      // Top Of Triangle
+                GL.Color3(0.0f,0.0f,1.0f);          // Blue
+                GL.Vertex3( 1.0f,-1.0f, 1.0f);      // Left Of Triangle
+                GL.Color3(0.0f,1.0f,0.0f);          // Green
+                GL.Vertex3( 1.0f,-1.0f, -1.0f);     // Right Of Triangle
+                // Back face.
+                GL.Color3(1.0f,0.0f,0.0f);          // Red
+                GL.Vertex3( 0.0f, 1.0f, 0.0f);      // Top Of Triangle
+                GL.Color3(0.0f,1.0f,0.0f);          // Green
+                GL.Vertex3( 1.0f,-1.0f, -1.0f);     // Left Of Triangle
+                GL.Color3(0.0f,0.0f,1.0f);          // Blue
+                GL.Vertex3(-1.0f,-1.0f, -1.0f);     // Right Of Triangle
+                // Left face.
+                GL.Color3(1.0f,0.0f,0.0f);          // Red
+                GL.Vertex3( 0.0f, 1.0f, 0.0f);      // Top Of Triangle
+                GL.Color3(0.0f,0.0f,1.0f);          // Blue
+                GL.Vertex3(-1.0f,-1.0f,-1.0f);      // Left Of Triangle
+                GL.Color3(0.0f,1.0f,0.0f);          // Green
+                GL.Vertex3(-1.0f,-1.0f, 1.0f);      // Right Of Triangle    
+            GL.End();
+            
+            // Move right 1.5 units.
+            GL.LoadIdentity();
+            GL.Translate(1.5f, 0.0f, -6.0f);
+            GL.Rotate(rquad, 1.0f, 1.0f, 1.0f); // Rotate the cube on X, Y and Z.
+            
+            // Draw a cube.
+            GL.Begin(BeginMode.Quads);
+                // Top face
+                GL.Color3(0.0f,1.0f,0.0f);              // Set The Color To Green
+                GL.Vertex3( 1.0f, 1.0f,-1.0f);          // Top Right Of The Quad
+                GL.Vertex3(-1.0f, 1.0f,-1.0f);          // Top Left Of The Quad
+                GL.Vertex3(-1.0f, 1.0f, 1.0f);          // Bottom Left Of The Quad
+                GL.Vertex3( 1.0f, 1.0f, 1.0f);          // Bottom Right Of The Quad
+                // Bottom face
+                GL.Color3(1.0f,0.5f,0.0f);              // Set The Color To Orange
+                GL.Vertex3( 1.0f,-1.0f, 1.0f);          // Top Right Of The Quad
+                GL.Vertex3(-1.0f,-1.0f, 1.0f);          // Top Left Of The Quad
+                GL.Vertex3(-1.0f,-1.0f,-1.0f);          // Bottom Left Of The Quad
+                GL.Vertex3( 1.0f,-1.0f,-1.0f);          // Bottom Right Of The Quad
+                // Front face
+                GL.Color3(1.0f,0.0f,0.0f);              // Set The Color To Red
+                GL.Vertex3( 1.0f, 1.0f, 1.0f);          // Top Right Of The Quad
+                GL.Vertex3(-1.0f, 1.0f, 1.0f);          // Top Left Of The Quad
+                GL.Vertex3(-1.0f,-1.0f, 1.0f);          // Bottom Left Of The Quad
+                GL.Vertex3( 1.0f,-1.0f, 1.0f);          // Bottom Right Of The Quad
+                // Back face
+                GL.Color3(1.0f,1.0f,0.0f);              // Set The Color To Yellow
+                GL.Vertex3( 1.0f,-1.0f,-1.0f);          // Bottom Left Of The Quad
+                GL.Vertex3(-1.0f,-1.0f,-1.0f);          // Bottom Right Of The Quad
+                GL.Vertex3(-1.0f, 1.0f,-1.0f);          // Top Right Of The Quad
+                GL.Vertex3( 1.0f, 1.0f,-1.0f);          // Top Left Of The Quad
+                // Left face
+                GL.Color3(0.0f,0.0f,1.0f);              // Set The Color To Blue
+                GL.Vertex3(-1.0f, 1.0f, 1.0f);          // Top Right Of The Quad
+                GL.Vertex3(-1.0f, 1.0f,-1.0f);          // Top Left Of The Quad
+                GL.Vertex3(-1.0f,-1.0f,-1.0f);          // Bottom Left Of The Quad
+                GL.Vertex3(-1.0f,-1.0f, 1.0f);          // Bottom Right Of The Quad
+                // Right face
+                GL.Color3(1.0f,0.0f,1.0f);              // Set The Color To Violet
+                GL.Vertex3( 1.0f, 1.0f,-1.0f);          // Top Right Of The Quad
+                GL.Vertex3( 1.0f, 1.0f, 1.0f);          // Top Left Of The Quad
+                GL.Vertex3( 1.0f,-1.0f, 1.0f);          // Bottom Left Of The Quad
+                GL.Vertex3( 1.0f,-1.0f,-1.0f);          // Bottom Right Of The Quad
+            GL.End();
+            
+            // Swap the buffers.
+            SwapBuffers();
+        }
+        
+        protected override void Frame(float delta)
+        {
+            rtri += delta*200.0f;
+            rquad += delta*150.0f;
+        }
+    }
+}
+
+    

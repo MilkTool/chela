@@ -1,0 +1,14 @@
+namespace Chela.Lang
+{
+    public delegate TResult Func<TResult> ();
+    public delegate TResult Func<T1, TResult> (T1);
+    public delegate TResult Func<T1, T2, TResult> (T1, T2);
+    public delegate TResult Func<T1, T2, T3, TResult> (T1, T2, T3);
+    public delegate TResult Func<T1, T2, T3, T4, TResult> (T1, T2, T3, T4);
+    public delegate TResult Func<T1, T2, T3, T4, T5, TResult> (T1, T2, T3, T4, T5);
+    public delegate TResult Func<T1, T2, T3, T4, T5, T6, TResult> (T1, T2, T3, T4, T5, T6);
+    public delegate TResult Func<T1, T2, T3, T4, T5, T6, T7, TResult> (T1, T2, T3, T4, T5, T6, T7);
+    public delegate TResult Func<T1, T2, T3, T4, T5, T6, T7, T8, TResult> (T1, T2, T3, T4, T5, T6, T7, T8);
+    public delegate TResult Func<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult> (T1, T2, T3, T4, T5, T6, T7, T8);
+}
+

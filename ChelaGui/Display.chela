@@ -1,0 +1,146 @@
+using Chela.Threading;
+
+namespace Chela.Gui
+{
+    public abstract class Display
+    {
+        private Theme theme;
+        private bool quit;
+
+        public Display()
+        {
+            theme = Theme.DefaultTheme;
+            quit = false;
+        }
+
+        ///<summary>
+        ///The theme associated with the display.
+        ///</summary>
+        public Theme Theme {
+            get {
+                return theme;
+            }
+            set {
+                theme = value;
+            }
+        }
+
+        ///<summary>
+        ///This property is a shortcut to the current driver display.
+        ///</summary>
+        public static Display Current {
+            get {
+                return GuiDriver.Current.TheDisplay;
+            }
+        }
+
+        ///<summary>
+        ///The font manager associated with the display.
+        ///</summary>
+        public abstract FontManager FontManager {
+            get;
+        }
+
+        ///<summary>
+        ///This read-only property represents the number of screens.
+        ///</summary>
+        public abstract int ScreenCount {
+            get;
+        }
+
+        ///<summary>
+        ///This functions retrieves a screen.
+        ///</summary>
+        public abstract Screen GetScreen(int index);
+
+        ///<summary>
+        ///This read-only property represents the default screen.
+        ///</summary>
+        public abstract Screen DefaultScreen {
+            get;
+        }
+        
+        ///<summary>
+        ///Idle event handler.
+        ///</summary>
+        public IdleEventHandler Idle;
+
+        ///<summary>
+        ///This function is used to create a low-level window context.
+        ///</summary>
+        public abstract WindowContext CreateSimpleWindowContext(WindowContext parent, ivec2 position,
+                                                                ivec2 size, int borderWidth, Color border,
+                                                                Color background);
+
+        ///<summary>
+        ///This function is used to create a low-level renderable window context.
+        ///</summary>
+        public abstract WindowContext CreateRenderWindowContext(RenderContext renderContext, WindowContext parent,
+                                                                ivec2 position, ivec2 size,
+                                                                int borderWidth, Color border, Color background);
+
+        ///<summary>
+        ///This function is used to create a RenderContext.
+        ///</summary>
+        public virtual RenderContext CreateRenderContext(string type, int[] attributes)
+        {
+            return DefaultScreen.CreateRenderContext(type, attributes);
+        }
+
+        ///<summary>
+        ///This function retrieves a event.
+        ///</summary>
+        public abstract GuiEvent PollEvent();
+
+        ///<summary>
+        ///This function dispatches a event
+        ///</summary>
+        public virtual void DispatchEvent(GuiEvent ev)
+        {
+            // Idle event is personal.
+            if(ev.EventType == GuiEventType.Idle)
+            {
+                if(Idle != null)
+                    Idle(this, (IdleEvent)ev);
+                else
+                    IdleNotHandled();
+            }
+            
+            // Dispatch the event into his window context.
+            WindowContext context = ev.Context;
+            if(context != null)
+                context.ProcessEvent(ev);
+        }
+        
+        ///<summary>
+        ///Idle event wasn't handled. By default release some cpu time.
+        ///</summary>
+        protected virtual void IdleNotHandled()
+        {
+            Thread.Sleep(4);
+        }
+
+        ///<summary>
+        ///This function enters into the application main loop.
+        ///</summary>
+        public virtual void MainLoop()
+        {
+            quit = false;
+            while(!quit)
+            {
+                GuiEvent ev = PollEvent();
+                if(ev == null)
+                    break;
+                DispatchEvent(ev);
+            }
+        }
+
+        ///<summary>
+        ///Quits from the current application.
+        ///</summary>
+        public void Quit()
+        {
+            quit = true;
+        }
+    }
+}

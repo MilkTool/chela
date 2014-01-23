@@ -1,0 +1,28 @@
+namespace Chela.Gui
+{
+    /// <summary>
+    /// Expose event arguments.
+    /// </summary>
+    public class KeyEvent: GuiEvent
+    {
+        public KeyEvent(WindowContext context, GuiEventType type)
+            : base(context, type)
+        {
+        }
+
+        public KeyEvent(Window window, GuiEventType type)
+            : base(window, type)
+        {
+        }
+
+        public int Modifiers;
+        public KeyCode KeySymbol;
+        public int UnicodeChar;
+    }
+
+    /// <summary>
+    /// Draw event handler.
+    /// </summary>
+    public delegate void KeyEventHandler(object sender, KeyEvent args);
+}
+

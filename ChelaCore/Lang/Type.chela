@@ -1,0 +1,392 @@
+using Chela.Reflection;
+
+namespace Chela.Lang
+{
+    public abstract class Type: MemberInfo
+    {
+        // This must be synchronized with Rtti TypeInformation structure.
+        
+        // Type kind.
+        internal ushort kind;
+        
+        // Storage data.
+        internal ushort size;
+        internal ushort align;
+        internal ushort sizeOffset;
+        internal ushort dataOffset;
+        internal ushort dimensions;
+
+        // Data description
+        internal ushort numreferences;
+        internal ushort numimplementations;
+        internal ushort nummembers;
+        internal ushort numgenericArguments;
+        internal ushort numsubtypes;
+
+        // Class data.
+        internal Type baseType;
+        internal unsafe StandardVTable *vtable;
+        internal unsafe InterfaceImplementation *implementations;
+        internal unsafe void (*)(void*) setupVTables;
+        
+        // Reference counting.
+        internal unsafe size_t *references; // Internal references offsets.
+        
+        // Type reflection data.
+        internal Assembly assembly;
+        internal string fullName;
+        internal string namespaceName;
+        
+        // Members.
+        internal unsafe MemberInformation **members;
+
+        // Generic instance data.
+        internal unsafe TypeInformation **genericArguments;
+        
+        // Composite type.
+        internal unsafe TypeInformation **subtypes;
+
+        ///<summary>
+        ///The assembly containing this type.
+        ///</summary>
+        public Assembly Assembly {
+            get {
+                return assembly;
+            }
+        }
+
+        ///<summary>
+        ///The attributes of this type.
+        ///</summary>
+        public TypeAttributes Attributes {
+            get {
+                return (TypeAttributes)attributes;
+            }
+        }
+
+        public override string ToString()
+        {
+            return Name;
+        }
+        
+        ///<summary>
+        ///The type from which this inherits.
+        ///</summary>
+        public Type BaseType {
+            get {
+                return baseType;
+            }
+        }
+        
+        ///<summary>
+        ///The complete type name.
+        ///</summary>
+        public string FullName {
+            get {
+                return fullName;
+            }
+        }
+
+        ///<summary>
+        ///Gets the members of this type. This version is equivalent to
+        ///GetMembers(Chela.Reflection.BindingFlags.Public |
+        /// Chela.Reflection.BindingFlags.Static |
+        /// Chela.Reflection.BindingFlags.Instance).
+        ///</summary>
+        public MemberInfo[] GetMembers()
+        {
+            return GetMembers(Chela.Reflection.BindingFlags.Public |
+                    Chela.Reflection.BindingFlags.Static |
+                    Chela.Reflection.BindingFlags.Instance);
+        }
+        
+        ///<summary>
+        ///Gets the type members according to the binding.
+        ///</summary>
+        public MemberInfo[] GetMembers(BindingFlags flags)
+        {
+            unsafe {
+                MemberInfo[] ret = new MemberInfo[nummembers];
+                for(uint i = 0; i < nummembers; ++i)
+                    ret[i] = reinterpret_cast<MemberInfo> (members[i]);
+                return ret;
+            }
+        }
+
+        ///<summary>
+        ///Finds the matching member.
+        ///</summary>
+        public MemberInfo GetMember(string name)
+        {
+            return GetMember(name, Chela.Reflection.BindingFlags.Public |
+                    Chela.Reflection.BindingFlags.Static |
+                    Chela.Reflection.BindingFlags.Instance);
+        }
+
+        ///<summary>
+        ///Finds the matching member.
+        ///</summary>
+        public MemberInfo GetMember(string name, BindingFlags flags)
+        {
+            return GetMember(name, MemberTypes.All, flags);
+        }
+        
+        ///<summary>
+        ///Gets a member range by name.
+        ///</summary>
+        private unsafe bool GetMemberBegin(string name, out int start)
+        {
+            start = 0;
+            int end = nummembers;
+            int middle;
+            int cmp;
+            MemberInformation *member;
+            while(start != end)
+            {
+                // Find the member in the middle.
+                middle = (start + end)/2;
+                member = members[middle];
+                if(member == null)
+                    return false;
+                    
+                // Compare the member name.
+                cmp = strcmp(name, member->name);
+                if(cmp == 0)
+                    break;
+                else if(cmp < 0)
+                    end = middle;
+                else if(cmp > 0)
+                    start = middle;
+            }
+            
+            // Not found a member.
+            if(cmp != 0)
+                return false;
+                
+            // Find the actual start.
+            // Because these names are created by the compiler, we can use a
+            // simple pointer comparison to check for equality.
+            const sbyte *internName = member->name;
+            while(member->name == internName)
+            {
+                start = middle--;
+                member = members[middle];
+            }
+            
+            return true;
+        }
+        
+        ///<summary>
+        ///Finds a member by name, ignoring his case.
+        ///</summary>
+        private unsafe MemberInfo GetMemberNoCase(string name, MemberTypes types, BindingFlags flags)
+        {
+            throw new NotImplementedException();
+        }
+        
+        ///<summary>
+        ///Finds a member by name.
+        ///</summary>
+        private unsafe MemberInfo GetMemberUseCase(string name, MemberTypes types, BindingFlags flags)
+        {
+            // Find the first member with the name.
+            int startMember;
+            if(!GetMemberBegin(name, out startMember))
+                return null;
+                    
+            // Now, check the members until the first matching one.
+            const sbyte *name = members[startMember]->name;
+            for(int i = startMember; i < nummembers; ++i)
+            {
+                // Make sure this member also has the correct name.
+                MemberInformation *rawInfo = members[i];
+                if(rawInfo->name != name)
+                    break;
+                        
+                // Cast the member, to use his MemberTypes property
+                MemberInfo child = reinterpret_cast<MemberInfo> (rawInfo);
+                if(MemberInfo.CheckMemberAttributes(child, types, flags))
+                    return child;
+            }
+                
+            // Couldn't find a matching member.
+            return null;
+        }
+
+        ///<summary>
+        ///Finds the matching member.
+        ///</summary>
+        public MemberInfo GetMember(string name, MemberTypes types, BindingFlags flags)
+        {
+            unsafe {
+                if((flags & BindingFlags.IgnoreCase) != BindingFlags.Default)
+                    return GetMemberNoCase(name, types, flags);
+                else
+                    return GetMemberUseCase(name, types, flags);
+            }
+        }
+
+        ///<summary>
+        ///Checks if this is a derived type of c.
+        ///</summary>
+        public bool IsSubclassOf(Type c)
+        {
+            // Move until hitting c or nothing.
+            Type current = BaseType;
+            while(current != null)
+            {
+                if(current == c)
+                    return true;
+                current = current.BaseType;
+            }
+
+            return false;
+        }
+
+        ///<summary>
+        ///Read-only property telling the number of dimensions.
+        ///</summary>
+        public int Dimensions {
+            get {
+                return dimensions;
+            }
+        }
+
+        ///<summary>
+        ///Read-only property telling the number of columns in primitive matrices.
+        ///</summary>
+        public int Columns {
+            get {
+                return dimensions & 0xFF;
+            }
+        }
+        
+        ///<summary>
+        ///Read-only property that gives the element type of a vector or matrix.
+        ///</summary>
+        public Type ElementType {
+            get {
+                if(kind == (int)TypeKind.Structure && dimensions != 0
+                    && numsubtypes == 1)
+                {
+                    unsafe {
+                        return reinterpret_cast<Type> (subtypes[0]);
+                    }
+                }
+                
+                return null;    
+            }
+        }
+
+        ///<summary>
+        ///Read-only property telling if this type is an array.
+        ///</summary>
+        public bool IsArray {
+            get {
+                return kind == (int)TypeKind.Array;
+            }
+        }
+
+        ///<summary>
+        ///Read-only property telling if this type is passed by reference.
+        ///</summary>
+        public bool IsByRef {
+            get {
+                return !IsValueType;
+            }
+        }
+
+        ///<summary>
+        ///Read-only property telling if this type is a interface.
+        ///</summary>
+        public bool IsInterface {
+            get {
+                return kind == (int)TypeKind.Interface;
+            }
+        }
+
+        ///<summary>
+        ///Read-only property telling if this type is a vector.
+        ///</summary>
+        public bool IsMatrix {
+            get {
+                return kind == (int)TypeKind.Structure &&
+                    numsubtypes == 1 &&
+                    dimensions >> 8 != 0;
+            }
+        }
+
+        ///<summary>
+        ///Read-only property telling if this type is a pointer.
+        ///</summary>
+        public bool IsPointer {
+            get {
+                return kind == (int)TypeKind.Pointer;
+            }
+        }
+
+        ///<summary>
+        ///Read-only property telling if this type is primitive.
+        ///</summary>
+        public bool IsPrimitive {
+            get {
+                if(kind == (int)TypeKind.Structure && numsubtypes == 1)
+                {
+                    unsafe {
+                        return this == reinterpret_cast<Type> (subtypes[0]);
+                    }
+                }
+                return false;
+            }
+        }
+
+        ///<summary>
+        ///Read-only property telling if this type is a vector.
+        ///</summary>
+        public bool IsVector {
+            get {
+                return kind == (int)TypeKind.Structure &&
+                    numsubtypes == 1 &&
+                    dimensions != 0 &&
+                    dimensions >> 8 == 0;
+            }
+        }
+
+        ///<summary>
+        ///Read-only property telling if this type is a structure.
+        ///</summary>
+        public bool IsValueType {
+            get {
+                return kind == (int)TypeKind.Structure;
+            }
+        }
+
+        ///<summary>
+        ///Returns the member type.
+        ///</summary>
+        public override MemberTypes MemberType {
+            get {
+                return MemberTypes.TypeInfo;
+            }
+        }
+
+        ///<summary>
+        ///The namespace name in which this type was declared.
+        ///</summary>
+        public string Namespace {
+            get {
+                return namespaceName;
+            }
+        }
+
+        ///<summary>
+        ///Read-only property telling the number of rows in primitive matrices.
+        ///</summary>
+        public int Rows {
+            get {
+                return dimensions >> 8;
+            }
+        }
+    }
+}
+

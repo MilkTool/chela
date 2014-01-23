@@ -1,0 +1,32 @@
+using Chela.Lang;
+
+namespace Chela.Reflection
+{
+    public abstract class FieldInfo: MemberInfo
+    {
+        // Field type.
+        protected Type type;
+        
+        // Field offset or global pointer.
+        protected unsafe void *fieldPointer;
+        
+        ///<summary>
+        ///Returns the member type.
+        ///</summary>
+        public override MemberTypes MemberType {
+            get {
+                return MemberTypes.Field;
+            }
+        }
+        
+        ///<summary>
+        ///Returns the field type.
+        ///</summary>
+        public virtual Type FieldType {
+            get {
+                return type;
+            }
+        }
+    }
+}
+

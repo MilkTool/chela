@@ -1,0 +1,17 @@
+using Chela.Lang;
+
+namespace Chela.Reflection
+{
+    [Flags]
+    public enum ParameterAttributes
+    {
+        None=0,
+        HasDefault,
+        HasFieldMarshal,
+        In,
+        Lcid,
+        Optional,
+        Out,        
+    }
+}
+

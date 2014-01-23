@@ -1,0 +1,51 @@
+namespace Chela.Gui
+{
+    public class Frame: Window
+    {
+        public Frame(Window parent, ivec2 position, ivec2 size)
+            : base(parent, position, size)
+        {
+        }
+
+        public Frame(Window parent)
+            : base(parent, DefaultPosition, DefaultSize)
+        {
+        }
+
+        public Frame()
+            : this(null)
+        {
+        }
+
+        ///<summary>
+        ///The window title.
+        ///</summary>
+        public string Title {
+            get {
+                return (string)Context.GetProperty("Title");
+            }
+            set {
+                Context.SetProperty("Title", value);
+            }
+        }
+
+        ///<summary>
+        ///Called when the window was exposed, used for drawing.
+        ///</summary>
+        protected override void OnExpose(ExposeEvent ev)
+        {
+            // Propagate the event.
+            base.OnExpose(ev);
+
+            // Clear the window, if the event wasn't handled.
+            if(!ev.Handled)
+            {
+                PaintGC.BeginDrawing();
+                PaintGC.Clear();
+                PaintGC.EndDrawing();
+                ev.Done();
+            }
+        }
+    }
+}
+

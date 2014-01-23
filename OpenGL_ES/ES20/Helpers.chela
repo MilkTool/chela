@@ -1,0 +1,66 @@
+using Chela.Lang;
+using Chela.Reflection;
+
+namespace Chela.Graphics.ES20
+{
+    ///<summary>
+    ///OpenGL ES 2.0 bindings.
+    ///</summary>
+    public partial class GL
+    {
+        private static string LibraryName = null;
+        private static unsafe NativeModule Module = null;
+
+        private unsafe static bool TryLoadLibrary()
+        {
+            try
+            {
+                Module = NativeModule.LoadModule(LibraryName);
+            }
+            catch(InvalidOperationException e)
+            {
+            }
+
+            return Module != null;
+        }
+    
+        private unsafe static void LoadLibrary()
+        {
+            // Try with different libraries.
+            LibraryName = "libGLESv2.dll";
+            if(TryLoadLibrary())
+                return;
+
+            LibraryName = "libGLESv2.so";
+            if(TryLoadLibrary())
+                return;
+        }
+
+        public static void LoadAll()
+        {
+            unsafe {
+                // Load the library.
+                if(Module == null)
+                {
+                    LoadLibrary();
+                    if(Module == null)
+                        throw new SystemException("Failed to load OpenGL ES 2.0");
+                }
+
+                // Load the entry points.
+                Delegates.LoadEntryPoints();
+            }
+        }
+
+        public unsafe static void *GetEntryPoint(string pointName)
+        {
+            return Module.GetSymbolValue(pointName);
+        }
+
+        public unsafe static void *GetEntryPoint(const sbyte *cpointName)
+        {
+            return Module.GetSymbolValue(cpointName);
+        }
+    }
+}
+

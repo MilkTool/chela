@@ -1,0 +1,45 @@
+namespace Chela.Lang
+{
+    internal extern __cdecl int _Chela_DC_DToA(sbyte *buffer, double value);
+
+    public struct Double
+    {
+        internal double __value;
+
+        ///<summary>
+        ///Retrieves a string representation of the double.
+        ///</summary>
+        public override string ToString()
+        {
+            unsafe {
+                // Allocate a buffer and use system conversion.
+                sbyte[] buffer = new sbyte[32];
+                _Chela_DC_DToA(&buffer[0], __value);
+                return new string(&buffer[0]);
+            }
+        }
+
+        ///<summary>
+        ///Computes the hash code of this double.
+        ///</summary>
+        public override int GetHashCode()
+        {
+            ulong val = reinterpret_cast<ulong> (__value);
+            return (int) ( ((val & 0xFFFFFFFF00000000UL) >> 32) ^
+                   (val & 0x00000000FFFFFFFFUL) );
+        }
+        
+        ///<summary>
+        ///Compares for equality.
+        ///</summary>
+        public override bool Equals(object o)
+        {
+            if(o == null || !(o is Double))
+                return false;
+                
+            Double cmp = (Double)o;
+            return __value == cmp.__value;
+        }
+    }
+}
+

@@ -1,0 +1,112 @@
+using Chela.Globalization;
+
+namespace Chela.Lang
+{
+    public struct UInt32: IFormattable, IntegerConstraint
+    {
+        internal uint __value;
+
+        ///<summary>
+        ///Gets a string representation of the integer.
+        ///</summary>
+        public override string ToString()
+        {
+            return FormatUtil.IntToString_General<uint> (__value, null);
+        }
+        
+        ///<summary>
+        ///Gets a string representation of the integer.
+        ///</summary>
+        public string ToString(IFormatProvider provider)
+        {
+            return FormatUtil.IntToString_General<uint> (__value, provider);
+        }
+        
+        ///<summary>
+        ///Gets a string representation of the integer.
+        ///</summary>
+        public string ToString(string format)
+        {
+            return FormatUtil.IntToString<uint> (__value, format, null);
+        }
+
+        ///<summary>
+        ///Gets a string representation of the integer.
+        ///</summary>
+        public string ToString(string format, IFormatProvider provider)
+        {
+            return FormatUtil.IntToString<uint> (__value, format, provider);
+        }
+
+        ///<summary>
+        ///Computes a hash code for this integer.
+        ///</summary>
+        public override int GetHashCode()
+        {
+            return (int)__value;
+        }
+        
+        ///<summary>
+        ///Compares this integer with another.
+        ///</summary>
+        public override bool Equals(object o)
+        {
+            if(o == null || !(o is UInt32))
+                return false;
+            UInt32 cmp = (UInt32)o;
+            return __value == cmp.__value;
+        }
+        
+        ///<summary>
+        ///Parses a string representation of an integer.
+        ///</summary>
+        public static uint Parse(string s)
+        {
+            return Parse(s, NumberStyles.Integer, null);
+        }
+        
+        ///<summary>
+        ///Parses a string representation of an integer.
+        ///</summary>
+        public static uint Parse(string s, IFormatProvider provider)
+        {
+            return Parse(s, NumberStyles.Integer, provider);
+        }
+        
+        ///<summary>
+        ///Parses a string representation of an integer.
+        ///</summary>
+        public static uint Parse(string s, NumberStyles styles)
+        {
+            return Parse(s, styles, null);
+        }
+                
+        ///<summary>
+        ///Parses a string representation of an integer.
+        ///</summary>
+        public static uint Parse(string s, NumberStyles styles, IFormatProvider provider)
+        {
+            uint res;
+            if(!TryParse(s, styles, provider, out res))
+                throw new FormatException();
+            return res;
+        }
+        
+        ///<summary>
+        ///Tries to parse a string representation of an integer.
+        ///</summary>
+        public static bool TryParse(string s, out uint value)
+        {
+            return TryParse(s, NumberStyles.Integer, null, out value);
+        }
+        
+        ///<summary>
+        ///Tries to parse a string representation of an integer.
+        ///</summary>
+        public static bool TryParse(string s, NumberStyles styles, IFormatProvider provider, out uint value)
+        {
+            return FormatUtil.TryParse_Integer<uint> (s, NumberStyles.Integer, provider, out value);
+        }
+    }
+}
+

@@ -1,0 +1,11 @@
+namespace Chela.Lang
+{
+    public abstract class ValueType
+    {
+        public override bool Equals(object o)
+        {
+            return false;
+        }
+    };
+}
+

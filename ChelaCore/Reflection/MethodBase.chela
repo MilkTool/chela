@@ -1,0 +1,471 @@
+using Chela.Lang;
+using Chela.Globalization;
+using Chela.Collections.Generic;
+
+namespace Chela.Reflection
+{
+    internal extern unsafe __cdecl void _Chela_Reflection_Invoke(void *function, const byte *signature,
+                                                                 const void **parameters, void *returnValue);
+
+    public abstract class MethodBase: MemberInfo
+    {
+        internal struct BlockReference
+        {
+            public int size;
+            public int offset;
+            public int flags;
+        }
+
+        // Method pointer and vtable slot.
+        protected unsafe void *methodPointer;
+        protected int vslot;
+        
+        // Method parameters.
+        protected int numparameters;
+        protected unsafe void **parameters;
+
+        // Chela module search cache.
+        internal int numblocks;
+        internal unsafe BlockReference *blocks;
+
+        ///<summary>
+        ///Gets the method parameters.
+        ///</summary>
+        public virtual ParameterInfo[] GetParameters()
+        {
+            unsafe {
+                ParameterInfo[] ret = new ParameterInfo[numparameters];
+                for(int i = 0; i < numparameters; ++i)
+                    ret[i] = reinterpret_cast<ParameterInfo> (parameters[i]);
+                return ret;
+            }
+        }
+        
+        ///<summary>
+        ///Invoke the method using the default binding flags, binder and culture.
+        ///</summary>
+        public object Invoke(object obj, object[] parameters)
+        {
+            return Invoke(obj, BindingFlags.Default, null, parameters, null);
+        }
+        
+        ///<summary>
+        ///Dynamically invokes a method.
+        ///</summary>        
+        public virtual object Invoke(object obj, BindingFlags invokeAttr,
+            Binder binder, object[] parameters, CultureInfo culture)
+        {
+            // Build the method signature and the parameters lists.
+            List<object> temporals = new List<object> ();
+            List<byte> signature = new List<byte>();
+            List<IntPtr> parameterList = new List<IntPtr>();
+            
+            // Add the return type to the signature.
+            Type returnType = GetReturnType();
+            AppendSignatureReturnType(signature, returnType);
+
+            // Append the this parameter.
+            if(!IsStatic)
+                AppendThisParam(signature, parameterList, obj);
+            
+            // Make sure the parameters length is correct.            
+            ParameterInfo[] paramInfos = GetParameters();
+            if(parameters == null)
+            {
+                if(paramInfos.Length != 0)
+                    throw new ArgumentException("parameters");
+            }
+            else if(parameters.Length != paramInfos.Length)
+                throw new ArgumentException("parameters");
+
+            // Add each one of the parameter types to the signature.          
+            for(int i = 0; i < paramInfos.Length; ++i)
+            {
+                ParameterInfo param = paramInfos[i];
+                Type paramType = param.ParameterType;
+                AppendParam(parameterList, parameters[i], paramType, i, temporals);
+                AppendSignatureType(signature, paramType);
+            }
+
+            // Finish the signature with a null terminator.
+            signature.Add(0);
+
+            // Get the arrays containing the signature and the parameters.
+            byte[] signatureArray = signature.ToArray();
+            IntPtr[] paramArray = parameterList.ToArray();
+
+            object returnObject = null;
+            bool isVoid = returnType == typeof(void);
+            unsafe {
+                // Allocate space for the return value
+                void *returnPointer = null;
+                void *returnObjectPointer = null;
+                void *returnIface = null;
+                if(returnType.IsInterface)
+                {
+                    // Must cast into object after invokation
+                    returnPointer = (void*)&returnIface;
+                }
+                else if(returnType.IsValueType && !isVoid)
+                {
+                    // Allocate the boxed structure.
+                    void *allocated = __chela_mgd_alloc__(returnType.size, reinterpret_cast<void*> (returnType));
+                    returnObject = reinterpret_cast<object> (allocated);
+
+                    // Use the data pointer as the return address.
+                    returnPointer = reinterpret_cast<byte*> (returnObject) + returnType.dataOffset;
+                }
+                else if(!isVoid)
+                {
+                    // The return type is an object by itself.
+                    returnPointer = reinterpret_cast<void*> (&returnObjectPointer);
+                }
+
+                // Perform the dynamic method invokation
+                //TODO: Support polymorphism.
+                _Chela_Reflection_Invoke(methodPointer, &signatureArray[0], (const void**)&paramArray[0], returnPointer);
+
+                // Cast the interface into an object.
+                if(returnIface != null)
+                {
+                    StandardObject *obj = reinterpret_cast<StandardObject*> (returnIface);
+                    byte *objBase = reinterpret_cast<byte*> (returnIface) - obj->vtable->offset;
+                    returnObject = reinterpret_cast<object> (objBase);
+                }
+                else if(returnObjectPointer != null)
+                {
+                    returnObject = reinterpret_cast<object> (returnObjectPointer);
+                }
+            }
+            
+            // Return the object.
+            return returnObject;
+        }
+        
+        private Type GetReturnType()
+        {
+            // If I'm a method info, use the return type property.
+            // Otherwise I'm a constructor, which returns void.
+            MethodInfo method = this as MethodInfo;
+            if(method != null)
+                return method.ReturnType;
+            else
+                return typeof(void);
+        }
+
+        private static KeyValuePair<Type, byte>[] PrimitiveNameTable = new KeyValuePair<Type, byte>[] {
+            new KeyValuePair<Type, byte> (typeof(bool), (byte)'x'),
+            new KeyValuePair<Type, byte> (typeof(byte), (byte)'B'),
+            new KeyValuePair<Type, byte> (typeof(sbyte), (byte)'b'),
+            new KeyValuePair<Type, byte> (typeof(char), (byte)'c'),
+            new KeyValuePair<Type, byte> (typeof(short), (byte)'s'),
+            new KeyValuePair<Type, byte> (typeof(ushort), (byte)'S'),
+            new KeyValuePair<Type, byte> (typeof(int), (byte)'i'),
+            new KeyValuePair<Type, byte> (typeof(uint), (byte)'I'),
+            new KeyValuePair<Type, byte> (typeof(long), (byte)'l'),
+            new KeyValuePair<Type, byte> (typeof(ulong), (byte)'L'),
+            new KeyValuePair<Type, byte> (typeof(size_t), (byte)'P'),
+            new KeyValuePair<Type, byte> (typeof(ptrdiff_t), (byte)'p'),
+            new KeyValuePair<Type, byte> (typeof(float), (byte)'f'),
+            new KeyValuePair<Type, byte> (typeof(double), (byte)'F'),
+        };
+
+        private static void AppendSignatureReturnType(List<byte> signature, Type returnType)
+        {
+            if(returnType == typeof(void))
+                signature.Add((byte)'v');
+            else
+                AppendSignatureType(signature, returnType);
+        }
+        
+        private static void AppendSignatureType(List<byte> signature, Type type)
+        {
+            // Try to match primitive types.
+            int numprims = PrimitiveNameTable.Length;
+            for(int i = 0; i < numprims; ++i)
+            {
+                KeyValuePair<Type, byte> pair = PrimitiveNameTable[i];
+                if(pair.Key == type)
+                {
+                    signature.Add(pair.Value);
+                    return;
+                }
+            }
+
+            // Match by category.
+            if(type.IsVector)
+            {
+                // Add the vector name, the dimensions and the element type.
+                signature.Add((byte)'V');
+                signature.Add((byte)type.Dimensions);
+                AppendSignatureType(signature, type.ElementType);
+            }
+            else if(type.IsMatrix)
+            {
+                // Add the matrix name, the dimensions and the element type.
+                signature.Add((byte)'M');
+                signature.Add((byte)type.Rows);
+                signature.Add((byte)type.Columns);
+                AppendSignatureType(signature, type.ElementType);
+            }
+            else if(type.IsByRef)
+            {
+                // Add the reference type name.
+                signature.Add((byte)'R');
+            }
+            else if(type.IsValueType)
+            {
+                // Append the d of data.
+                signature.Add((byte)'d');
+
+                // Store the number of fields.
+                ushort numfields = type.numsubtypes;
+                signature.Add((byte) (numfields & 0xFF));
+                signature.Add((byte) ((numfields >> 8) & 0xFF));
+
+                // Append the subtypes.
+                unsafe {
+                    for(int i = 0; i < numfields; ++i) {
+                        TypeInformation *subtypeInfo = type.subtypes[i];
+                        AppendSignatureType(signature, reinterpret_cast<Type> (subtypeInfo));
+                    }
+                }
+            }
+            else
+            {
+                // Unsupported type.
+                throw new ArgumentException("Unsupported type '" + type.Name + "' for reflection invoke.");
+            }
+        }
+
+        private void AppendParam(List<IntPtr> parameterList, object parameter, Type paramType,
+                                 int index, List<object> temporals)
+        {
+            // Check the parameter type.
+            if(parameter != null)
+            {
+                unsafe {
+                    Type passedType = parameter.GetType();
+                    void *argumentPointer = reinterpret_cast<void*> (parameter);
+                    if(passedType != paramType)
+                    {
+                        // Handle polymorphism.
+                        if(passedType.IsSubclassOf(paramType))
+                        {
+                            // Simple cast.
+                            passedType = paramType;
+                        }
+                        else if(paramType.IsInterface)
+                        {
+                            throw new NotImplementedException("Interface casting in MethodBase.Invoke.");
+                        }
+                        else
+                        {
+                            throw new ArgumentException(index.ToString());
+                        }
+                    }
+
+                    // Now pass the argument.
+                    if(paramType.IsValueType)
+                        argumentPointer = reinterpret_cast<byte*> (parameter) + paramType.dataOffset;
+                    parameterList.Add((IntPtr)argumentPointer);
+                }
+            }
+            else
+            {
+                // For non primitive structures allocate an uninitialized one.
+                if(paramType.IsValueType && !paramType.IsPrimitive)
+                {
+                    unsafe {
+                        // Allocate the boxed structure.
+                        void *allocated = __chela_mgd_alloc__(paramType.size,
+                                            reinterpret_cast<void*> (paramType));
+                        temporals.Add(reinterpret_cast<object> (allocated));
+
+                        // Use the data pointer as the return address.
+                        byte *paramPtr = reinterpret_cast<byte*> (allocated) + paramType.dataOffset;
+                        parameterList.Add((IntPtr)paramPtr);
+                    }
+                }
+                else
+                {
+                    // Use the default parameter value.
+                    parameterList.Add((size_t)0);
+                }
+            }
+        }
+
+        private void AppendThisParam(List<byte> signature, List<IntPtr> parameterList, object self)
+        {
+            // Self cannot be null.
+            if(self == null)
+                
+            // This is always a pointer.
+            signature.Add((byte)'P');
+
+            unsafe {
+                // Compute the actual self pointer.
+                byte *selfPointer = null;
+                Type selfType = DeclaringType;
+                if(selfType.IsValueType)
+                {
+                    // Ignore the box.
+                    selfPointer = reinterpret_cast<byte*> (self) + selfType.dataOffset;
+                }
+                else
+                {
+                    // Just cast the pointer.
+                    selfPointer = reinterpret_cast<byte*> (self);
+                }
+
+                // Store the self pointer.
+                parameterList.Add((IntPtr)selfPointer);
+            }
+        }
+
+        ///<summary>
+        ///The method attributes.
+        ///</summary>
+        public MethodAttributes Attributes {
+            get {
+                return (MethodAttributes)attributes;
+            }
+        }
+
+        ///<summary>
+        ///Is this an abstract method?
+        ///</summary>
+        public bool IsAbstract {
+            get {
+                return (Attributes & MethodAttributes.Abstract) == MethodAttributes.Abstract;
+            }
+        }
+
+        ///<summary>
+        ///Does this method has assembly level access?
+        ///</summary>
+        public bool IsAssembly {
+            get {
+                return (Attributes & MethodAttributes.MemberAccessMask) == MethodAttributes.Assembly;
+            }
+        }
+
+        ///<summary>
+        ///Is this method a constructor?
+        ///</summary>
+        public bool IsConstructor {
+            get {
+                return this.GetType() == typeof(ConstructorInfo);
+            }
+        }
+
+        ///<summary>
+        ///Does this method has family access level?
+        ///</summary>
+        public bool IsFamily {
+            get {
+                return (Attributes & MethodAttributes.MemberAccessMask) == MethodAttributes.Family;
+            }
+        }
+
+        ///<summary>
+        ///Does this method has family and assembly access level?
+        ///</summary>
+        public bool IsFamilyAndAssembly {
+            get {
+                return (Attributes & MethodAttributes.MemberAccessMask) == MethodAttributes.FamANDAssem;
+            }
+        }
+
+        ///<summary>
+        ///Does this method has family or aseembly access level?
+        ///</summary>
+        public bool IsFamilyOrAssembly {
+            get {
+                return (Attributes & MethodAttributes.MemberAccessMask) == MethodAttributes.FamORAssem;
+            }
+        }
+
+        ///<summary>
+        ///Is this method final?
+        ///</summary>
+        public bool IsFinal {
+            get {
+                return (Attributes & MethodAttributes.Final) == MethodAttributes.Final;
+            }
+        }
+
+        ///<summary>
+        ///Is this a generic method?
+        ///</summary>
+        public bool IsGenericMethod {
+            get {
+                throw new NotImplementedException();
+            }
+        }
+
+        ///<summary>
+        ///Is this a generic method definition?
+        ///</summary>
+        public bool IsGenericMethodDefinition {
+            get {
+                throw new NotImplementedException();
+            }
+        }
+
+        ///<summary>
+        ///Is this method hidden by signature?
+        ///</summary>
+        public bool IsHideBySig {
+            get {
+                return (Attributes & MethodAttributes.HideBySig) == MethodAttributes.HideBySig;
+            }
+        }
+
+        ///<summary>
+        ///Is this method private?
+        ///</summary>
+        public bool IsPrivate {
+            get {
+                return (Attributes & MethodAttributes.MemberAccessMask) == MethodAttributes.Private;
+            }
+        }
+
+        ///<summary>
+        ///Is this method public?
+        ///</summary>
+        public bool IsPublic {
+            get {
+                return (Attributes & MethodAttributes.MemberAccessMask) == MethodAttributes.Public;
+            }
+        }
+
+        ///<summary>
+        ///Is this method a special name?
+        ///</summary>
+        public bool IsSpecialName {
+            get {
+                return (Attributes & MethodAttributes.RTSpecialName) == MethodAttributes.RTSpecialName;
+            }
+        }
+
+        ///<summary>
+        ///Is this an static method?
+        ///</summary>
+        public bool IsStatic {
+            get {
+                return (Attributes & MethodAttributes.Static) == MethodAttributes.Static;
+            }
+        }
+
+        ///<summary>
+        ///Is this virtual method?
+        ///</summary>
+        public bool IsVirtual {
+            get {
+                return (Attributes & MethodAttributes.Virtual) == MethodAttributes.Virtual;
+            }
+        }
+    }
+}
+

@@ -1,0 +1,17 @@
+using Chela.Lang;
+
+namespace Chela.Reflection
+{
+    ///<summary>
+    ///The event info attributes.
+    ///</summary>
+    [Flags]
+    public enum EventAttributes
+    {
+        None = 0,	//None
+        SpecialName = 512,	//SpecialName
+        ReservedMask = 1024,	//ReservedMask
+        RTSpecialName = 1024,	//ReservedMask
+    }
+}
+

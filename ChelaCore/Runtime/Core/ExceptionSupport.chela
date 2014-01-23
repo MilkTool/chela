@@ -1,0 +1,597 @@
+//#define DEBUG
+
+using Chela.Lang;
+
+// Chela exception handling implementation is heavily based in llvm ExceptionDemo example.
+namespace Chela.Runtime.Core
+{
+    //------------------------------------------------------------------------
+    // libunwind API.
+    internal struct UnwindContext {};
+
+    internal struct UnwindReasonCode
+    {
+        public const int NoReason = 0;
+	    public const int ForeignExceptionCaught = 1;
+	    public const int FatalPhase2Error = 2;
+        public const int FatalPhase1Error = 3;
+        public const int NormalStop = 4;
+        public const int EndOfStack = 5;
+        public const int HandlerFound = 6;
+        public const int InstallContext = 7;
+        public const int ContinueUnwind = 8;
+    };
+
+    internal struct UnwindAction
+    {
+        public const int SearchPhase = 1;
+        public const int CleanupPhase = 2;
+        public const int HandlerFrame = 4;
+        public const int ForceUnwind = 8;
+    };
+
+    internal unsafe struct UnwindException
+    {
+        public ulong exceptionClass;
+        public void (*)(int reason, UnwindException *exc) exceptionCleanup;
+        public ulong private1;
+        public ulong private2;
+    };
+
+    internal struct Dwarf
+    {
+        public const int DW_EH_PE_absptr = 0x00;
+        public const int DW_EH_PE_omit = 0xff;
+        public const int DW_EH_PE_uleb128 = 0x01;
+        public const int DW_EH_PE_udata2 = 0x02;
+        public const int DW_EH_PE_udata4 = 0x03;
+        public const int DW_EH_PE_udata8 = 0x04;
+        public const int DW_EH_PE_sleb128 = 0x09;
+        public const int DW_EH_PE_sdata2 = 0x0A;
+        public const int DW_EH_PE_sdata4 = 0x0B;
+        public const int DW_EH_PE_sdata8 = 0x0C;
+        public const int DW_EH_PE_signed = 0x08;
+        public const int DW_EH_PE_pcrel = 0x10;
+        public const int DW_EH_PE_textrel = 0x20;
+        public const int DW_EH_PE_datarel = 0x30;
+        public const int DW_EH_PE_funcrel = 0x40;
+        public const int DW_EH_PE_aligned = 0x50;
+        public const int DW_EH_PE_indirect = 0x80;
+    };
+    
+    unsafe extern __cdecl int _Unwind_RaiseException(UnwindException *exception);
+    unsafe extern __cdecl const byte *_Unwind_GetLanguageSpecificData(UnwindContext *context);
+    unsafe extern __cdecl size_t _Unwind_GetGR (UnwindContext *c, int i);
+    unsafe extern __cdecl void _Unwind_SetGR (UnwindContext *c, int i, size_t n);
+    unsafe extern __cdecl void _Unwind_SetIP (UnwindContext *c, size_t new_value);
+    unsafe extern __cdecl size_t _Unwind_GetIP (UnwindContext *context);
+    unsafe extern __cdecl size_t _Unwind_GetRegionStart (UnwindContext *context);
+
+    //------------------------------------------------------------------------
+    // Chela exception handling implementation.
+
+    internal unsafe struct ChelaExceptionStructure
+    {
+        public UnwindException unwindInfo;
+        public StandardObject *exceptionObject;
+    };
+
+    internal const ulong ChelaExceptionClass = 0x43484C4152504349ul;
+
+    internal extern __cdecl void _Chela_Sys_Abort();
+    unsafe extern __cdecl void _Chela_IO_Puts(const sbyte *s);
+    unsafe extern __cdecl int _Chela_IO_PutInt(const sbyte *msg, int value);
+    unsafe extern __cdecl int _Chela_IO_PutSize(const sbyte *msg, size_t size);
+    unsafe extern __cdecl int _Chela_IO_PutPointer(const sbyte *msg, const void *ptr);
+
+    internal unsafe void CleanStructure(int reason, UnwindException *exc)
+    {
+#if DEBUG
+        _Chela_IO_Puts(c"Clean exception.");
+#endif
+        // Cast the exception structure.
+        ChelaExceptionStructure *chelaExc = (ChelaExceptionStructure*)exc;
+
+        // Release the exception object.
+        __chela_rel_ref__((void*)chelaExc->exceptionObject);
+
+        // Delete the exception structure.
+        delete chelaExc;
+    }
+
+    // Platform specific constants.
+    [ChelaIntrinsic("Eh.Dwarf.ExceptionRegister")]
+    internal extern const int ExceptionRegister;
+
+    [ChelaIntrinsic("Eh.Dwarf.SelectorRegister")]
+    internal extern const int SelectorRegister;
+
+    /// Read a uleb128 encoded value and advance pointer 
+    /// See Variable Length Data in: 
+    /// @link http://dwarfstd.org/Dwarf3.pdf @unlink
+    /// @param data reference variable holding memory pointer to decode from
+    /// @returns decoded value
+    internal unsafe size_t ReadULEB128(const byte** data) {
+        size_t result = 0;
+        size_t shift = 0;
+        byte by;
+        const byte* p = *data;
+
+        do {
+            by = *p++;
+            result |= (by & 0x7f) << shift;
+            shift += 7;
+        } 
+        while ((by & 0x80) != 0);
+
+        *data = p;
+
+        return result;
+    }
+
+    /// Read a sleb128 encoded value and advance pointer 
+    /// See Variable Length Data in: 
+    /// @link http://dwarfstd.org/Dwarf3.pdf @unlink
+    /// @param data reference variable holding memory pointer to decode from
+    /// @returns decoded value
+    internal unsafe size_t ReadSLEB128(const byte** data)
+    {
+        size_t result = 0;
+        size_t shift = 0;
+        byte by;
+        const byte* p = *data;
+
+        do {
+            by = *p++;
+            result |= (by & 0x7f) << shift;
+            shift += 7;
+        } 
+        while ((by & 0x80) != 0);
+
+        *data = p;
+
+        if ((by & 0x40) != 0 && (shift < (size_t)(sizeof(size_t) << 3))) {
+            result |= (~0u << shift);
+        }
+
+        return result;
+    }
+
+    /// Read a pointer encoded value and advance pointer 
+    /// See Variable Length Data in: 
+    /// @link http://dwarfstd.org/Dwarf3.pdf @unlink
+    /// @param data reference variable holding memory pointer to decode from
+    /// @param encoding dwarf encoding type
+    /// @returns decoded value
+    internal unsafe size_t ReadEncodedPointer(const byte** data, int encoding)
+    {
+        size_t result = 0u;
+        const byte* p = *data;
+
+        if (encoding == Dwarf.DW_EH_PE_omit) 
+            return result;
+
+        // first get value 
+        switch (encoding & 0x0F)
+        {
+            case Dwarf.DW_EH_PE_absptr:
+                result = *((size_t*)p);
+                p += sizeof(size_t);
+                break;
+            case Dwarf.DW_EH_PE_uleb128:
+                result = ReadULEB128(&p);
+                break;
+            // Note: This case has not been tested
+            case Dwarf.DW_EH_PE_sleb128:
+                result = ReadSLEB128(&p);
+                break;
+            case Dwarf.DW_EH_PE_udata2:
+                result = *((ushort*)p);
+                p += 2;
+                break;
+            case Dwarf.DW_EH_PE_udata4:
+                result = *((uint*)p);
+                p += 4;
+                break;
+            case Dwarf.DW_EH_PE_udata8:
+                result = *((ulong*)p);
+                p += 8;
+                break;
+            case Dwarf.DW_EH_PE_sdata2:
+                result = (size_t) *((short*)p);
+                p += 2;
+                break;
+            case Dwarf.DW_EH_PE_sdata4:
+                result = (size_t) *((int*)p);
+                p += 4;
+                break;
+            case Dwarf.DW_EH_PE_sdata8:
+                result = (size_t) *((long*)p);
+                p += 8;
+                break;
+            default:
+                // not supported 
+                _Chela_IO_PutInt(c"unsupported pointer encoding", encoding);
+                _Chela_Sys_Abort();
+                break;
+        }
+
+        // then add relative offset 
+        switch (encoding & 0x70)
+        {
+            case Dwarf.DW_EH_PE_absptr:
+                // do nothing 
+                break;
+            case Dwarf.DW_EH_PE_pcrel:
+                result += reinterpret_cast<size_t> (*data);
+                break;
+            case Dwarf.DW_EH_PE_textrel:
+            case Dwarf.DW_EH_PE_datarel:
+            case Dwarf.DW_EH_PE_funcrel:
+            case Dwarf.DW_EH_PE_aligned:
+            default:
+                // not supported 
+                _Chela_Sys_Abort();
+                break;
+        }
+
+        // then apply indirection 
+        if ((encoding & Dwarf.DW_EH_PE_indirect) != 0)
+        {
+            result = *reinterpret_cast<size_t*> (result);
+        }
+
+        *data = p;
+
+        return result;
+    }
+
+    internal unsafe TypeInformation *GetEncodedType(const byte *classInfo, int ttypeEncoding, long typeOffset)
+    {
+        const byte *typeInfo = null;
+
+        // Get the type info record offset.
+        switch (ttypeEncoding & 0x0F)
+        {
+            case Dwarf.DW_EH_PE_absptr:
+                typeInfo = &classInfo[-typeOffset*(long)sizeof(size_t)];
+                break;
+            case Dwarf.DW_EH_PE_udata2:
+            case Dwarf.DW_EH_PE_sdata2:
+                typeInfo = &classInfo[-typeOffset*2];
+                break;
+            case Dwarf.DW_EH_PE_udata4:
+            case Dwarf.DW_EH_PE_sdata4:
+                typeInfo = &classInfo[-typeOffset*4];
+                break;
+            case Dwarf.DW_EH_PE_udata8:
+            case Dwarf.DW_EH_PE_sdata8:
+                typeInfo = &classInfo[-typeOffset*8];
+                break;
+            case Dwarf.DW_EH_PE_uleb128:
+            case Dwarf.DW_EH_PE_sleb128:
+            default:
+                // not supported 
+                _Chela_Sys_Abort();
+                break;
+        }
+
+        // Decode the type info.
+        return reinterpret_cast<TypeInformation*> (ReadEncodedPointer(&typeInfo, ttypeEncoding));
+    }
+
+    /// Deals with Dwarf actions matching our type infos 
+    /// (TypeInformation instances). Returns whether or not a dwarf emitted 
+    /// action matches the supplied exception type. If such a match succeeds, 
+    /// the resultAction argument will be set with > 0 index value. Only 
+    /// corresponding llvm.eh.selector type info arguments, cleanup arguments 
+    /// are supported. Filters are not supported.
+    /// See Variable Length Data in: 
+    /// @link http://dwarfstd.org/Dwarf3.pdf @unlink
+    /// Also see @link http://refspecs.freestandards.org/abi-eh-1.21.html @unlink
+    /// @param resultAction reference variable which will be set with result
+    /// @param classInfo our array of type info pointers (to globals)
+    /// @param actionEntry index into above type info array or 0 (clean up). 
+    ///        We do not support filters.
+    /// @param exceptionClass exception class (_Unwind_Exception::exception_class)
+    ///        of thrown exception.
+    /// @param exceptionObject thrown _Unwind_Exception instance.
+    /// @returns whether or not a type info was found. False is returned if only
+    ///          a cleanup was found
+    internal unsafe bool HandleActionValue(long *resultAction,
+                                  const byte *classInfo,
+                                  int ttypeEncoding,
+                                  size_t actionEntry,
+                                  ulong exceptionClass, 
+                                  UnwindException *exceptionObject)
+    {
+        bool ret = false;
+
+        if (resultAction == null || exceptionObject == null || 
+            exceptionClass != ChelaExceptionClass)
+            return ret;
+
+        // Read the exception type.
+        ChelaExceptionStructure *exception = (ChelaExceptionStructure*) exceptionObject;
+        StandardObject *exceptionObject = exception->exceptionObject;
+        TypeInformation *exceptionType = exceptionObject->vtable->type;
+
+#if DEBUG
+        _Chela_IO_Puts(c"HandleActionValue: decoded exception type.");
+#endif
+        const byte *actionPos = reinterpret_cast<const byte*> (actionEntry);
+        const byte *tempActionPos;
+        long typeOffset = 0, actionOffset;
+        
+        for(int i = 0; /*true*/; ++i)
+        {
+            // Each emitted dwarf action corresponds to a 2 tuple of
+            // type info address offset, and action offset to the next
+            // emitted action.
+            typeOffset = (long)ReadSLEB128(&actionPos); // TODO: Check portability of this.
+            tempActionPos = actionPos;
+            actionOffset = (long)ReadSLEB128(&tempActionPos);
+
+#if DEBUG
+            _Chela_IO_Puts(c"HandleActionValue");
+            _Chela_IO_PutSize(c"typeOffset", (size_t)typeOffset);
+#endif
+
+            if(typeOffset < 0)
+            {
+                _Chela_IO_Puts(c"HandleActionValue: filters are not supported.");
+                _Chela_Sys_Abort();
+            }
+
+            // Note: a type offset == 0 implies a cleanup argument has been matched.
+            if(typeOffset != 0)
+            {
+                TypeInformation *tableType = GetEncodedType(classInfo, ttypeEncoding, typeOffset);
+#if DEBUG
+                _Chela_IO_Puts(c"HandleActionValue: checking derived.");
+                _Chela_IO_PutPointer(c"exceptionType", (const void*)exceptionType);
+                _Chela_IO_PutPointer(c"tableType", (const void*)tableType);
+#endif
+                if(IsObjectDerivedFrom(exceptionType, tableType))
+                {
+#if DEBUG
+                    _Chela_IO_Puts(c"HandleActionValue: action value found.");
+#endif
+                    *resultAction = i+1;
+                    ret = true;
+                    break;
+                }
+            }
+
+#if DEBUG
+        _Chela_IO_Puts(c"HandleActionValue: action value not found.");
+        _Chela_IO_PutInt(c"actionOffset", (int)actionOffset);
+#endif
+            if(actionOffset == 0)
+                break;
+
+            actionPos += actionOffset;
+        }
+
+        return ret;
+    }
+
+    internal unsafe int HandleLsda(int version, int actions, ulong exceptionClass,
+                            UnwindException *exceptionObject,
+                            UnwindContext *context, const byte *lsda)
+    {
+        int ret = UnwindReasonCode.ContinueUnwind;
+        if(lsda == null)
+            return ret;
+
+#if DEBUG
+        _Chela_IO_Puts(c"HandleLsda: lsda is not null.");
+#endif
+
+        // Get the current instruction pointer and offset it before next
+        // instruction in the current frame which threw the exception.
+        size_t pc = _Unwind_GetIP(context)-1u;
+
+        // Get beginning current frame's code (as defined by the 
+        // emitted dwarf code)
+        size_t funcStart = _Unwind_GetRegionStart(context);
+        size_t pcOffset = pc - funcStart;
+        const byte *classInfo = null;
+
+        // Parse LSDA header.
+        byte lpStartEncoding = *lsda++;
+        if (lpStartEncoding != Dwarf.DW_EH_PE_omit)
+            ReadEncodedPointer(&lsda, lpStartEncoding); 
+
+        byte ttypeEncoding = *lsda++;
+        size_t classInfoOffset;
+
+        if (ttypeEncoding != Dwarf.DW_EH_PE_omit)
+        {
+            // Calculate type info locations in emitted dwarf code which
+            // were flagged by type info arguments to llvm.eh.selector
+            // intrinsic
+            classInfoOffset = ReadULEB128(&lsda);
+            classInfo = lsda + classInfoOffset;
+        }
+
+        // Walk call-site table looking for range that 
+        // includes current PC. 
+
+        byte         callSiteEncoding = *lsda++;
+        size_t       callSiteTableLength = ReadULEB128(&lsda);
+        const byte*  callSiteTableStart = lsda;
+        const byte*  callSiteTableEnd = callSiteTableStart + callSiteTableLength;
+        const byte*  actionTableStart = callSiteTableEnd;
+        const byte*  callSitePtr = callSiteTableStart;
+
+        bool foreignException = false;
+
+        while (callSitePtr < callSiteTableEnd)
+        {
+            size_t start = ReadEncodedPointer(&callSitePtr, callSiteEncoding);
+            size_t length = ReadEncodedPointer(&callSitePtr, callSiteEncoding);
+            size_t landingPad = ReadEncodedPointer(&callSitePtr, callSiteEncoding);
+
+            // Note: Action value
+            size_t actionEntry = ReadULEB128(&callSitePtr);
+
+            if (exceptionClass != ChelaExceptionClass)
+            {
+                // We have been notified of a foreign exception being thrown,
+                // and we therefore need to execute cleanup landing pads
+                actionEntry = 0u;
+                foreignException = true;
+            }
+
+            if (landingPad == 0u)
+            {
+#if DEBUG
+                _Chela_IO_Puts(c"HandleLsda: No landing pad found.");
+#endif
+                continue; // No landing pad for this entry
+            }
+
+            if (actionEntry != 0u)
+            {
+                actionEntry += reinterpret_cast<size_t> (actionTableStart) - 1u;
+            }
+            else
+            {
+#if DEBUG
+                _Chela_IO_Puts(c"HandleLsda: No action table found.");
+#endif
+            }
+
+            bool exceptionMatched = false;
+            if ((start <= pcOffset) && (pcOffset < (start + length)))
+            {
+#if DEBUG
+                _Chela_IO_Puts(c"HandleLsda: Landing pad found.");
+#endif
+                long actionValue = 0;
+                if(actionEntry != 0u)
+                    exceptionMatched = HandleActionValue(&actionValue, classInfo,
+                                        ttypeEncoding, actionEntry, exceptionClass, exceptionObject);
+
+                if ((actions & UnwindAction.SearchPhase) == 0)
+                {
+#if DEBUG
+                   _Chela_IO_Puts(c"HandleLsda: Installed landing pad context.");
+#endif
+                    // Found landing pad for the PC.
+                    // Set Instruction Pointer to so we re-enter function 
+                    // at landing pad. The landing pad is created by the 
+                    // compiler to take two parameters in registers.
+                    // This register corresponds with the llvm.eh.exception intrinsic.
+                    _Unwind_SetGR(context, 
+                                  ExceptionRegister, 
+                                  reinterpret_cast<size_t> (exceptionObject));
+
+                    // Note: this virtual register directly corresponds
+                    //       to the return of the llvm.eh.selector intrinsic
+                    if (actionEntry == 0u || !exceptionMatched)
+                    {
+                        // We indicate cleanup only
+                        _Unwind_SetGR(context, SelectorRegister, 0u);
+                    }
+                    else
+                    {
+                        // Matched type info index of llvm.eh.selector intrinsic
+                        // passed here.
+                        _Unwind_SetGR(context, SelectorRegister, (size_t)actionValue);
+                    }
+
+                    // To execute landing pad set here
+                    _Unwind_SetIP(context, funcStart + landingPad);
+                    ret = UnwindReasonCode.InstallContext;
+                }
+                else if(exceptionMatched)
+                {
+#if DEBUG
+                   _Chela_IO_Puts(c"HandleLsda: Setting handler found.");
+#endif
+                    return UnwindReasonCode.HandlerFound;
+                }
+                else
+                {
+#if DEBUG
+                   _Chela_IO_Puts(c"HandleLsda: Cleanup handler found.");
+#endif
+                }
+
+                break;
+            }
+        }
+
+        return ret;
+    }
+
+    public unsafe __cdecl int __chela_eh_personality__(int version, int action,
+                                              ulong exceptionClass,
+                                              UnwindException *exceptionObject,
+                                              UnwindContext *context)
+    {
+#if DEBUG
+        _Chela_IO_Puts(c"personality called.");
+        if((action & UnwindAction.SearchPhase) != 0)
+            _Chela_IO_Puts(c"personality is in search phase.");
+        else
+            _Chela_IO_Puts(c"personality is in non-search phase.");
+#endif
+
+        // Get the language specific data.
+        const byte *lsda = _Unwind_GetLanguageSpecificData(context);
+
+        // Process it
+        return HandleLsda(version, action, exceptionClass, exceptionObject, context, lsda);
+    }
+
+    public unsafe __cdecl void __chela_eh_throw__(void *exceptionObject)
+    {
+        if(exceptionObject != null)
+        {
+            // Add reference to the exception object.
+            __chela_add_ref__(exceptionObject);
+
+            // Create the exception structure.
+            ChelaExceptionStructure *exceptionStruct = heapalloc ChelaExceptionStructure;
+            exceptionStruct->unwindInfo.exceptionClass = ChelaExceptionClass;
+            exceptionStruct->unwindInfo.exceptionCleanup = &CleanStructure;
+            exceptionStruct->exceptionObject = (StandardObject*)exceptionObject;
+            int error =_Unwind_RaiseException((UnwindException*)exceptionStruct);
+            if(error != UnwindReasonCode.NoReason && error != UnwindReasonCode.EndOfStack)
+                _Chela_IO_PutInt(c"Unwind raise error", error);
+
+            // Release extra reference from the exception object.
+            __chela_rel_ref__(exceptionObject);
+        }
+
+        // At least abort().
+        Console.WriteLine("Unhandled exception.");
+        if(exceptionObject != null)
+        {
+            // Print the exception/stack trace
+            object obj = reinterpret_cast<object> (exceptionObject);
+            Console.WriteLine(obj.ToString());
+        }
+
+        _Chela_Sys_Abort();
+    }
+
+    public unsafe __cdecl void *__chela_eh_read__(void *exception)
+    {
+        // Cast the exception structure.
+        ChelaExceptionStructure *chelaExc = (ChelaExceptionStructure*)exception;
+
+        // Read the exception object.
+        void *excObject = (void*)chelaExc->exceptionObject;
+
+        // Delete the exception structure.
+        delete chelaExc;
+
+        // Return the exception object.
+        return excObject;
+    }
+}
+

@@ -1,0 +1,19 @@
+namespace Chela.Gui
+{
+    ///<summary>
+    ///Idle event arguments.
+    ///</summary>
+    public class IdleEvent: GuiEvent
+    {
+        public IdleEvent(WindowContext context, GuiEventType type)
+            : base(context, type)
+        {
+        }
+    }
+
+    ///<summary>
+    ///Idle event handler.
+    ///</summary>
+    public delegate void IdleEventHandler(object sender, IdleEvent args);
+}
+

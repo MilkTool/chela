@@ -1,0 +1,18 @@
+using Chela.Lang;
+
+namespace Chela.Gui
+{
+    /// <summary>
+    /// Window layout keeper.
+    /// </summary>
+    public abstract class Sizer
+    {
+        /// <summary>
+        /// Layouts the sizer for minimal dimensions.
+        /// </summary>
+        public virtual void Fit(Window window)
+        {
+        }
+    }
+}
+

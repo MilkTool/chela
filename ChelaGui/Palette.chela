@@ -1,0 +1,99 @@
+using Chela.Lang;
+
+namespace Chela.Gui
+{
+    ///<summary>
+    ///An image color palette.
+    ///</summary>
+    public sealed class Palette
+    {
+        private PixelFormat format;
+        private int count;
+        private int colorSize;
+        private byte[] colors;        
+        
+        ///<summary>
+        ///Constructs a palette with the given format and number of colors.
+        ///</summary>
+        ///<remarks>
+        ///The number of colors allowed must be between 0-255 inclusive.
+        ///</remarks>
+        public Palette(PixelFormat format, int count)
+        {
+            if(count < 0 || count > 256)
+                throw new ArgumentOutOfRangeException("count");
+            else if(ImageUtil.IsIndexedFormat(format))
+                throw new ArgumentException("Cannot use an indexed pixel format in palette definition.");
+                
+            this.format = format;
+            this.count = count;
+            this.colorSize = ImageUtil.GetPixelSize(format);
+            this.colors = new byte[colorSize];
+        }
+        
+        ///<summary>
+        ///The pixel format used by the palette.
+        ///</summary>
+        public PixelFormat Format {
+            get {
+                return format;
+            }
+        }
+        
+        ///<summary>
+        ///The number of colors in the palette.
+        ///</summary>
+        public int Count {
+            get {
+                return count;
+            }
+        }
+        
+        ///<summary>
+        ///The color data in the palette.
+        ///</summary>
+        public byte[] Colors {
+            get {
+                return colors;
+            }
+        }
+        
+        ///<summary>
+        ///Finds the closest color in the palette.
+        ///</summary>
+        public int FindClosestColor(Color color)
+        {
+            int best = -1;
+            int bestDist = 0;
+            ivec4 colorVec = color.ToIntVector();
+            for(int i = 0; i < count; ++i)
+            {
+                int dist = (colorVec - GetColor(i).ToIntVector()).Length2();
+                if(best < 0 || dist < bestDist)
+                {
+                    best = i;
+                    bestDist = dist;
+                }
+            }
+            
+            return best;
+        }
+        
+        ///<summary>
+        ///Decode the color in the requested slot.
+        ///</summary>
+        public Color GetColor(int index)
+        {
+            return ImageUtil.DecodePixel(colors, index, format);
+        }
+        
+        ///<summary>
+        ///Stores the color in the requested slot.
+        ///</summary>
+        public void SetColor(int index, Color color)
+        {
+            ImageUtil.EncodePixel(colors, index, format, color);
+        }
+    }
+}
+
